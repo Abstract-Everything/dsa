@@ -1,0 +1,88 @@
+# For the full configuration refer to:
+# https://cmake-format.readthedocs.io/en/latest/configopts.html#options-affecting-formatting
+
+additional_commands:
+        conan_add_remote:
+                kwargs:
+                        URL: 1
+                        NAME: 1
+                        INDEX: 1
+                        COMMAND: 1
+                        VERIFY_SSL: 1
+
+        conan_cmake_run:
+                flags:
+                        [
+                                BASIC_SETUP,
+                                CMAKE_TARGETS,
+                                UPDATE,
+                                KEEP_RPATHS,
+                                NO_LOAD,
+                                NO_OUTPUT_DIRS,
+                                OUTPUT_QUIET,
+                                NO_IMPORTS SKIP_STD
+                        ]
+
+                kwargs:
+                        CONANFILE: 1
+                        ARCH: 1
+                        BUILD_TYPE: 1
+                        INSTALL_FOLDER: 1
+                        CONAN_COMMAND: 1
+                        DEBUG_PROFILE: '+'
+                        RELEASE_PROFILE: '+'
+                        RELWITHDEBINFO_PROFILE: '+'
+                        MINSIZEREL_PROFILE: '+'
+                        PROFILE: '+'
+                        REQUIRES: '+'
+                        OPTIONS: '+'
+                        IMPORTS: '+'
+                        SETTINGS: '+'
+                        BUILD: '+'
+                        ENV: '+'
+                        GENERATORS: '+'
+                        PROFILE_AUTO: '+'
+                        INSTALL_ARGS: '+'
+                        CONFIGURATION_TYPES: '+'
+                        PROFILE_BUILD: '+'
+                        BUILD_REQUIRES: '+'
+
+        conan_cmake_configure:
+                kwargs:
+                        REQUIRES: '+'
+                        BUILD_REQUIRES: '+'
+                        GENERATORS: '+'
+                        OPTIONS: '+'
+                        IMPORTS: '+'
+
+        conan_cmake_install:
+                kwargs:
+                        PATH_OR_REFERENCE: 1
+                        BUILD: '+'
+                        REMOTE: 1
+                        SETTINGS: '+'
+
+        catch_discover_tests:
+                kwargs:
+                        TEST_SPEC: '+'
+                        EXTRA_ARGS: '+'
+                        WORKING_DIRECTORY: 1
+                        TEST_PREFIX: 1
+                        TEST_SUFFIX: 1
+                        PROPERTIES: '+'
+                        REPORTER: 1
+                        OUTPUT_DIR: 1
+                        OUTPUT_PREFIX: 1
+                        OUTPUT_SUFFIX: 1
+
+line_width: 100
+tab_size: 8
+use_tabchars: true
+fractional_tab_policy: 'use-space'
+max_subgroups_hwrap: 2
+max_pargs_hwrap: 4
+keyword_case: upper
+autosort: true
+
+global_var_pattern: '(CPP_TMPL_[A-Z]*|CMAKE_BUILD_TYPE)'
+max_statement_spacing: 2

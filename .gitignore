@@ -1,0 +1,6 @@
+# Ignore clangd cache
+.cache
+compile_commands.json
+
+# Ignore cmake build dir
+build/

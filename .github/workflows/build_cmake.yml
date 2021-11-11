@@ -1,0 +1,98 @@
+name: CMake
+
+on: [push]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  build_type: RelWithDebInfo
+
+  # Conan cache environment variables
+  CONAN_SYSREQUIRES_MODE: enabled
+  CONAN_USER_HOME: "${{ github.workspace }}/conan-cache"
+  CONAN_USER_HOME_SHORT: "None"
+
+jobs:
+  # Use a bash shell so we can use the same syntax for environment variable
+  # access regardless of the host operating system
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - {
+              name: "ubuntu-gcc",
+              artifact: "linux-gcc.tar.xz",
+              os: ubuntu-latest,
+              cc: "gcc",
+              cxx: "g++"
+            }
+          - {
+              name: "ubuntu-clang",
+              artifact: "linux-clang.tar.xz",
+              os: ubuntu-latest,
+              cc: "clang",
+              cxx: "clang++"
+            }
+          - {
+              name: "windows-msvc",
+              artifact: "windows-msvc.tar.xz",
+              os: windows-latest,
+              cc: "cl",
+              cxx: "cl"
+            }
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cache
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-conan-modules
+      with:
+        path: |
+          ${{ env.CONAN_USER_HOME }}
+          ~/.cache/pip
+        key: ${{ runner.os }}-${{ env.build_type }}
+
+    - name: Create Build Environment
+      shell: bash
+      run: cmake -E make_directory "${{ runner.workspace }}/build"
+
+    - name: Install conan
+      shell: bash
+      run: |
+        python3 -m pip install --upgrade pip setuptools
+        python3 -m pip install conan
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{ runner.workspace }}/build
+      # Set CC/ CXX so that the specified compiler is used
+      # Source the profile to make sure conan is in PATH
+      run: |
+        # Gihub windows runner has MinGw for bash which finds VS compiler
+        # automatically
+        if [ "${{ matrix.config.os }}" != "windows-latest" ]; then
+          export CC=$(whereis -b ${{ matrix.config.cc }} | awk '{print $2}')
+          export CXX=$(whereis -b ${{ matrix.config.cxx }} | awk '{print $2}')
+          source ~/.profile
+        fi
+        cmake -S $GITHUB_WORKSPACE                       \
+              -B "${{ runner.workspace }}/build"         \
+              -DCMAKE_BUILD_TYPE="${{ env.build_type }}" \
+              -DCPP_TMPL_TESTING="gtest"
+
+    - name: Build
+      working-directory: ${{ runner.workspace }}/build
+      shell: bash
+      # Execute the build. You can specify a specific target with "--target <NAME>"
+      run: cmake --build . --config $build_type
+
+    - name: Test
+      working-directory: ${{ runner.workspace }}/build
+      shell: bash
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest -C $build_type
+

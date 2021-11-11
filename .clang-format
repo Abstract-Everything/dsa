@@ -1,0 +1,164 @@
+Language: Cpp
+Standard: Auto
+
+# Whitespace options
+ColumnLimit: 80
+UseCRLF: false
+UseTab: ForContinuationAndIndentation
+TabWidth: 8
+IndentWidth: 8
+
+AccessModifierOffset: -7
+ContinuationIndentWidth: 4
+ConstructorInitializerIndentWidth: 4
+
+CompactNamespaces: false
+
+# Indentation
+# IndentAccessModifiers: false # clang-format 13
+IndentCaseBlocks: false
+IndentCaseLabels: false
+IndentExternBlock: NoIndent
+IndentGotoLabels: true
+IndentPPDirectives: BeforeHash
+IndentRequires: true
+IndentWrappedFunctionNames: false
+# LambdaBodyIndentation: Signature # clang-format 13
+NamespaceIndentation: None
+
+# Single Spaces
+SpaceAfterCStyleCast: true
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: Default
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+# SpaceBeforeCpp11BracedList
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: false
+# SpacesInLineCommentPrefix: # clang-format 14
+#   Minimum: 1
+#   Maximum: 2
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# Alignment
+AlignAfterOpenBracket: AlwaysBreak
+# AlignArraysOfStructures: Right # clang-format 13
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: Consecutive
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Left
+AlignOperands: Align
+AlignTrailingComments: false
+
+# Formatting by newlines
+AllowAllArgumentsOnNextLine: false
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BitFieldColonSpacing: Both
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Allman
+# BraceWrapping: # Only set when BreakBeforeBraces is custom
+BreakBeforeConceptDeclarations: true
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+BreakStringLiterals: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+DeriveLineEnding: false
+EmptyLineBeforeAccessModifier: Always
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+# PackConstructorInitializers: NextLine # clang-format 14
+ExperimentalAutoDetectBinPacking: false
+
+# Macros
+StatementMacros: []
+TypenameMacros: []
+WhitespaceSensitiveMacros: []
+AttributeMacros: []
+ForEachMacros: []
+# CommentPragmas: ''
+# MacroBlockBegin
+# MacroBlockEnd
+# NamespaceMacros
+StatementAttributeLikeMacros: []
+
+# Includes
+IncludeBlocks: Regroup
+IncludeCategories: 
+  - Regex: '<[[:alnum:].]+>'
+    Priority: 2
+    SortPriority: 2
+  - Regex: '<(gtest|gmock|catch).+>'
+    Priority: 4
+    SortPriority: 4
+  - Regex: '<.*/.*>'
+    Priority: 3
+    SortPriority: 3
+  - Regex: '".*"'
+    Priority: 1
+    SortPriority: 1
+IncludeIsMainRegex: "$"
+# IncludeIsMainSourceRegex
+SortIncludes: true
+
+# Penalty tweaking
+PenaltyBreakAssignment: 0
+PenaltyBreakBeforeFirstCallParameter: 0
+PenaltyBreakComment: 0
+PenaltyBreakFirstLessLess: 0
+PenaltyBreakString: 0
+PenaltyBreakTemplateDeclaration: 0
+PenaltyExcessCharacter: 2
+PenaltyIndentedWhitespace: 0
+PenaltyReturnTypeOnItsOwnLine: 0
+
+# Miscellaneous
+DerivePointerAlignment: false
+PointerAlignment: Right
+# QualifierAlignment: Right # clang-format 14
+# QualifierOrder: ['inline', 'static', 'constexpr', 'type', 'const', 'volatile'] # clang-format 14
+
+Cpp11BracedListStyle: false
+
+ReflowComments: true
+FixNamespaceComments: true
+# ShortNamespaceLines: 0 # clang-format 14
+
+SortUsingDeclarations: true
+
+InsertTrailingCommas: Wrapped
+
+RawStringFormats:
+  - Language: Cpp
+    Delimiters:
+      - 'CPP'
+#  - Language: Json # clang-format 13
+#    Delimiters:
+#      - 'JSON'
+# ReferenceAlignment: Pointer # clang-format 14
