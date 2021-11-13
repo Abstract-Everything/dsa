@@ -41,8 +41,7 @@ enable_static_analyzers()
 enable_tests()
 
 add_subdirectory(dependencies)
-add_subdirectory(lib)
-add_subdirectory(src)
+add_subdirectory(visual)
 
 if(${CPP_TMPL_TESTING} STREQUAL "gtest")
 	add_subdirectory(test)

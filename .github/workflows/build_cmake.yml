@@ -64,6 +64,8 @@ jobs:
       run: |
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install conan
+        conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+        conan config set general.revisions_enabled=1
 
     - name: Configure CMake
       shell: bash
