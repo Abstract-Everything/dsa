@@ -4,13 +4,9 @@ macro(ENABLE_TESTS)
 	    "off"
 	    CACHE STRING "Testing framework to use")
 
-	set_property(CACHE CPP_TMPL_TESTING PROPERTY STRINGS "off" "gtest" "catch2")
+	set_property(CACHE CPP_TMPL_TESTING PROPERTY STRINGS "off" "gtest")
 
-	if(${CPP_PROJECT_TEMPLATE_USING_CLANG})
-		option(CPP_TMPL_TESTING_FUZZING "Enable Fuzzing Builds" OFF)
-	endif()
-
-	if(CPP_TMPL_TESTING_FUZZING OR NOT ${CPP_TMPL_TESTING} STREQUAL "off")
+	if(NOT ${CPP_TMPL_TESTING} STREQUAL "off")
 		enable_testing()
 	endif()
 endmacro()

@@ -7,7 +7,6 @@ target_link_libraries(
 	gtest
 	PRIVATE project_options
 		project_warnings
-		library
 		GTest::gtest
 		GTest::gtest_main)
 
