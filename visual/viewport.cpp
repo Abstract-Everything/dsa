@@ -12,7 +12,7 @@ void Viewport::process(const Allocated_Array_Event &event)
 void Viewport::process(const Assignment_Event &event)
 {
 	std::uint64_t index = (event.address() - m_address) / m_element_size;
-	m_visual_array.set_element(index, "0");
+	m_visual_array.set_element(index, event.value());
 }
 
 void Viewport::draw(sf::RenderTarget &target, sf::RenderStates states) const

@@ -101,14 +101,13 @@ void Main_Window::start()
 {
 	const sf::Color dark_grey{ 25, 25, 25 };
 
-	dsa::Dynamic_Array<Element_Monitor, Memory_Monitor<Element_Monitor>> array{
-		Memory_Monitor<Element_Monitor>{}
-	};
+	dsa::Dynamic_Array<Element_Monitor<int>, Memory_Monitor<Element_Monitor<int>>>
+	    array{ Memory_Monitor<Element_Monitor<int>>{} };
 
 	array.resize(array_size);
-	array[0] = Element_Monitor{};
-	array[1] = Element_Monitor{};
-	array[2] = Element_Monitor{};
+	array[0] = Element_Monitor<int>{ 0 };
+	array[1] = Element_Monitor<int>{ 1 };
+	array[2] = Element_Monitor<int>{ 2 };
 
 	sf::Clock deltaClock;
 	while (m_window.isOpen())
