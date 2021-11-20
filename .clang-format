@@ -112,14 +112,17 @@ StatementAttributeLikeMacros: []
 IncludeBlocks: Regroup
 IncludeCategories: 
   - Regex: '<(gtest|gmock|catch).+>'
+    Priority: 6
+    SortPriority: 6
+  - Regex: '<[[:alnum:]]+>'
     Priority: 5
     SortPriority: 5
-  - Regex: '<[[:alnum:]]+>'
-    Priority: 4
-    SortPriority: 4
-  - Regex: '<.*/.*>'
+  - Regex: '<dsa/.*>'
     Priority: 3
     SortPriority: 3
+  - Regex: '<.*/.*>'
+    Priority: 4
+    SortPriority: 4
   - Regex: '<[[:alnum:].]+>'
     Priority: 2
     SortPriority: 2
