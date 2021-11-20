@@ -1,15 +1,17 @@
-#ifndef VISUAL_ARRAY_HPP
-#define VISUAL_ARRAY_HPP
+#ifndef VISUAL_ELEMENT_WIDGET_HPP
+#define VISUAL_ELEMENT_WIDGET_HPP
 
 #include <SFML/Graphics.hpp>
 
 namespace visual
 {
-class Element : public sf::Drawable
+class Element_Widget : public sf::Drawable
 {
  public:
-	Element();
+	Element_Widget();
 
+	void set_invalid();
+	void set_valid(std::string_view string);
 	void set_text(std::string_view string);
 
 	sf::Vector2f size() const;
@@ -17,22 +19,14 @@ class Element : public sf::Drawable
 	void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
  private:
+	const sf::Color invalid_background{ 255, 50, 50 };
+	const sf::Color background{ 0, 150, 255 };
+
 	sf::RectangleShape m_rectangle;
 	sf::Text           m_text;
 
 	void adjust();
 };
 
-class Array : public sf::Drawable
-{
- public:
-	explicit Array(std::size_t size);
-	void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
-
- private:
-	std::vector<Element> m_elements;
-};
-
 } // namespace visual
-
 #endif

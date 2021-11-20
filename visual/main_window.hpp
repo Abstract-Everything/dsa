@@ -1,10 +1,14 @@
 #ifndef VISUAL_MAIN_WINDOW_HPP
 #define VISUAL_MAIN_WINDOW_HPP
 
+#include "event.hpp"
+#include "viewport.hpp"
+
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Font.hpp>
 
 #include <filesystem>
+#include <list>
 
 namespace visual
 {
@@ -25,6 +29,8 @@ class Main_Window
 	void initialise(const std::vector<std::string> &arguments);
 	void start();
 
+	void add_event(std::unique_ptr<Event> event);
+
  private:
 	Main_Window();
 	~Main_Window();
@@ -33,6 +39,12 @@ class Main_Window
 
 	sf::RenderWindow m_window;
 	sf::Font         m_font;
+
+	std::list<std::unique_ptr<Event>> m_events;
+
+	Viewport m_viewport;
+
+	void process_events();
 };
 } // namespace visual
 

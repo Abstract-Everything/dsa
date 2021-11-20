@@ -1,9 +1,31 @@
 find_package(ImGui-SFML REQUIRED)
 find_package(fmt REQUIRED)
 
-add_executable(visual main.cpp array.cpp main_window.cpp)
-target_link_libraries(visual PRIVATE project_warnings project_options fmt::fmt
-				     ImGui-SFML::ImGui-SFML)
+add_executable(
+	visual
+	events/allocated_array_event.cpp
+	events/assignment_event.cpp
+	events/event.cpp
+	main.cpp
+	main_window.cpp
+	viewport.cpp
+	widgets/array_widget.cpp
+	widgets/element_widget.cpp)
+
+target_include_directories(
+	visual
+	PRIVATE ${CMAKE_CURRENT_LIST_DIR}
+		${CMAKE_CURRENT_LIST_DIR}/widgets
+		${CMAKE_CURRENT_LIST_DIR}/events
+		${CMAKE_CURRENT_LIST_DIR}/monitors)
+
+target_link_libraries(
+	visual
+	PRIVATE project_warnings
+		project_options
+		dsa
+		fmt::fmt
+		ImGui-SFML::ImGui-SFML)
 
 add_custom_target(
 	fonts

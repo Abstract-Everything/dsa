@@ -1,6 +1,9 @@
 #include "main_window.hpp"
 
-#include "array.hpp"
+#include "element_monitor.hpp"
+#include "memory_monitor.hpp"
+
+#include <dsa/dynamic_array.hpp>
 
 #include <SFML/Graphics.hpp>
 #include <fmt/format.h>
@@ -98,8 +101,16 @@ void Main_Window::start()
 {
 	const sf::Color dark_grey{ 25, 25, 25 };
 
-	visual::Array array{ array_size };
-	sf::Clock     deltaClock;
+	dsa::Dynamic_Array<Element_Monitor, Memory_Monitor<Element_Monitor>> array{
+		Memory_Monitor<Element_Monitor>{}
+	};
+
+	array.resize(array_size);
+	array[0] = Element_Monitor{};
+	array[1] = Element_Monitor{};
+	array[2] = Element_Monitor{};
+
+	sf::Clock deltaClock;
 	while (m_window.isOpen())
 	{
 		sf::Event event{};
@@ -113,13 +124,44 @@ void Main_Window::start()
 			}
 		}
 
+		process_events();
+
 		ImGui::SFML::Update(m_window, deltaClock.restart());
 		sf::RenderStates states;
 
 		m_window.clear(dark_grey);
-		array.draw(m_window, states);
+		m_viewport.draw(m_window, states);
 		ImGui::SFML::Render(m_window);
 		m_window.display();
 	}
+}
+
+void Main_Window::add_event(std::unique_ptr<Event> event)
+{
+	m_events.push_back(std::move(event));
+}
+
+void Main_Window::process_events()
+{
+	for (auto const &event : m_events)
+	{
+		if (auto const *allocated_array =
+			dynamic_cast<Allocated_Array_Event const *>(event.get()))
+		{
+			m_viewport.process(*allocated_array);
+		}
+		else if (
+		    auto const *assignment =
+			dynamic_cast<Assignment_Event const *>(event.get()))
+		{
+			m_viewport.process(*assignment);
+		}
+		else
+		{
+			// ToDo: temporary, use a proper logging system
+			throw std::runtime_error("Error unhandled event");
+		}
+	}
+	m_events.clear();
 }
 } // namespace visual
