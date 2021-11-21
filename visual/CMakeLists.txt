@@ -1,10 +1,11 @@
 find_package(ImGui-SFML REQUIRED)
 find_package(fmt REQUIRED)
+find_package(spdlog REQUIRED)
 
 add_executable(
 	visual
 	events/allocated_array_event.cpp
-	events/assignment_event.cpp
+	events/move_assignment_event.cpp
 	events/event.cpp
 	main.cpp
 	main_window.cpp
@@ -25,6 +26,7 @@ target_link_libraries(
 		project_options
 		dsa
 		fmt::fmt
+		spdlog::spdlog
 		ImGui-SFML::ImGui-SFML)
 
 add_custom_target(

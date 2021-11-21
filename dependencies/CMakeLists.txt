@@ -26,7 +26,10 @@ if(${CPP_TMPL_DOCS_DOXYGEN})
 endif()
 
 conan_cmake_configure(
-	REQUIRES ${CONAN_EXTRA_REQUIRES} fmt/6.2.0 imgui-sfml/2.3@bincrafters/stable
+	REQUIRES ${CONAN_EXTRA_REQUIRES}
+		 fmt/6.2.0
+		 spdlog/1.5.0
+		 imgui-sfml/2.3@bincrafters/stable
 	OPTIONS ${CONAN_EXTRA_OPTIONS}
 	GENERATORS cmake_find_package)
 

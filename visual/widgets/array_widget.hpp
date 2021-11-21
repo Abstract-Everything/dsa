@@ -12,15 +12,28 @@ namespace visual
 class Array_Widget : public sf::Drawable
 {
  public:
-	explicit Array_Widget(std::size_t size);
+	explicit Array_Widget(
+	    std::uint64_t address,
+	    std::size_t   element_size,
+	    std::size_t   size);
+
+	[[nodiscard]] std::uint64_t address() const;
+
+	[[nodiscard]] bool contains(std::uint64_t address) const;
+
+	void update_element(
+	    bool             initialised,
+	    std::uint64_t    address,
+	    std::string_view value);
 
 	void resize(std::size_t size);
-
-	void set_element(std::size_t index, std::string_view value);
 
 	void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
  private:
+	std::uint64_t m_address{ 0 };
+	std::size_t   m_element_size{ 0 };
+
 	std::vector<Element_Widget> m_elements{};
 };
 

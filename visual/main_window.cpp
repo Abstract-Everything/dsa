@@ -102,12 +102,14 @@ void Main_Window::start()
 	const sf::Color dark_grey{ 25, 25, 25 };
 
 	dsa::Dynamic_Array<Element_Monitor<int>, Memory_Monitor<Element_Monitor<int>>>
-	    array{ Memory_Monitor<Element_Monitor<int>>{} };
+	    array_a{ Memory_Monitor<Element_Monitor<int>>{} };
 
-	array.resize(array_size);
-	array[0] = Element_Monitor<int>{ 0 };
-	array[1] = Element_Monitor<int>{ 1 };
-	array[2] = Element_Monitor<int>{ 2 };
+	array_a.resize(array_size);
+	array_a[0] = Element_Monitor<int>{ 0 };
+	array_a[1] = Element_Monitor<int>{ 1 };
+	array_a[2] = Element_Monitor<int>{ 2 };
+
+	array_a.resize(2 * array_size);
 
 	sf::Clock deltaClock;
 	while (m_window.isOpen())
@@ -150,10 +152,10 @@ void Main_Window::process_events()
 			m_viewport.process(*allocated_array);
 		}
 		else if (
-		    auto const *assignment =
-			dynamic_cast<Assignment_Event const *>(event.get()))
+		    auto const *move_assignment =
+			dynamic_cast<Move_Assignment_Event const *>(event.get()))
 		{
-			m_viewport.process(*assignment);
+			m_viewport.process(*move_assignment);
 		}
 		else
 		{

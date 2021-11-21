@@ -20,7 +20,13 @@ class Memory_Monitor
 		    sizeof(T),
 		    size));
 
-		return reinterpret_cast<T *>(pointer);
+		T *typed_pointer = reinterpret_cast<T *>(pointer);
+		for (std::size_t i = 0; i < size; ++i)
+		{
+			typed_pointer[i] = T{};
+		}
+
+		return typed_pointer;
 	}
 
 	void deallocate(T *pointer) const
