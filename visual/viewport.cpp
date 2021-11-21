@@ -30,8 +30,8 @@ void Viewport::process(const Deallocated_Array_Event &event)
 
 	if (it == m_arrays.end())
 	{
-		spdlog::warn("Received a deallocate event on a non monitored "
-			     "address");
+		spdlog::warn(
+		    "Received a deallocate event on a non monitored address");
 		return;
 	}
 
@@ -52,8 +52,8 @@ void Viewport::process(const Copy_Assignment_Event &event)
 		}
 	}
 
-	spdlog::warn("Received an assignment event for an address outside any "
-		     "range");
+	spdlog::warn(
+	    "Received an assignment event for an address outside any range");
 }
 
 void Viewport::process(const Move_Assignment_Event &event)
@@ -85,8 +85,9 @@ void Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 		}
 	}
 
-	spdlog::warn("Received a move assignment event for an address outside "
-		     "any range");
+	spdlog::warn(
+	    "Received a move assignment event for an address outside any "
+	    "range");
 }
 
 void Viewport::updated_moved_from_element(const Move_Assignment_Event &event)

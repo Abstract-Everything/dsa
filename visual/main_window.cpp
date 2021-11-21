@@ -60,8 +60,8 @@ const sf::Font &Main_Window::default_font()
 
 void Main_Window::initialise(const std::vector<std::string> &arguments)
 {
-	constexpr std::string_view path_error = "Unable to figure out the path "
-						"to the executable";
+	constexpr std::string_view path_error =
+	    "Unable to figure out the path to the executable";
 
 	if (arguments.empty())
 	{
