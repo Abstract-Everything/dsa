@@ -19,6 +19,9 @@ class Viewport : public sf::Drawable
 
  private:
 	std::vector<Array_Widget> m_arrays;
+
+	void updated_moved_to_element(const Move_Assignment_Event &event);
+	void updated_moved_from_element(const Move_Assignment_Event &event);
 };
 
 } // namespace visual

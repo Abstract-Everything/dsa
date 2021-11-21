@@ -29,15 +29,21 @@ class Element_Monitor
 		std::swap(lhs.m_value, rhs.m_value);
 	}
 
-	Element_Monitor &operator=(Element_Monitor &&element)
+	Element_Monitor &operator=(Element_Monitor &&element) noexcept
 	{
+		// We leave element in a good state so that it could dispatch
+		// correct events if copied after move
+		Element_Monitor tmp{};
+		swap(*this, tmp);
 		swap(*this, element);
 
-		auto address = reinterpret_cast<std::uint64_t>(this);
+		auto to_address   = reinterpret_cast<std::uint64_t>(this);
+		auto from_address = reinterpret_cast<std::uint64_t>(&element);
 
 		visual::Event::Dispatch(std::make_unique<Move_Assignment_Event>(
 		    m_initialised,
-		    address,
+		    to_address,
+		    from_address,
 		    to_string()));
 
 		return *this;

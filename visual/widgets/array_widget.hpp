@@ -21,10 +21,9 @@ class Array_Widget : public sf::Drawable
 
 	[[nodiscard]] bool contains(std::uint64_t address) const;
 
-	void update_element(
-	    bool             initialised,
-	    std::uint64_t    address,
-	    std::string_view value);
+
+	void invalidate_element(std::uint64_t address);
+	void update_element(std::uint64_t address, std::string_view value);
 
 	void resize(std::size_t size);
 
@@ -35,6 +34,8 @@ class Array_Widget : public sf::Drawable
 	std::size_t   m_element_size{ 0 };
 
 	std::vector<Element_Widget> m_elements{};
+
+	[[nodiscard]] std::uint64_t index_of(std::uint64_t address) const;
 };
 
 } // namespace visual

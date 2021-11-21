@@ -24,8 +24,7 @@ std::uint64_t Array_Widget::address() const
 
 bool Array_Widget::contains(std::uint64_t address) const
 {
-	std::uint64_t index = (address - m_address) / m_element_size;
-	return index < m_elements.size();
+	return index_of(address) < m_elements.size();
 }
 
 void Array_Widget::resize(std::size_t size)
@@ -33,20 +32,14 @@ void Array_Widget::resize(std::size_t size)
 	m_elements.resize(size);
 }
 
-void Array_Widget::update_element(
-    bool             initialised,
-    std::uint64_t    address,
-    std::string_view value)
+void Array_Widget::invalidate_element(std::uint64_t address)
 {
-	std::uint64_t index = (address - m_address) / m_element_size;
-	if (initialised)
-	{
-		m_elements[index].set_valid(value);
-	}
-	else
-	{
-		m_elements[index].set_invalid();
-	}
+	m_elements[index_of(address)].set_invalid();
+}
+
+void Array_Widget::update_element(std::uint64_t address, std::string_view value)
+{
+	m_elements[index_of(address)].set_valid(value);
 }
 
 void Array_Widget::draw(sf::RenderTarget &target, sf::RenderStates states) const
@@ -57,6 +50,11 @@ void Array_Widget::draw(sf::RenderTarget &target, sf::RenderStates states) const
 		states.transform.translate(
 		    sf::Vector2f{ element.size().x + element_spacing, 0.0F });
 	}
+}
+
+std::uint64_t Array_Widget::index_of(std::uint64_t address) const
+{
+	return (address - m_address) / m_element_size;
 }
 
 } // namespace visual
