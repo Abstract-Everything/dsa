@@ -1,7 +1,10 @@
 #include "main_window.hpp"
 
+#include "allocated_array_event.hpp"
+#include "copy_assignment_event.hpp"
 #include "element_monitor.hpp"
 #include "memory_monitor.hpp"
+#include "move_assignment_event.hpp"
 
 #include <dsa/dynamic_array.hpp>
 
@@ -111,6 +114,9 @@ void Main_Window::start()
 
 	array_a.resize(2 * array_size);
 
+	dsa::Dynamic_Array<Element_Monitor<int>, Memory_Monitor<Element_Monitor<int>>>
+	    array_b{ array_a };
+
 	sf::Clock deltaClock;
 	while (m_window.isOpen())
 	{
@@ -156,6 +162,12 @@ void Main_Window::process_events()
 			dynamic_cast<Move_Assignment_Event const *>(event.get()))
 		{
 			m_viewport.process(*move_assignment);
+		}
+		else if (
+		    auto const *copy_assignment =
+			dynamic_cast<Copy_Assignment_Event const *>(event.get()))
+		{
+			m_viewport.process(*copy_assignment);
 		}
 		else
 		{

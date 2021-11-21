@@ -21,6 +21,10 @@ class Array_Widget : public sf::Drawable
 
 	[[nodiscard]] bool contains(std::uint64_t address) const;
 
+	void on_assignment(
+	    bool             initialised,
+	    std::uint64_t    address,
+	    std::string_view value);
 
 	void invalidate_element(std::uint64_t address);
 	void update_element(std::uint64_t address, std::string_view value);

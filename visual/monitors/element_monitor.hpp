@@ -1,6 +1,7 @@
 #ifndef VISUAL_ELEMENT_MONITOR_HPP
 #define VISUAL_ELEMENT_MONITOR_HPP
 
+#include "copy_assignment_event.hpp"
 #include "event.hpp"
 #include "move_assignment_event.hpp"
 
@@ -23,10 +24,37 @@ class Element_Monitor
 	{
 	}
 
+	Element_Monitor(const Element_Monitor &element)
+	    : m_value(element.m_value)
+	    , m_initialised(element.m_initialised)
+	{
+	}
+
+	Element_Monitor(Element_Monitor &&element) noexcept
+	    : m_value(std::move(element.m_value))
+	    , m_initialised(element.m_initialised)
+	{
+	}
+
 	friend void swap(Element_Monitor &lhs, Element_Monitor &rhs)
 	{
 		std::swap(lhs.m_initialised, rhs.m_initialised);
 		std::swap(lhs.m_value, rhs.m_value);
+	}
+
+	Element_Monitor &operator=(const Element_Monitor &element)
+	{
+		Element_Monitor temp{ element };
+		swap(*this, temp);
+
+		auto address = reinterpret_cast<std::uint64_t>(this);
+
+		visual::Event::Dispatch(std::make_unique<Copy_Assignment_Event>(
+		    m_initialised,
+		    address,
+		    to_string()));
+
+		return *this;
 	}
 
 	Element_Monitor &operator=(Element_Monitor &&element) noexcept

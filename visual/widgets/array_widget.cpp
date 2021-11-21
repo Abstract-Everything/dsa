@@ -32,6 +32,21 @@ void Array_Widget::resize(std::size_t size)
 	m_elements.resize(size);
 }
 
+void Array_Widget::on_assignment(
+    bool             initialised,
+    std::uint64_t    address,
+    std::string_view value)
+{
+	if (initialised)
+	{
+		update_element(address, value);
+	}
+	else
+	{
+		invalidate_element(address);
+	}
+}
+
 void Array_Widget::invalidate_element(std::uint64_t address)
 {
 	m_elements[index_of(address)].set_invalid();

@@ -5,8 +5,9 @@ find_package(spdlog REQUIRED)
 add_executable(
 	visual
 	events/allocated_array_event.cpp
-	events/move_assignment_event.cpp
+	events/copy_assignment_event.cpp
 	events/event.cpp
+	events/move_assignment_event.cpp
 	main.cpp
 	main_window.cpp
 	viewport.cpp

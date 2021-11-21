@@ -20,6 +20,24 @@ void Viewport::process(const Allocated_Array_Event &event)
 	m_arrays.emplace_back(event.address(), event.element_size(), event.size());
 }
 
+void Viewport::process(const Copy_Assignment_Event &event)
+{
+	for (auto &array : m_arrays)
+	{
+		if (array.contains(event.address()))
+		{
+			array.on_assignment(
+			    event.initialised(),
+			    event.address(),
+			    event.value());
+			return;
+		}
+	}
+
+	spdlog::warn("Received an assignment event for an address outside any "
+		     "range");
+}
+
 void Viewport::process(const Move_Assignment_Event &event)
 {
 	updated_moved_to_element(event);
@@ -41,16 +59,10 @@ void Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 	{
 		if (array.contains(event.to_address()))
 		{
-			if (event.initialised())
-			{
-				array.update_element(
-				    event.to_address(),
-				    event.value());
-			}
-			else
-			{
-				array.invalidate_element(event.to_address());
-			}
+			array.on_assignment(
+			    event.initialised(),
+			    event.to_address(),
+			    event.value());
 			return;
 		}
 	}
