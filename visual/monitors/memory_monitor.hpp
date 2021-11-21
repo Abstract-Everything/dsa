@@ -2,6 +2,7 @@
 #define VISUAL_MEMORY_MONITOR_HPP
 
 #include "allocated_array_event.hpp"
+#include "deallocated_array_event.hpp"
 
 #include <cstdint>
 
@@ -31,6 +32,9 @@ class Memory_Monitor
 
 	void deallocate(T *pointer) const
 	{
+		visual::Event::Dispatch(std::make_unique<Deallocated_Array_Event>(
+		    reinterpret_cast<std::uint64_t>(pointer)));
+
 		::operator delete(pointer);
 	}
 };

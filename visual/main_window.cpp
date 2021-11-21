@@ -11,6 +11,7 @@
 #include <SFML/Graphics.hpp>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <spdlog/spdlog.h>
 
 #include <exception>
 
@@ -114,9 +115,6 @@ void Main_Window::start()
 
 	array_a.resize(2 * array_size);
 
-	dsa::Dynamic_Array<Element_Monitor<int>, Memory_Monitor<Element_Monitor<int>>>
-	    array_b{ array_a };
-
 	sf::Clock deltaClock;
 	while (m_window.isOpen())
 	{
@@ -169,10 +167,18 @@ void Main_Window::process_events()
 		{
 			m_viewport.process(*copy_assignment);
 		}
+		else if (
+		    auto const *deallocated_array =
+			dynamic_cast<Deallocated_Array_Event const *>(event.get()))
+		{
+			m_viewport.process(*deallocated_array);
+		}
 		else
 		{
-			// ToDo: temporary, use a proper logging system
-			throw std::runtime_error("Error unhandled event");
+			Event const *event_ptr = event.get();
+			spdlog::error(
+			    "Unhandled event of type {}",
+			    typeid(event_ptr).name());
 		}
 	}
 	m_events.clear();

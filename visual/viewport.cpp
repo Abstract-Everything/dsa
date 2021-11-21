@@ -20,6 +20,24 @@ void Viewport::process(const Allocated_Array_Event &event)
 	m_arrays.emplace_back(event.address(), event.element_size(), event.size());
 }
 
+void Viewport::process(const Deallocated_Array_Event &event)
+{
+	auto it = std::find_if(
+	    m_arrays.begin(),
+	    m_arrays.end(),
+	    [&event](const Array_Widget &array)
+	    { return array.address() == event.address(); });
+
+	if (it == m_arrays.end())
+	{
+		spdlog::warn("Received a deallocate event on a non monitored "
+			     "address");
+		return;
+	}
+
+	m_arrays.erase(it);
+}
+
 void Viewport::process(const Copy_Assignment_Event &event)
 {
 	for (auto &array : m_arrays)
