@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(
-	c_plus_plus_template_project
+	cpp_data_structures_and_algorithms_visualisation
 	VERSION 0.0.0.1
-	DESCRIPTION "A template for C++ projects to get started quickly"
+	DESCRIPTION "A visualisation of data structures and algorihtms using C++"
 	LANGUAGES CXX)
 
 include(cmake/Constants.cmake)
@@ -41,17 +41,9 @@ enable_static_analyzers()
 enable_tests()
 
 add_subdirectory(dependencies)
-add_subdirectory(lib)
-add_subdirectory(src)
-
-if(${CPP_TMPL_TESTING} STREQUAL "catch2")
-	add_subdirectory(catch2_test)
-endif()
+add_subdirectory(dsa)
+add_subdirectory(visual)
 
 if(${CPP_TMPL_TESTING} STREQUAL "gtest")
-	add_subdirectory(gtest_test)
-endif()
-
-if(${CPP_TMPL_TESTING_FUZZING})
-	add_subdirectory(fuzz_test)
+	add_subdirectory(test)
 endif()

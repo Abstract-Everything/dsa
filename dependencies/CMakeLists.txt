@@ -17,10 +17,6 @@ set(CONAN_EXTRA_REQUIRES "")
 
 set(CONAN_EXTRA_OPTIONS "")
 
-if(${CPP_TMPL_TESTING} STREQUAL "catch2")
-	set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES} catch2/2.13.3)
-endif()
-
 if(${CPP_TMPL_TESTING} STREQUAL "gtest")
 	set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES} gtest/1.11.0)
 endif()
@@ -29,15 +25,22 @@ if(${CPP_TMPL_DOCS_DOXYGEN})
 	set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES} docopt.cpp/0.6.2)
 endif()
 
-if(${CPP_TMPL_GUI_IMGUI})
-	set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES} imgui-sfml/2.1@bincrafters/stable)
+set(CONAN_EXTRA_OPTIONS ${CONAN_EXTRA_OPTIONS} sfml:audio=False)
 
-	# set(CONAN_EXTRA_OPTIONS ${CONAN_EXTRA_OPTIONS} sfml:shared=False sfml:graphics=True
-	# sfml:audio=False sfml:window=True libalsa:disable_python=True)
-endif()
+conan_add_remote(
+	NAME bincrafters
+	INDEX 1
+	URL https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+	VERIFY_SSL True)
 
 conan_cmake_configure(
-	REQUIRES ${CONAN_EXTRA_REQUIRES} fmt/6.2.0 spdlog/1.5.0
+	REQUIRES ${CONAN_EXTRA_REQUIRES}
+		 fmt/6.2.0
+		 spdlog/1.5.0
+		 # We use an older version because v2.11 has an issue on MSVC
+		 # https://github.com/microsoft/vcpkg/pull/20674
+		 freetype/2.10.4
+		 imgui-sfml/2.3@bincrafters/stable
 	OPTIONS ${CONAN_EXTRA_OPTIONS}
 	GENERATORS cmake_find_package)
 
