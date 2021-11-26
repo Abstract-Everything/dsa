@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(
-	c_plus_plus_template_project
+	cpp_data_structures_and_algorithms_visualisation
 	VERSION 0.0.0.1
-	DESCRIPTION "A template for C++ projects to get started quickly"
+	DESCRIPTION "A visualisation of data structures and algorihtms using C++"
 	LANGUAGES CXX)
 
 include(cmake/Constants.cmake)
