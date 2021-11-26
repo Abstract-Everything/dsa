@@ -1,0 +1,2 @@
+sources:
+	https://fontsnetwork.com/times-new-roman-font/
