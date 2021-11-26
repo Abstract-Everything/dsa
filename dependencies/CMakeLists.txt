@@ -25,10 +25,15 @@ if(${CPP_TMPL_DOCS_DOXYGEN})
 	set(CONAN_EXTRA_REQUIRES ${CONAN_EXTRA_REQUIRES} docopt.cpp/0.6.2)
 endif()
 
+set(CONAN_EXTRA_OPTIONS ${CONAN_EXTRA_OPTIONS} sfml:audio=False)
+
 conan_cmake_configure(
 	REQUIRES ${CONAN_EXTRA_REQUIRES}
 		 fmt/6.2.0
 		 spdlog/1.5.0
+		 # We use an older version because v2.11 has an issue on MSVC
+		 # https://github.com/microsoft/vcpkg/pull/20674
+		 freetype/2.10.4
 		 imgui-sfml/2.3@bincrafters/stable
 	OPTIONS ${CONAN_EXTRA_OPTIONS}
 	GENERATORS cmake_find_package)
