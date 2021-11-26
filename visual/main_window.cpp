@@ -98,7 +98,11 @@ void Main_Window::initialise(const std::vector<std::string> &arguments)
 	}
 
 	fs::path times_path = fonts_path / "times-new-roman.ttf";
-	m_font.loadFromFile(times_path.string());
+	if (!m_font.loadFromFile(times_path.string()))
+	{
+		throw std::runtime_error(
+		    fmt::format("Failed to load font from '{}'", fonts_path));
+	}
 }
 
 void Main_Window::start()
