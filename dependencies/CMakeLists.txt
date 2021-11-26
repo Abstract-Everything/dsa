@@ -27,6 +27,12 @@ endif()
 
 set(CONAN_EXTRA_OPTIONS ${CONAN_EXTRA_OPTIONS} sfml:audio=False)
 
+conan_add_remote(
+	NAME bincrafters
+	INDEX 1
+	URL https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+	VERIFY_SSL True)
+
 conan_cmake_configure(
 	REQUIRES ${CONAN_EXTRA_REQUIRES}
 		 fmt/6.2.0
