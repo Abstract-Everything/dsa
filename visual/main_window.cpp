@@ -58,6 +58,11 @@ const sf::Font &Main_Window::default_font()
 	return m_font;
 }
 
+void Main_Window::add_event(std::unique_ptr<Event>&& event)
+{
+	m_viewport.add_event(std::move(event));
+}
+
 void Main_Window::initialise(const std::vector<std::string> &arguments)
 {
 	constexpr std::string_view path_error =
@@ -133,7 +138,7 @@ void Main_Window::start()
 			}
 		}
 
-		process_events();
+		m_viewport.process_events();
 
 		ImGui::SFML::Update(m_window, deltaClock.restart());
 		sf::RenderStates states;
@@ -145,46 +150,4 @@ void Main_Window::start()
 	}
 }
 
-void Main_Window::add_event(std::unique_ptr<Event> event)
-{
-	m_events.push_back(std::move(event));
-}
-
-void Main_Window::process_events()
-{
-	for (auto const &event : m_events)
-	{
-		if (auto const *allocated_array =
-			dynamic_cast<Allocated_Array_Event const *>(event.get()))
-		{
-			m_viewport.process(*allocated_array);
-		}
-		else if (
-		    auto const *move_assignment =
-			dynamic_cast<Move_Assignment_Event const *>(event.get()))
-		{
-			m_viewport.process(*move_assignment);
-		}
-		else if (
-		    auto const *copy_assignment =
-			dynamic_cast<Copy_Assignment_Event const *>(event.get()))
-		{
-			m_viewport.process(*copy_assignment);
-		}
-		else if (
-		    auto const *deallocated_array =
-			dynamic_cast<Deallocated_Array_Event const *>(event.get()))
-		{
-			m_viewport.process(*deallocated_array);
-		}
-		else
-		{
-			Event const *event_ptr = event.get();
-			spdlog::error(
-			    "Unhandled event of type {}",
-			    typeid(event_ptr).name());
-		}
-	}
-	m_events.clear();
-}
 } // namespace visual

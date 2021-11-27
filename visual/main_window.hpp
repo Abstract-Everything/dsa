@@ -8,7 +8,6 @@
 #include <SFML/Graphics/Font.hpp>
 
 #include <filesystem>
-#include <list>
 
 namespace visual
 {
@@ -24,12 +23,12 @@ class Main_Window
 	static Main_Window &instance();
 
 	const std::filesystem::path &executable_path();
-	const sf::Font &             default_font();
+	const sf::Font              &default_font();
+
+	void add_event(std::unique_ptr<Event> &&event);
 
 	void initialise(const std::vector<std::string> &arguments);
 	void start();
-
-	void add_event(std::unique_ptr<Event> event);
 
  private:
 	Main_Window();
@@ -40,11 +39,7 @@ class Main_Window
 	sf::RenderWindow m_window;
 	sf::Font         m_font;
 
-	std::list<std::unique_ptr<Event>> m_events;
-
 	Viewport m_viewport;
-
-	void process_events();
 };
 } // namespace visual
 
