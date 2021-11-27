@@ -24,7 +24,7 @@ class Memory_Monitor
 		T *typed_pointer = reinterpret_cast<T *>(pointer);
 		for (std::size_t i = 0; i < size; ++i)
 		{
-			typed_pointer[i] = T{};
+			new (typed_pointer + i) T{};
 		}
 
 		return typed_pointer;
