@@ -12,10 +12,13 @@
 #include <string>
 #include <vector>
 
+#include <spdlog/spdlog.h>
 #include <imgui-SFML.h>
 
 int main(int argc, const char *argv[])
 {
+	spdlog::set_level(spdlog::level::trace);
+
 	std::vector<std::string> arguments(static_cast<std::size_t>(argc));
 	for (std::size_t i = 0; i < arguments.size(); ++i)
 	{

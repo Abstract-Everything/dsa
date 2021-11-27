@@ -4,49 +4,38 @@
 
 #include <exception>
 
+namespace
+{
+constexpr std::chrono::seconds event_duration{ 2 };
+}
+
 namespace visual
 {
 void Viewport::add_event(std::unique_ptr<Event> &&event)
 {
+	spdlog::trace("Added eventof type: {}", event->name());
 	m_events.push_back(std::move(event));
 }
 
-void Viewport::process_events()
+void Viewport::update(std::chrono::microseconds deltaTime)
 {
-	for (auto const &event : m_events)
+	if (m_events.empty())
 	{
-		if (auto const *allocated_array =
-			dynamic_cast<Allocated_Array_Event const *>(event.get()))
-		{
-			process(*allocated_array);
-		}
-		else if (
-		    auto const *move_assignment =
-			dynamic_cast<Move_Assignment_Event const *>(event.get()))
-		{
-			process(*move_assignment);
-		}
-		else if (
-		    auto const *copy_assignment =
-			dynamic_cast<Copy_Assignment_Event const *>(event.get()))
-		{
-			process(*copy_assignment);
-		}
-		else if (
-		    auto const *deallocated_array =
-			dynamic_cast<Deallocated_Array_Event const *>(event.get()))
-		{
-			process(*deallocated_array);
-		}
-		else
-		{
-			Event const *event_ptr = event.get();
-			spdlog::error(
-			    "Unhandled event of type {}",
-			    typeid(event_ptr).name());
-		}
+		return;
 	}
-	m_events.clear();
+
+	if (m_eventTimeout.count() > 0)
+	{
+		m_eventTimeout -= deltaTime;
+		return;
+	}
+
+	m_eventTimeout = event_duration;
+	while (!process(*m_events.front().get()))
+	{
+		m_events.pop_front();
+	}
+	m_events.pop_front();
 }
 
 void Viewport::draw(sf::RenderTarget &target, sf::RenderStates states) const
@@ -54,25 +43,59 @@ void Viewport::draw(sf::RenderTarget &target, sf::RenderStates states) const
 	for (auto const &array : m_arrays)
 	{
 		array.draw(target, states);
+		// ToDo: Calculate the actual height of the array
 		states.transform.translate(sf::Vector2f{ 0.0F, 50.0F });
 	}
 }
 
-void Viewport::process(const Allocated_Array_Event &event)
+bool Viewport::process(const Event &event)
+{
+	spdlog::trace("Processing event of type: {}", event.name());
+
+	if (auto const *allocated_array =
+		dynamic_cast<Allocated_Array_Event const *>(&event))
+	{
+		return process(*allocated_array);
+	}
+
+	if (auto const *move_assignment =
+		dynamic_cast<Move_Assignment_Event const *>(&event))
+	{
+		return process(*move_assignment);
+	}
+
+	if (auto const *copy_assignment =
+		dynamic_cast<Copy_Assignment_Event const *>(&event))
+	{
+		return process(*copy_assignment);
+	}
+
+	if (auto const *deallocated_array =
+		dynamic_cast<Deallocated_Array_Event const *>(&event))
+	{
+		return process(*deallocated_array);
+	}
+
+	spdlog::warn("Unhandled event of type {}", event.name());
+	return false;
+}
+
+bool Viewport::process(const Allocated_Array_Event &event)
 {
 	for (auto const &array : m_arrays)
 	{
 		if (array.address() == event.address())
 		{
-			spdlog::warn("Received a duplicated allocate event on");
-			return;
+			spdlog::warn("Received a duplicated allocate event");
+			return false;
 		}
 	}
 
 	m_arrays.emplace_back(event.address(), event.element_size(), event.size());
+	return true;
 }
 
-void Viewport::process(const Deallocated_Array_Event &event)
+bool Viewport::process(const Deallocated_Array_Event &event)
 {
 	auto it = std::find_if(
 	    m_arrays.begin(),
@@ -84,13 +107,14 @@ void Viewport::process(const Deallocated_Array_Event &event)
 	{
 		spdlog::warn(
 		    "Received a deallocate event on a non monitored address");
-		return;
+		return false;
 	}
 
 	m_arrays.erase(it);
+	return true;
 }
 
-void Viewport::process(const Copy_Assignment_Event &event)
+bool Viewport::process(const Copy_Assignment_Event &event)
 {
 	for (auto &array : m_arrays)
 	{
@@ -100,21 +124,24 @@ void Viewport::process(const Copy_Assignment_Event &event)
 			    event.initialised(),
 			    event.address(),
 			    event.value());
-			return;
+			return true;
 		}
 	}
 
 	spdlog::warn(
 	    "Received an assignment event for an address outside any range");
+	return false;
 }
 
-void Viewport::process(const Move_Assignment_Event &event)
+bool Viewport::process(const Move_Assignment_Event &event)
 {
-	updated_moved_to_element(event);
-	updated_moved_from_element(event);
+	// This prevents short circuting
+	const bool moved_to   = updated_moved_to_element(event);
+	const bool moved_from = updated_moved_from_element(event);
+	return moved_to || moved_from;
 }
 
-void Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
+bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 {
 	for (auto &array : m_arrays)
 	{
@@ -124,25 +151,27 @@ void Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 			    event.initialised(),
 			    event.to_address(),
 			    event.value());
-			return;
+			return true;
 		}
 	}
 
 	spdlog::warn(
 	    "Received a move assignment event for an address outside any "
 	    "range");
+	return false;
 }
 
-void Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
+bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 {
 	for (auto &array : m_arrays)
 	{
 		if (array.contains(event.from_address()))
 		{
 			array.invalidate_element(event.from_address());
-			return;
+			return true;
 		}
 	}
+	return false;
 }
 
 } // namespace visual

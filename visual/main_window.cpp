@@ -138,12 +138,12 @@ void Main_Window::start()
 			}
 		}
 
-		m_viewport.process_events();
-
-		ImGui::SFML::Update(m_window, deltaClock.restart());
-		sf::RenderStates states;
+		const sf::Time deltaTime = deltaClock.restart();
+		ImGui::SFML::Update(m_window, deltaTime);
+		m_viewport.update(std::chrono::microseconds{deltaTime.asMicroseconds()});
 
 		m_window.clear(dark_grey);
+		sf::RenderStates states;
 		m_viewport.draw(m_window, states);
 		ImGui::SFML::Render(m_window);
 		m_window.display();
