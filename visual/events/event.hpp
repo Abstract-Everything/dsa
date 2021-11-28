@@ -12,6 +12,8 @@ class Event
 	static void Dispatch(std::unique_ptr<Event> event);
 
 	virtual ~Event() = default;
+
+	[[nodiscard]] const char *name() const;
 };
 
 } // namespace visual

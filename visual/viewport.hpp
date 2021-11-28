@@ -9,23 +9,35 @@
 
 #include <SFML/Graphics/Drawable.hpp>
 
+#include <chrono>
+#include <list>
+
 namespace visual
 {
 class Viewport : public sf::Drawable
 {
  public:
-	void process(const Allocated_Array_Event &event);
-	void process(const Deallocated_Array_Event &event);
-	void process(const Copy_Assignment_Event &event);
-	void process(const Move_Assignment_Event &event);
+	void add_event(std::unique_ptr<Event> &&event);
+	void update(std::chrono::microseconds deltaTime);
 
 	void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
  private:
-	std::vector<Array_Widget> m_arrays;
+	std::list<std::unique_ptr<Event>> m_events;
+	std::vector<Array_Widget>         m_arrays;
+	std::chrono::microseconds         m_eventTimeout{ -1 };
 
-	void updated_moved_to_element(const Move_Assignment_Event &event);
-	void updated_moved_from_element(const Move_Assignment_Event &event);
+	[[nodiscard]] bool process(const Event &event);
+	[[nodiscard]] bool process(const Allocated_Array_Event &event);
+	[[nodiscard]] bool process(const Deallocated_Array_Event &event);
+	[[nodiscard]] bool process(const Copy_Assignment_Event &event);
+	[[nodiscard]] bool process(const Move_Assignment_Event &event);
+
+	[[nodiscard]] bool updated_moved_to_element(
+	    const Move_Assignment_Event &event);
+
+	[[nodiscard]] bool updated_moved_from_element(
+	    const Move_Assignment_Event &event);
 };
 
 } // namespace visual

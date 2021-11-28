@@ -9,4 +9,9 @@ void Event::Dispatch(std::unique_ptr<Event> event)
 	Main_Window::instance().add_event(std::move(event));
 }
 
+const char *Event::name() const
+{
+	return typeid(*this).name();
+}
+
 } // namespace visual
