@@ -3,13 +3,14 @@
 
 #include "element_widget.hpp"
 
-#include <SFML/Graphics.hpp>
+#include "widget.hpp"
 
 #include <vector>
 
 namespace visual
 {
-class Array_Widget : public sf::Drawable
+
+class Array_Widget : public Widget
 {
  public:
 	explicit Array_Widget(
@@ -31,7 +32,12 @@ class Array_Widget : public sf::Drawable
 
 	void resize(std::size_t size);
 
-	void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+ protected:
+	[[nodiscard]] sf::Vector2f content_size() const override;
+
+	void content_draw(
+	    sf::RenderTarget &target,
+	    sf::RenderStates  states) const override;
 
  private:
 	std::uint64_t m_address{ 0 };

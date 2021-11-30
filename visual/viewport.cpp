@@ -43,8 +43,7 @@ void Viewport::draw(sf::RenderTarget &target, sf::RenderStates states) const
 	for (auto const &array : m_arrays)
 	{
 		array.draw(target, states);
-		// ToDo: Calculate the actual height of the array
-		states.transform.translate(sf::Vector2f{ 0.0F, 50.0F });
+		states.transform.translate(sf::Vector2f{ 0.0F, array.size().y });
 	}
 }
 
