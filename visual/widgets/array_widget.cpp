@@ -2,7 +2,7 @@
 
 namespace
 {
-constexpr float element_spacing = 5.0F;
+constexpr float element_spacing = 1.0F;
 } // namespace
 
 namespace visual
