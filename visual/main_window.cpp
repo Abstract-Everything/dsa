@@ -7,11 +7,10 @@
 #include <SFML/Graphics.hpp>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <imgui-SFML.h>
 #include <spdlog/spdlog.h>
 
 #include <exception>
-
-#include <imgui-SFML.h>
 
 namespace fs = std::filesystem;
 

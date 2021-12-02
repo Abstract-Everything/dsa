@@ -1,9 +1,9 @@
 #ifndef VISUAL_MAIN_WINDOW_HPP
 #define VISUAL_MAIN_WINDOW_HPP
 
+#include "actions.hpp"
 #include "event.hpp"
 #include "viewport.hpp"
-#include "actions.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Font.hpp>

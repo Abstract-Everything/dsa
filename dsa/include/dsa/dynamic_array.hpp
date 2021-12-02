@@ -80,7 +80,7 @@ class Dynamic_Array
 	Allocator m_allocator;
 
 	std::size_t m_size  = 0;
-	T *         m_array = nullptr;
+	T	  *m_array = nullptr;
 };
 
 } // namespace dsa
