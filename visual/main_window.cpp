@@ -54,7 +54,7 @@ const sf::Font &Main_Window::default_font()
 	return m_font;
 }
 
-void Main_Window::add_event(std::unique_ptr<Event>&& event)
+void Main_Window::add_event(std::unique_ptr<Event> &&event)
 {
 	m_viewport.add_event(std::move(event));
 }
@@ -136,9 +136,11 @@ void Main_Window::start()
 
 		const sf::Time deltaTime = deltaClock.restart();
 		ImGui::SFML::Update(m_window, deltaTime);
-		m_viewport.update(std::chrono::microseconds{deltaTime.asMicroseconds()});
+		m_viewport.update(
+		    std::chrono::microseconds{ deltaTime.asMicroseconds() });
 
 		m_window.clear(dark_grey);
+
 		sf::RenderStates states;
 		m_viewport.draw(m_window, states);
 		ImGui::SFML::Render(m_window);

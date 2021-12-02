@@ -11,6 +11,7 @@
 
 namespace visual
 {
+
 class Main_Window
 {
  public:
