@@ -1,10 +1,6 @@
 #include "main_window.hpp"
 
-#include "allocated_array_event.hpp"
-#include "copy_assignment_event.hpp"
-#include "element_monitor.hpp"
-#include "memory_monitor.hpp"
-#include "move_assignment_event.hpp"
+#include "event.hpp"
 
 #include <dsa/dynamic_array.hpp>
 
