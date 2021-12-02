@@ -20,7 +20,6 @@ namespace
 constexpr std::size_t x_resolution = 640;
 constexpr std::size_t y_resolution = 640;
 constexpr std::size_t frame_rate   = 60;
-constexpr std::size_t array_size   = 5;
 } // namespace
 
 namespace visual
@@ -110,16 +109,6 @@ void Main_Window::start()
 {
 	const sf::Color dark_grey{ 25, 25, 25 };
 
-	dsa::Dynamic_Array<Element_Monitor<int>, Memory_Monitor<Element_Monitor<int>>>
-	    array_a{ Memory_Monitor<Element_Monitor<int>>{} };
-
-	array_a.resize(array_size);
-	array_a[0] = Element_Monitor<int>{ 0 };
-	array_a[1] = Element_Monitor<int>{ 1 };
-	array_a[2] = Element_Monitor<int>{ 2 };
-
-	array_a.resize(2 * array_size);
-
 	sf::Clock deltaClock;
 	while (m_window.isOpen())
 	{
@@ -143,6 +132,8 @@ void Main_Window::start()
 
 		sf::RenderStates states;
 		m_viewport.draw(m_window, states);
+		m_actions.draw();
+
 		ImGui::SFML::Render(m_window);
 		m_window.display();
 	}
