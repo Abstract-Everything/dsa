@@ -5,6 +5,7 @@
 #include "memory_monitor.hpp"
 
 #include <dsa/dynamic_array.hpp>
+#include <dsa/vector.hpp>
 
 namespace visual
 {
@@ -15,25 +16,34 @@ class Actions_UI
 	void draw();
 
  private:
-	int m_read  = 0;
+	int m_read = 0;
+	std::string m_read_value;
 
 	int m_resize = 0;
 
-	int m_value  = 0;
-	int m_write  = 0;
+	int m_write_value = 0;
+	int m_write = 0;
 
-	dsa::Dynamic_Array<Element_Monitor<int>, Memory_Monitor<Element_Monitor<int>>>
-	    m_dynamic_array{ Memory_Monitor<Element_Monitor<int>>{} };
+	int m_insert_value = 0;
+	int m_insert = 0;
+
+	int m_append_value = 0;
+
+	int m_erase = 0;
+
+	dsa::Vector<Element_Monitor<int>, Memory_Monitor<Element_Monitor<int>>>
+	    m_vector{ Memory_Monitor<Element_Monitor<int>>{} };
 
 	void properties();
-	void read();
-	void resize();
-	void write();
+	void accessors();
+	void modifiers();
 
 	bool is_in_range(std::size_t index);
+	bool is_last_index(std::size_t index);
 
 	void section(const char *label, void (Actions_UI::*interface)());
 	void index_input(const char *label, int *value);
+	bool button(const char *label, bool enabled);
 };
 
 } // namespace visual
