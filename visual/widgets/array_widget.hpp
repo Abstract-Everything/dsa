@@ -2,7 +2,6 @@
 #define VISUAL_ARRAY_WIDGET_HPP
 
 #include "element_widget.hpp"
-
 #include "widget.hpp"
 
 #include <vector>
@@ -35,9 +34,8 @@ class Array_Widget : public Widget
  protected:
 	[[nodiscard]] sf::Vector2f content_size() const override;
 
-	void content_draw(
-	    sf::RenderTarget &target,
-	    sf::RenderStates  states) const override;
+	void content_draw(sf::RenderTarget &target, sf::RenderStates states)
+	    const override;
 
  private:
 	std::uint64_t m_address{ 0 };

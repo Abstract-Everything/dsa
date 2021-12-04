@@ -1,6 +1,7 @@
 #ifndef VISUAL_MAIN_WINDOW_HPP
 #define VISUAL_MAIN_WINDOW_HPP
 
+#include "actions.hpp"
 #include "event.hpp"
 #include "viewport.hpp"
 
@@ -11,6 +12,7 @@
 
 namespace visual
 {
+
 class Main_Window
 {
  public:
@@ -39,8 +41,10 @@ class Main_Window
 	sf::RenderWindow m_window;
 	sf::Font         m_font;
 
-	Viewport m_viewport;
+	Viewport   m_viewport;
+	Actions_UI m_actions;
 };
+
 } // namespace visual
 
 #endif

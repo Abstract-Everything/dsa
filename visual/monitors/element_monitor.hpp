@@ -83,14 +83,19 @@ class Element_Monitor
 		return stream;
 	}
 
+	[[nodiscard]] std::string to_string() const
+	{
+		if (m_initialised)
+		{
+			return std::to_string(m_value);
+		}
+
+		return "<Uninitialized memory>";
+	}
+
  private:
 	bool  m_initialised = false;
 	Value m_value{};
-
-	[[nodiscard]] std::string to_string() const
-	{
-		return std::to_string(m_value);
-	}
 };
 
 } // namespace visual

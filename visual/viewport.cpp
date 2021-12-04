@@ -19,11 +19,6 @@ void Viewport::add_event(std::unique_ptr<Event> &&event)
 
 void Viewport::update(std::chrono::microseconds deltaTime)
 {
-	if (m_events.empty())
-	{
-		return;
-	}
-
 	if (m_eventTimeout.count() > 0)
 	{
 		m_eventTimeout -= deltaTime;
@@ -31,11 +26,16 @@ void Viewport::update(std::chrono::microseconds deltaTime)
 	}
 
 	m_eventTimeout = event_duration;
-	while (!process(*m_events.front().get()))
+
+	while (!m_events.empty())
 	{
+		auto event = std::move(m_events.front());
 		m_events.pop_front();
+		if (process(*event))
+		{
+			break;
+		}
 	}
-	m_events.pop_front();
 }
 
 void Viewport::draw(sf::RenderTarget &target, sf::RenderStates states) const

@@ -9,6 +9,7 @@ add_executable(
 	events/copy_assignment_event.cpp
 	events/event.cpp
 	events/move_assignment_event.cpp
+	gui/actions.cpp
 	main.cpp
 	main_window.cpp
 	viewport.cpp
@@ -19,8 +20,9 @@ add_executable(
 target_include_directories(
 	visual
 	PRIVATE ${CMAKE_CURRENT_LIST_DIR}
-		${CMAKE_CURRENT_LIST_DIR}/widgets
 		${CMAKE_CURRENT_LIST_DIR}/events
+		${CMAKE_CURRENT_LIST_DIR}/gui
+		${CMAKE_CURRENT_LIST_DIR}/widgets
 		${CMAKE_CURRENT_LIST_DIR}/monitors)
 
 target_link_libraries(
