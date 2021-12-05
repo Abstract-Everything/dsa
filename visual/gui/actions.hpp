@@ -31,8 +31,7 @@ class Actions_UI
 
 	int m_erase = 0;
 
-	dsa::Vector<Element_Monitor<int>, Memory_Monitor<Element_Monitor<int>>>
-	    m_vector{ Memory_Monitor<Element_Monitor<int>>{} };
+	dsa::Vector<Element_Monitor<int>, Memory_Monitor> m_vector;
 
 	void properties();
 	void accessors();
