@@ -131,7 +131,7 @@ void Main_Window::start()
 
 		sf::RenderStates states;
 		m_viewport.draw(m_window, states);
-		m_actions.draw();
+		m_user_interface.draw_ui();
 
 		ImGui::SFML::Render(m_window);
 		m_window.display();

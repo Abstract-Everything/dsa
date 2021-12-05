@@ -9,7 +9,7 @@ add_executable(
 	events/copy_assignment_event.cpp
 	events/event.cpp
 	events/move_assignment_event.cpp
-	gui/actions.cpp
+	gui/user_interface.cpp
 	main.cpp
 	main_window.cpp
 	viewport.cpp
