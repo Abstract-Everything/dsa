@@ -59,7 +59,7 @@ class Actions_UI
 	bool is_last_index(std::size_t index);
 
 	void section(const char *label, void (Actions_UI::*interface)());
-	void index_input(const char *label, int *value);
+	void index_input(const char *label, int &value);
 	bool conditional_button(const char *label, bool enabled);
 };
 
@@ -115,7 +115,7 @@ void Actions_UI<Container>::accessors()
 	if constexpr (has_member_operator_access_v<Container>)
 	{
 		ImGui::Separator();
-		index_input("Index to read", &m_read);
+		index_input("Index to read", m_read);
 		const auto  read  = static_cast<std::size_t>(m_read);
 		std::string value = fmt::format(
 		    "{}",
@@ -125,7 +125,7 @@ void Actions_UI<Container>::accessors()
 
 		ImGui::Separator();
 		ImGui::InputInt("Value to write", &m_write_value);
-		index_input("Index of element to write", &m_write);
+		index_input("Index of element to write", m_write);
 
 		const auto write = static_cast<std::size_t>(m_write);
 		if (conditional_button("Write", is_in_range(write)))
@@ -183,7 +183,7 @@ void Actions_UI<Container>::modifiers()
 	if constexpr (has_member_insert_v<Container>)
 	{
 		ImGui::Separator();
-		index_input("Index of element to insert", &m_insert);
+		index_input("Index of element to insert", m_insert);
 		ImGui::InputInt("Insert Value", &m_insert_value);
 
 		const auto insert = static_cast<std::size_t>(m_insert);
@@ -199,7 +199,7 @@ void Actions_UI<Container>::modifiers()
 	{
 		ImGui::Separator();
 
-		index_input("Index of element to erase", &m_erase);
+		index_input("Index of element to erase", m_erase);
 
 		const auto erase = static_cast<std::size_t>(m_erase);
 		if (conditional_button("Erase", is_in_range(erase)))
@@ -235,10 +235,12 @@ void Actions_UI<Container>::section(const char *label, void (Actions_UI::*interf
 }
 
 template<typename Container>
-void Actions_UI<Container>::index_input(const char *label, int *value)
+void Actions_UI<Container>::index_input(const char *label, int &value)
 {
-	auto size = static_cast<int>(m_container.size());
-	ImGui::SliderInt(label, value, 0, std::max(0, size - 1));
+	const auto size      = static_cast<int>(m_container.size());
+	const auto max_index = std::max(0, size - 1);
+	value                = std::clamp(value, 0, max_index);
+	ImGui::SliderInt(label, &value, 0, max_index);
 }
 
 template<typename Container>
