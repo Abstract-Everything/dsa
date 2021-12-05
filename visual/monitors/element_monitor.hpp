@@ -10,13 +10,16 @@
 
 namespace visual
 {
+
 template<typename Value_t>
 class Element_Monitor
 {
 	using Value = Value_t;
 
  public:
-	Element_Monitor() = default;
+	Element_Monitor() : Element_Monitor{0}
+	{
+	}
 
 	explicit Element_Monitor(Value value)
 	    : m_initialised(true)
@@ -25,15 +28,20 @@ class Element_Monitor
 	}
 
 	Element_Monitor(const Element_Monitor &element)
-	    : m_value(element.m_value)
-	    , m_initialised(element.m_initialised)
+	    : m_initialised(element.m_initialised)
+	    , m_value(element.m_value)
 	{
 	}
 
 	Element_Monitor(Element_Monitor &&element) noexcept
-	    : m_value(std::move(element.m_value))
-	    , m_initialised(element.m_initialised)
+	    : m_initialised(element.m_initialised)
+	    , m_value(std::move(element.m_value))
 	{
+	}
+
+	void uninitialize()
+	{
+		m_initialised = false;
 	}
 
 	friend void swap(Element_Monitor &lhs, Element_Monitor &rhs)

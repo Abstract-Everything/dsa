@@ -6,13 +6,26 @@
 
 namespace dsa
 {
+
 template<typename T, typename Allocator_t = std::allocator<T>>
 class Dynamic_Array
 {
 	using Allocator = Allocator_t;
+	using Value     = T;
 
  public:
-	explicit Dynamic_Array(const Allocator &allocator = std::allocator<T>{})
+	[[nodiscard]] const Allocator& allocator()
+	{
+		return m_allocator;
+	}
+
+	explicit Dynamic_Array(std::size_t size, const Allocator &allocator = std::allocator<Value>{})
+	    : Dynamic_Array(allocator)
+	{
+		resize(size);
+	}
+
+	explicit Dynamic_Array(const Allocator &allocator = std::allocator<Value>{})
 	    : m_allocator(allocator)
 	{
 	}
@@ -49,12 +62,12 @@ class Dynamic_Array
 		return *this;
 	}
 
-	[[nodiscard]] T &operator[](std::size_t index)
+	[[nodiscard]] Value &operator[](std::size_t index)
 	{
 		return m_array[index];
 	}
 
-	[[nodiscard]] const T &operator[](std::size_t index) const
+	[[nodiscard]] const Value &operator[](std::size_t index) const
 	{
 		return m_array[index];
 	}
@@ -66,7 +79,7 @@ class Dynamic_Array
 
 	void resize(std::size_t new_size)
 	{
-		T *array = m_allocator.allocate(new_size);
+		Value *array = m_allocator.allocate(new_size);
 
 		const std::size_t count = std::min(m_size, new_size);
 		std::move(m_array, m_array + count, array);
@@ -80,7 +93,7 @@ class Dynamic_Array
 	Allocator m_allocator;
 
 	std::size_t m_size  = 0;
-	T	  *m_array = nullptr;
+	Value      *m_array = nullptr;
 };
 
 } // namespace dsa
