@@ -176,17 +176,17 @@ class Vector
 
 	std::size_t next_grow_size()
 	{
-		return std::max(1UL, 2U * capacity());
+		return std::max(1ULL, 2ULL * capacity());
 	}
 
 	bool should_shrink()
 	{
-		return capacity() / 4U >= size() - 1;
+		return capacity() / 4ULL >= size() - 1;
 	}
 
 	std::size_t next_shrink_size()
 	{
-		return capacity() / 2U;
+		return capacity() / 2ULL;
 	}
 };
 
