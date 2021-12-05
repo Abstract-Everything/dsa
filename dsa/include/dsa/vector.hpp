@@ -89,7 +89,7 @@ class Vector
 	{
 		if (should_grow())
 		{
-			Storage storage{ next_grow_size(), m_storage.allocator() };
+			Storage storage{ grow_size(), m_storage.allocator() };
 			std::move(&m_storage[0], &m_storage[index], &storage[0]);
 			std::move(
 			    &m_storage[index],
@@ -114,8 +114,7 @@ class Vector
 	{
 		if (should_shrink())
 		{
-			Storage storage{ next_shrink_size(),
-					 m_storage.allocator() };
+			Storage storage{ shrink_size(), m_storage.allocator() };
 			std::move(&m_storage[0], &m_storage[index], &storage[0]);
 			std::move(
 			    &m_storage[index + 1],
@@ -170,11 +169,11 @@ class Vector
 	{
 		if (should_grow())
 		{
-			m_storage.resize(next_grow_size());
+			m_storage.resize(grow_size());
 		}
 	}
 
-	std::size_t next_grow_size()
+	std::size_t grow_size()
 	{
 		return std::max(1ULL, 2ULL * capacity());
 	}
@@ -184,7 +183,7 @@ class Vector
 		return capacity() / 4ULL >= size() - 1;
 	}
 
-	std::size_t next_shrink_size()
+	std::size_t shrink_size()
 	{
 		return capacity() / 2ULL;
 	}
