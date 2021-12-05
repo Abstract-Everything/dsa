@@ -3,6 +3,7 @@
 
 #include "actions.hpp"
 #include "event.hpp"
+#include "user_interface.hpp"
 #include "viewport.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -41,8 +42,8 @@ class Main_Window
 	sf::RenderWindow m_window;
 	sf::Font         m_font;
 
-	Viewport   m_viewport;
-	Actions_UI m_actions;
+	Viewport       m_viewport;
+	User_Interface m_user_interface;
 };
 
 } // namespace visual

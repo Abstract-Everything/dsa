@@ -10,14 +10,19 @@ namespace dsa
 {
 
 // ToDo: Use iterators for indices
-template<typename T, typename Allocator_t = std::allocator<T>>
+template<typename T, template<typename> typename Allocator_t = std::allocator>
 class Vector
 {
-	using Allocator = Allocator_t;
-	using Value     = T;
-
  public:
-	explicit Vector(const Allocator &allocator = std::allocator<Value>{})
+	template<typename Allocator_Value>
+	using Allocator_Base = Allocator_t<Allocator_Value>;
+
+	using Value     = T;
+	using Allocator = Allocator_t<Value>;
+
+	using Storage = Dynamic_Array<Value, Allocator_Base>;
+
+	explicit Vector(const Allocator &allocator = Allocator{})
 	    : m_storage(allocator)
 	{
 	}
@@ -84,10 +89,7 @@ class Vector
 	{
 		if (should_grow())
 		{
-			Dynamic_Array<Value, Allocator> storage{
-				next_grow_size(),
-				m_storage.allocator()
-			};
+			Storage storage{ grow_size(), m_storage.allocator() };
 			std::move(&m_storage[0], &m_storage[index], &storage[0]);
 			std::move(
 			    &m_storage[index],
@@ -112,10 +114,7 @@ class Vector
 	{
 		if (should_shrink())
 		{
-			Dynamic_Array<Value, Allocator> storage{
-				next_shrink_size(),
-				m_storage.allocator()
-			};
+			Storage storage{ shrink_size(), m_storage.allocator() };
 			std::move(&m_storage[0], &m_storage[index], &storage[0]);
 			std::move(
 			    &m_storage[index + 1],
@@ -158,8 +157,8 @@ class Vector
 	}
 
  private:
-	std::size_t                     m_end = 0;
-	Dynamic_Array<Value, Allocator> m_storage;
+	std::size_t m_end = 0;
+	Storage     m_storage;
 
 	bool should_grow()
 	{
@@ -170,11 +169,11 @@ class Vector
 	{
 		if (should_grow())
 		{
-			m_storage.resize(next_grow_size());
+			m_storage.resize(grow_size());
 		}
 	}
 
-	std::size_t next_grow_size()
+	std::size_t grow_size()
 	{
 		return std::max(1ULL, 2ULL * capacity());
 	}
@@ -184,7 +183,7 @@ class Vector
 		return capacity() / 4ULL >= size() - 1;
 	}
 
-	std::size_t next_shrink_size()
+	std::size_t shrink_size()
 	{
 		return capacity() / 2ULL;
 	}

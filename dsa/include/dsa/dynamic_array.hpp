@@ -7,25 +7,30 @@
 namespace dsa
 {
 
-template<typename T, typename Allocator_t = std::allocator<T>>
+template<typename T, template<typename> typename Allocator_t = std::allocator>
 class Dynamic_Array
 {
-	using Allocator = Allocator_t;
-	using Value     = T;
-
  public:
-	[[nodiscard]] const Allocator& allocator()
+	template<typename Allocator_Value>
+	using Allocator_Base = Allocator_t<Allocator_Value>;
+
+	using Value     = T;
+	using Allocator = Allocator_Base<Value>;
+
+	[[nodiscard]] const Allocator &allocator()
 	{
 		return m_allocator;
 	}
 
-	explicit Dynamic_Array(std::size_t size, const Allocator &allocator = std::allocator<Value>{})
+	explicit Dynamic_Array(
+	    std::size_t      size,
+	    const Allocator &allocator = Allocator{})
 	    : Dynamic_Array(allocator)
 	{
 		resize(size);
 	}
 
-	explicit Dynamic_Array(const Allocator &allocator = std::allocator<Value>{})
+	explicit Dynamic_Array(const Allocator &allocator = Allocator{})
 	    : m_allocator(allocator)
 	{
 	}
