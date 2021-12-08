@@ -14,7 +14,7 @@ add_executable(
 	main_window.cpp
 	viewport.cpp
 	widgets/array_widget.cpp
-	widgets/element_widget.cpp
+	widgets/text_widget.cpp
 	widgets/widget.cpp)
 
 target_include_directories(

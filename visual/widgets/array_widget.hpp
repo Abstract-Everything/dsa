@@ -1,7 +1,7 @@
 #ifndef VISUAL_ARRAY_WIDGET_HPP
 #define VISUAL_ARRAY_WIDGET_HPP
 
-#include "element_widget.hpp"
+#include "text_widget.hpp"
 #include "widget.hpp"
 
 #include <vector>
@@ -26,9 +26,6 @@ class Array_Widget : public Widget
 	    std::uint64_t    address,
 	    std::string_view value);
 
-	void invalidate_element(std::uint64_t address);
-	void update_element(std::uint64_t address, std::string_view value);
-
 	void resize(std::size_t size);
 
  protected:
@@ -41,7 +38,7 @@ class Array_Widget : public Widget
 	std::uint64_t m_address{ 0 };
 	std::size_t   m_element_size{ 0 };
 
-	std::vector<Element_Widget> m_elements{};
+	std::vector<Text_Widget> m_elements{};
 
 	[[nodiscard]] std::uint64_t index_of(std::uint64_t address) const;
 };

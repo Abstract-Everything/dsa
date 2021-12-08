@@ -166,7 +166,7 @@ bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 	{
 		if (array.contains(event.from_address()))
 		{
-			array.invalidate_element(event.from_address());
+			array.on_assignment(false, event.from_address(), "");
 			return true;
 		}
 	}

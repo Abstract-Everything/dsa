@@ -3,6 +3,24 @@
 namespace
 {
 constexpr float element_spacing = 1.0F;
+
+[[nodiscard]] visual::Text_Widget invalid_text()
+{
+	const sf::Color     invalid_background{ 255, 50, 50 };
+	visual::Text_Widget text;
+	text.set_text("?");
+	text.background(invalid_background);
+	return text;
+}
+
+[[nodiscard]] visual::Text_Widget valid_text(std::string_view string)
+{
+	const sf::Color     valid_background{ 0, 150, 255 };
+	visual::Text_Widget text;
+	text.set_text(string);
+	text.background(valid_background);
+	return text;
+}
 } // namespace
 
 namespace visual
@@ -30,7 +48,7 @@ bool Array_Widget::contains(std::uint64_t address) const
 
 void Array_Widget::resize(std::size_t size)
 {
-	m_elements.resize(size);
+	m_elements.resize(size, invalid_text());
 }
 
 sf::Vector2f Array_Widget::content_size() const
@@ -59,24 +77,16 @@ void Array_Widget::on_assignment(
     std::uint64_t    address,
     std::string_view value)
 {
+	Text_Widget text;
 	if (initialised)
 	{
-		update_element(address, value);
+		text = valid_text(value);
 	}
 	else
 	{
-		invalidate_element(address);
+		text = invalid_text();
 	}
-}
-
-void Array_Widget::invalidate_element(std::uint64_t address)
-{
-	m_elements[index_of(address)].set_invalid();
-}
-
-void Array_Widget::update_element(std::uint64_t address, std::string_view value)
-{
-	m_elements[index_of(address)].set_valid(value);
+	m_elements[index_of(address)] = text;
 }
 
 std::uint64_t Array_Widget::index_of(std::uint64_t address) const
