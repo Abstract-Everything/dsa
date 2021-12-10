@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <cstddef>
+#include <memory>
 
 namespace visual
 {
@@ -14,6 +15,10 @@ class Widget : public sf::Drawable
 	explicit Widget(
 	    float            padding    = 0.0F,
 	    const sf::Color &background = sf::Color::Transparent);
+
+	~Widget() override = default;
+
+	[[nodiscard]] virtual Widget *clone() const = 0;
 
 	[[nodiscard]] sf::Vector2f size() const;
 	void                       adjust();
