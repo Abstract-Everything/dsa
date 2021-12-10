@@ -4,43 +4,125 @@
 #include "text_widget.hpp"
 #include "widget.hpp"
 
+#include <memory>
 #include <vector>
 
 namespace visual
 {
 
+enum class Draw_Direction
+{
+	Horizontal,
+	Vertical
+};
+
+template<typename T = Widget>
 class Array_Widget : public Widget
 {
  public:
-	explicit Array_Widget(
-	    std::uint64_t address,
-	    std::size_t   element_size,
-	    std::size_t   size);
+	using Value          = T;
+	using Widgets        = std::vector<std::unique_ptr<Value>>;
+	using Iterator       = typename Widgets::iterator;
+	using Const_Iterator = typename Widgets::const_iterator;
 
-	[[nodiscard]] std::uint64_t address() const;
+	explicit Array_Widget(Draw_Direction direction) : m_direction(direction)
+	{
+	}
 
-	[[nodiscard]] bool contains(std::uint64_t address) const;
+	Array_Widget(std::size_t size, const Widget &widget, Draw_Direction direction)
+	    : m_direction(direction)
+	{
+		m_widgets.clear();
+		for (std::size_t i = 0; i < size; ++i)
+		{
+			m_widgets.push_back(
+			    std::unique_ptr<Value>(widget.clone()));
+		}
+	}
 
-	void on_assignment(
-	    bool             initialised,
-	    std::uint64_t    address,
-	    std::string_view value);
+	~Array_Widget() override = default;
 
-	void resize(std::size_t size);
+	[[nodiscard]] Array_Widget<Value> *clone() const override
+	{
+		auto *array = new Array_Widget<Value>(m_direction);
+		for (auto const &widget : m_widgets)
+		{
+			array->push_back(std::unique_ptr<Value>(widget->clone()));
+		}
+		return array;
+	}
+
+	void insert(Iterator index, std::unique_ptr<Value> value)
+	{
+		m_widgets.insert(index, std::move(value));
+	}
+
+	void push_back(std::unique_ptr<Value> value)
+	{
+		m_widgets.push_back(std::move(value));
+	}
+
+	void erase(Iterator index)
+	{
+		m_widgets.erase(index);
+	}
+
+	Iterator begin()
+	{
+		return m_widgets.begin();
+	}
+
+	Const_Iterator begin() const
+	{
+		return m_widgets.begin();
+	}
+
+	Iterator end()
+	{
+		return m_widgets.end();
+	}
+
+	Const_Iterator end() const
+	{
+		return m_widgets.end();
+	}
 
  protected:
-	[[nodiscard]] sf::Vector2f content_size() const override;
+	[[nodiscard]] sf::Vector2f content_size() const override
+	{
+		sf::Vector2f size{ 0.0F, 0.0F };
+		for (auto const &widget : m_widgets)
+		{
+			size.x += widget->size().x;
+			size.y = std::max(size.y, widget->size().y);
+		}
+		return size;
+	}
 
-	void content_draw(sf::RenderTarget &target, sf::RenderStates states)
-	    const override;
+	void content_draw(sf::RenderTarget &target, sf::RenderStates states) const override
+	{
+		for (auto const &widget : m_widgets)
+		{
+			target.draw(*widget, states);
+			sf::Vector2f offset{0.0F, 0.0F};
+			switch (m_direction)
+			{
+			case Draw_Direction::Horizontal:
+				offset.x += widget->size().x;
+				break;
+
+			case Draw_Direction::Vertical:
+				offset.y += widget->size().y;
+				break;
+			}
+			states.transform.translate(offset);
+		}
+	}
 
  private:
-	std::uint64_t m_address{ 0 };
-	std::size_t   m_element_size{ 0 };
+	const Draw_Direction m_direction;
 
-	std::vector<Text_Widget> m_elements{};
-
-	[[nodiscard]] std::uint64_t index_of(std::uint64_t address) const;
+	Widgets m_widgets;
 };
 
 } // namespace visual

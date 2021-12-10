@@ -4,16 +4,16 @@ find_package(spdlog REQUIRED)
 
 add_executable(
 	visual
+	buffer.cpp
 	events/allocated_array_event.cpp
-	events/deallocated_array_event.cpp
 	events/copy_assignment_event.cpp
+	events/deallocated_array_event.cpp
 	events/event.cpp
 	events/move_assignment_event.cpp
 	gui/user_interface.cpp
 	main.cpp
 	main_window.cpp
 	viewport.cpp
-	widgets/array_widget.cpp
 	widgets/text_widget.cpp
 	widgets/widget.cpp)
 

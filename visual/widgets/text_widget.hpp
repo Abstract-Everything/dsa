@@ -11,6 +11,10 @@ class Text_Widget : public Widget
  public:
 	Text_Widget();
 
+	~Text_Widget() override = default;
+
+	[[nodiscard]] Text_Widget* clone() const override;
+
 	void set_text(std::string_view string);
 
  protected:
