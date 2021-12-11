@@ -20,7 +20,7 @@ class User_Interface
 	using Vector = dsa::Vector<Value, Memory_Monitor>;
 
  public:
-	void draw_ui();
+	void draw();
 
  private:
 	int m_selected_structure;

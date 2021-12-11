@@ -1,30 +1,14 @@
 #include "viewport.hpp"
 
+#include <imgui.h>
 #include <spdlog/spdlog.h>
 
 #include <exception>
 
 namespace
 {
+
 constexpr std::chrono::seconds event_duration{ 2 };
-
-[[nodiscard]] visual::Text_Widget invalid_element()
-{
-	const sf::Color     invalid_background{ 255, 50, 50 };
-	visual::Text_Widget text;
-	text.set_text("?");
-	text.background(invalid_background);
-	return text;
-}
-
-[[nodiscard]] visual::Text_Widget valid_element(std::string_view string)
-{
-	const sf::Color     valid_background{ 0, 150, 255 };
-	visual::Text_Widget text;
-	text.set_text(string);
-	text.background(valid_background);
-	return text;
-}
 
 } // namespace
 
@@ -58,9 +42,59 @@ void Viewport::update(std::chrono::microseconds deltaTime)
 	}
 }
 
-void Viewport::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Viewport::draw() const
 {
-	m_arrays.draw(target, states);
+	if (!ImGui::CollapsingHeader(
+		"Structure Contents",
+		ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		return;
+	}
+
+	ImGui::Indent();
+
+	int index = 0;
+	for (auto const &buffer : m_buffers)
+	{
+		if (buffer.size() == 0)
+		{
+			// ImGui:: Does not like 0 size tables
+			continue;
+		}
+
+		std::string table = fmt::format("Table{}", index++);
+		if (!ImGui::BeginTable(
+			table.c_str(),
+			static_cast<int>(buffer.size()),
+			ImGuiTableFlags_RowBg))
+		{
+			continue;
+		}
+
+		for (auto const &element : buffer)
+		{
+			ImGui::TableNextColumn();
+			std::string_view value = element.value();
+
+			const ImVec4 valid_background{ 0.0F, 0.65F, 1.0F, 1.0F };
+			const ImVec4 invalid_background{ 1.0F, 0.2F, 0.2F, 1.0F };
+
+			ImU32 background = ImGui::GetColorU32(
+			    element.initialized() ? valid_background
+						  : invalid_background);
+
+			ImGui::TableSetBgColor(
+			    ImGuiTableBgTarget_CellBg,
+			    background);
+
+			ImGui::TextUnformatted(
+			    value.data(),
+			    value.data() + value.length());
+		}
+		ImGui::EndTable();
+	}
+
+	ImGui::Unindent();
 }
 
 bool Viewport::process(const Event &event)
@@ -111,10 +145,6 @@ bool Viewport::process(const Allocated_Array_Event &event)
 	}
 
 	m_buffers.push_back(buffer);
-	m_arrays.push_back(std::make_unique<Array_Widget<Widget>>(
-	    buffer.count(),
-	    invalid_element(),
-	    Draw_Direction::Horizontal));
 
 	return true;
 }
@@ -135,8 +165,6 @@ bool Viewport::process(const Deallocated_Array_Event &event)
 	}
 
 	m_buffers.erase(buffer_it);
-	m_arrays.erase(
-	    m_arrays.begin() + std::distance(m_buffers.begin(), buffer_it));
 
 	return true;
 }
@@ -201,33 +229,18 @@ bool Viewport::update_element(
 		return false;
 	}
 
-	auto arrays_it =
-	    m_arrays.begin() + std::distance(m_buffers.begin(), buffer_it);
-
-	if (arrays_it >= m_arrays.end())
-	{
-		spdlog::error(
-		    "A buffer does not have a corresponding array "
-		    "representation.");
-		return false;
-	}
-
-	std::unique_ptr<Buffer_Widget> &buffer_widget = *arrays_it;
-
 	auto element_it =
-	    buffer_widget->begin()
+	    buffer_it->begin()
 	    + static_cast<std::ptrdiff_t>(buffer_it->index_of(address));
 
-	if (element_it >= buffer_widget->end())
+	if (element_it >= buffer_it->end())
 	{
-		spdlog::error(
-		    "A buffer element does not have a corresponding "
-		    "representation");
+		spdlog::error("Tried to update an element outside of a buffer");
 		return false;
 	}
 
-	*element_it = std::make_unique<Text_Widget>(
-	    initialised ? valid_element(string) : invalid_element());
+	element_it->update(initialised, string);
+
 	return true;
 }
 

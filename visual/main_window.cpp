@@ -129,9 +129,22 @@ void Main_Window::start()
 
 		m_window.clear(dark_grey);
 
-		sf::RenderStates states;
-		m_viewport.draw(m_window, states);
-		m_user_interface.draw_ui();
+		bool             open  = true;
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
+					 | ImGuiWindowFlags_NoMove
+					 | ImGuiWindowFlags_NoResize
+					 | ImGuiWindowFlags_NoSavedSettings;
+
+		const ImGuiViewport *viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->WorkPos);
+		ImGui::SetNextWindowSize(viewport->WorkSize);
+
+		if (ImGui::Begin("Data structure visualisation", &open, flags))
+		{
+			m_viewport.draw();
+			m_user_interface.draw();
+		}
+		ImGui::End();
 
 		ImGui::SFML::Render(m_window);
 		m_window.display();

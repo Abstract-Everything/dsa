@@ -14,11 +14,20 @@ constexpr std::array<const char *, 2> structures{ "Array", "Vector" };
 namespace visual
 {
 
-void User_Interface::draw_ui()
+void User_Interface::draw()
 {
-	ImGui::Begin("Actions User Interface");
+	if (!ImGui::CollapsingHeader(
+		"Data structure operations",
+		ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		return;
+	}
 
-	if (ImGui::CollapsingHeader("Data structures", ImGuiTreeNodeFlags_DefaultOpen))
+	ImGui::Indent();
+
+	if (ImGui::CollapsingHeader(
+		"Data structure selection",
+		ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::Indent();
 
@@ -37,9 +46,9 @@ void User_Interface::draw_ui()
 		ImGui::Unindent();
 	}
 
-	std::visit([](auto &&actions_ui) { actions_ui.draw_ui(); }, m_actions);
+	std::visit([](auto &&actions_ui) { actions_ui.draw(); }, m_actions);
 
-	ImGui::End();
+	ImGui::Unindent();
 }
 
 } // namespace visual
