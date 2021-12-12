@@ -7,7 +7,6 @@
 #include "viewport.hpp"
 
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics/Font.hpp>
 
 #include <filesystem>
 
@@ -26,7 +25,6 @@ class Main_Window
 	static Main_Window &instance();
 
 	const std::filesystem::path &executable_path();
-	const sf::Font              &default_font();
 
 	void add_event(std::unique_ptr<Event> &&event);
 
@@ -40,7 +38,6 @@ class Main_Window
 	std::filesystem::path m_executable;
 
 	sf::RenderWindow m_window;
-	sf::Font         m_font;
 
 	Viewport       m_viewport;
 	User_Interface m_user_interface;
