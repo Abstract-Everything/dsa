@@ -129,6 +129,8 @@ void Main_Window::start()
 
 		m_window.clear(dark_grey);
 
+		m_viewport.draw();
+
 		bool             open  = true;
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
 					 | ImGuiWindowFlags_NoMove
@@ -136,12 +138,14 @@ void Main_Window::start()
 					 | ImGuiWindowFlags_NoSavedSettings;
 
 		const ImGuiViewport *viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->WorkPos);
-		ImGui::SetNextWindowSize(viewport->WorkSize);
+		const ImVec2         position = viewport->WorkPos;
+		const ImVec2         size     = viewport->WorkSize;
+		ImGui::SetNextWindowPos(
+		    ImVec2{ position.x, position.y + size.y / 2 });
+		ImGui::SetNextWindowSize(ImVec2{ size.x, size.y / 2 });
 
 		if (ImGui::Begin("Data structure visualisation", &open, flags))
 		{
-			m_viewport.draw();
 			m_user_interface.draw();
 		}
 		ImGui::End();

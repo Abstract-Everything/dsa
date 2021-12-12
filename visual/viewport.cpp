@@ -9,6 +9,49 @@ namespace
 {
 
 constexpr std::chrono::seconds event_duration{ 2 };
+constexpr ImU32                valid_background   = IM_COL32(0, 150, 255, 255);
+constexpr ImU32                invalid_background = IM_COL32(255, 50, 50, 255);
+
+void draw_buffer(const visual::Buffer &buffer)
+{
+	bool                   open         = true;
+	const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
+					      | ImGuiWindowFlags_AlwaysAutoResize
+					      | ImGuiWindowFlags_NoNav;
+
+	const ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit
+					    | ImGuiTableFlags_BordersInnerV
+					    | ImGuiTableFlags_RowBg;
+
+	const std::string window_name =
+	    fmt::format("Buffer_{}", buffer.address());
+
+	ImGui::Begin(window_name.c_str(), &open, window_flags);
+	ImGui::SetWindowFontScale(2.0F);
+
+	ImGui::BeginTable(
+	    "Elements",
+	    1 + static_cast<int>(buffer.size()),
+	    table_flags);
+
+	ImGui::TableNextColumn();
+	std::string size = std::to_string(buffer.size());
+	ImGui::TextUnformatted(size.c_str());
+
+	for (auto const &element : buffer)
+	{
+		const std::string_view value = element.value();
+		ImU32 background = element.initialised() ? valid_background
+							 : invalid_background;
+
+		ImGui::TableNextColumn();
+		ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, background);
+		ImGui::TextUnformatted(value.data(), value.data() + value.length());
+	}
+	ImGui::EndTable();
+
+	ImGui::End();
+}
 
 } // namespace
 
@@ -44,57 +87,10 @@ void Viewport::update(std::chrono::microseconds deltaTime)
 
 void Viewport::draw() const
 {
-	if (!ImGui::CollapsingHeader(
-		"Structure Contents",
-		ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		return;
-	}
-
-	ImGui::Indent();
-
-	int index = 0;
 	for (auto const &buffer : m_buffers)
 	{
-		if (buffer.size() == 0)
-		{
-			// ImGui:: Does not like 0 size tables
-			continue;
-		}
-
-		std::string table = fmt::format("Table{}", index++);
-		if (!ImGui::BeginTable(
-			table.c_str(),
-			static_cast<int>(buffer.size()),
-			ImGuiTableFlags_RowBg))
-		{
-			continue;
-		}
-
-		for (auto const &element : buffer)
-		{
-			ImGui::TableNextColumn();
-			std::string_view value = element.value();
-
-			const ImVec4 valid_background{ 0.0F, 0.65F, 1.0F, 1.0F };
-			const ImVec4 invalid_background{ 1.0F, 0.2F, 0.2F, 1.0F };
-
-			ImU32 background = ImGui::GetColorU32(
-			    element.initialised() ? valid_background
-						  : invalid_background);
-
-			ImGui::TableSetBgColor(
-			    ImGuiTableBgTarget_CellBg,
-			    background);
-
-			ImGui::TextUnformatted(
-			    value.data(),
-			    value.data() + value.length());
-		}
-		ImGui::EndTable();
+		draw_buffer(buffer);
 	}
-
-	ImGui::Unindent();
 }
 
 bool Viewport::process(const Event &event)
