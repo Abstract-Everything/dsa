@@ -17,7 +17,7 @@ class Element_Monitor
 	using Value = Value_t;
 
  public:
-	Element_Monitor() : Element_Monitor{0}
+	Element_Monitor() : Element_Monitor{ 0 }
 	{
 	}
 
@@ -58,9 +58,8 @@ class Element_Monitor
 		auto address = reinterpret_cast<std::uint64_t>(this);
 
 		visual::Event::Dispatch(std::make_unique<Copy_Assignment_Event>(
-		    m_initialised,
 		    address,
-		    to_string()));
+		    Memory_Value{ m_initialised, to_string() }));
 
 		return *this;
 	}
@@ -77,10 +76,9 @@ class Element_Monitor
 		auto from_address = reinterpret_cast<std::uint64_t>(&element);
 
 		visual::Event::Dispatch(std::make_unique<Move_Assignment_Event>(
-		    m_initialised,
 		    to_address,
 		    from_address,
-		    to_string()));
+		    Memory_Value{ m_initialised, to_string() }));
 
 		return *this;
 	}

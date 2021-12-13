@@ -12,15 +12,13 @@ namespace visual
 class Memory_Value
 {
  public:
-	explicit Memory_Value(bool initialized = false, std::string_view value = "");
-
-	void update(bool initialized, std::string_view string);
+	explicit Memory_Value(bool initialised = false, std::string_view value = "");
 
 	[[nodiscard]] std::string_view value() const;
-	[[nodiscard]] bool             initialized() const;
+	[[nodiscard]] bool             initialised() const;
 
  private:
-	bool        m_initialized = false;
+	bool        m_initialised = false;
 	std::string m_value       = "?";
 };
 

@@ -80,7 +80,7 @@ void Viewport::draw() const
 			const ImVec4 invalid_background{ 1.0F, 0.2F, 0.2F, 1.0F };
 
 			ImU32 background = ImGui::GetColorU32(
-			    element.initialized() ? valid_background
+			    element.initialised() ? valid_background
 						  : invalid_background);
 
 			ImGui::TableSetBgColor(
@@ -174,7 +174,6 @@ bool Viewport::process(const Copy_Assignment_Event &event)
 	return update_element(
 	    "Received an assignment event for an address outside any range",
 	    event.address(),
-	    event.initialised(),
 	    event.value());
 }
 
@@ -191,22 +190,20 @@ bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 	return update_element(
 	    "Received a move assignment event for an address outside any range",
 	    event.to_address(),
-	    event.initialised(),
 	    event.value());
 }
 
 bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 {
-	return update_element(event.from_address(), false, "");
+	return update_element(event.from_address(), Memory_Value());
 }
 
 bool Viewport::update_element(
-    std::string_view log_message,
-    std::uint64_t    address,
-    bool             initialised,
-    std::string_view string)
+    std::string_view    log_message,
+    std::uint64_t       address,
+    const Memory_Value &value)
 {
-	bool success = update_element(address, initialised, string);
+	bool success = update_element(address, value);
 	if (!success)
 	{
 		spdlog::warn(log_message);
@@ -214,10 +211,7 @@ bool Viewport::update_element(
 	return success;
 }
 
-bool Viewport::update_element(
-    std::uint64_t    address,
-    bool             initialised,
-    std::string_view string)
+bool Viewport::update_element(std::uint64_t address, const Memory_Value &value)
 {
 	auto buffer_it = std::find_if(
 	    m_buffers.begin(),
@@ -239,7 +233,7 @@ bool Viewport::update_element(
 		return false;
 	}
 
-	element_it->update(initialised, string);
+	*element_it = value;
 
 	return true;
 }

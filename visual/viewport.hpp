@@ -41,15 +41,13 @@ class Viewport
 	    const Move_Assignment_Event &event);
 
 	[[nodiscard]] bool update_element(
-	    std::string_view log_message,
-	    std::uint64_t    address,
-	    bool             initialised,
-	    std::string_view string);
+	    std::string_view    log_message,
+	    std::uint64_t       address,
+	    const Memory_Value &value);
 
 	[[nodiscard]] bool update_element(
-	    std::uint64_t    address,
-	    bool             initialised,
-	    std::string_view string);
+	    std::uint64_t       address,
+	    const Memory_Value &value);
 };
 
 } // namespace visual
