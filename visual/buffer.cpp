@@ -57,4 +57,15 @@ bool Buffer::overlap(const Buffer &lhs, const Buffer &rhs)
 	return first.contains(second.address());
 }
 
+bool Buffer::update_value(Address address, const Memory_Value& value)
+{
+	if (!contains(address))
+	{
+		return false;
+	}
+
+	m_elements[index_of(address)] = value;
+	return true;
+}
+
 } // namespace visual

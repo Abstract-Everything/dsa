@@ -34,6 +34,8 @@ class Buffer
 
 	[[nodiscard]] static bool overlap(const Buffer &lhs, const Buffer &rhs);
 
+	[[nodiscard]] bool update_value(Address address, const Memory_Value &value);
+
  private:
 	Address     m_address;
 	std::size_t m_element_size;

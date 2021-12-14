@@ -186,29 +186,14 @@ bool Viewport::update_element(
 
 bool Viewport::update_element(Address address, const Memory_Value &value)
 {
-	auto buffer_it = std::find_if(
-	    m_buffers.begin(),
-	    m_buffers.end(),
-	    [address](const Buffer &buffer) { return buffer.contains(address); });
-
-	if (buffer_it >= m_buffers.end())
+	for (auto& buffer: m_buffers)
 	{
-		return false;
+		if (buffer.update_value(address, value))
+		{
+			return true;
+		}
 	}
-
-	auto element_it =
-	    buffer_it->begin()
-	    + static_cast<std::ptrdiff_t>(buffer_it->index_of(address));
-
-	if (element_it >= buffer_it->end())
-	{
-		spdlog::error("Tried to update an element outside of a buffer");
-		return false;
-	}
-
-	*element_it = value;
-
-	return true;
+	return false;
 }
 
 } // namespace visual
