@@ -55,11 +55,9 @@ class Element_Monitor
 		Element_Monitor temp{ element };
 		swap(*this, temp);
 
-		auto address = reinterpret_cast<std::uint64_t>(this);
-
-		visual::Event::Dispatch(std::make_unique<Copy_Assignment_Event>(
-		    address,
-		    Memory_Value{ m_initialised, to_string() }));
+		visual::Dispatch(Copy_Assignment_Event{
+		    reinterpret_cast<std::uint64_t>(this),
+		    Memory_Value{ m_initialised, to_string() } });
 
 		return *this;
 	}
@@ -72,13 +70,10 @@ class Element_Monitor
 		swap(*this, tmp);
 		swap(*this, element);
 
-		auto to_address   = reinterpret_cast<std::uint64_t>(this);
-		auto from_address = reinterpret_cast<std::uint64_t>(&element);
-
-		visual::Event::Dispatch(std::make_unique<Move_Assignment_Event>(
-		    to_address,
-		    from_address,
-		    Memory_Value{ m_initialised, to_string() }));
+		visual::Dispatch(Move_Assignment_Event{
+		    reinterpret_cast<std::uint64_t>(this),
+		    reinterpret_cast<std::uint64_t>(&element),
+		    Memory_Value{ m_initialised, to_string() } });
 
 		return *this;
 	}

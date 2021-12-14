@@ -1,7 +1,6 @@
 #ifndef VISUAL_COPY_ASSIGNMENT_EVENT_HPP
 #define VISUAL_COPY_ASSIGNMENT_EVENT_HPP
 
-#include "event.hpp"
 #include "memory_value.hpp"
 
 #include <cstdint>
@@ -9,12 +8,10 @@
 namespace visual
 {
 
-class Copy_Assignment_Event : public Event
+class Copy_Assignment_Event
 {
  public:
 	Copy_Assignment_Event(std::uint64_t address, Memory_Value value);
-
-	~Copy_Assignment_Event() override = default;
 
 	[[nodiscard]] std::uint64_t       address() const;
 	[[nodiscard]] const Memory_Value &value() const;

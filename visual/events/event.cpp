@@ -1,17 +1,14 @@
+
 #include "event.hpp"
 
 #include "main_window.hpp"
 
 namespace visual
 {
-void Event::Dispatch(std::unique_ptr<Event> event)
+
+void Dispatch(Event &&event)
 {
 	Main_Window::instance().add_event(std::move(event));
-}
-
-const char *Event::name() const
-{
-	return typeid(*this).name();
 }
 
 } // namespace visual
