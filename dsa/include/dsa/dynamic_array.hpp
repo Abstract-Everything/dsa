@@ -1,20 +1,23 @@
 #ifndef DSA_DYNAMIC_ARRAY_HPP
 #define DSA_DYNAMIC_ARRAY_HPP
 
+#include <dsa/weak_pointer.hpp>
+
 #include <cstddef>
 #include <memory>
 
 namespace dsa
 {
 
-template<typename T, template<typename> typename Allocator_t = std::allocator>
+template<
+    typename Value_t,
+    template<typename> typename Pointer_Base   = dsa::Weak_Pointer,
+    template<typename> typename Allocator_Base = std::allocator>
 class Dynamic_Array
 {
  public:
-	template<typename Allocator_Value>
-	using Allocator_Base = Allocator_t<Allocator_Value>;
-
-	using Value     = T;
+	using Value     = Value_t;
+	using Pointer   = Pointer_Base<Value_t>;
 	using Allocator = Allocator_Base<Value>;
 
 	[[nodiscard]] const Allocator &allocator()
@@ -37,7 +40,7 @@ class Dynamic_Array
 
 	~Dynamic_Array()
 	{
-		m_allocator.deallocate(m_array);
+		m_allocator.deallocate(m_array.get());
 	}
 
 	Dynamic_Array(const Dynamic_Array &darray)
@@ -45,7 +48,10 @@ class Dynamic_Array
 	    , m_size(darray.size())
 	    , m_array(darray.m_allocator.allocate(darray.size()))
 	{
-		std::copy(darray.m_array, darray.m_array + darray.size(), m_array);
+		std::copy(
+		    darray.m_array.get(),
+		    darray.m_array.get() + darray.size(),
+		    m_array.get());
 	}
 
 	Dynamic_Array(Dynamic_Array &&darray) noexcept
@@ -69,12 +75,12 @@ class Dynamic_Array
 
 	[[nodiscard]] Value &operator[](std::size_t index)
 	{
-		return m_array[index];
+		return m_array.get()[index];
 	}
 
 	[[nodiscard]] const Value &operator[](std::size_t index) const
 	{
-		return m_array[index];
+		return m_array.get()[index];
 	}
 
 	[[nodiscard]] std::size_t size() const
@@ -84,11 +90,11 @@ class Dynamic_Array
 
 	void resize(std::size_t new_size)
 	{
-		Value *array = m_allocator.allocate(new_size);
+		Pointer array = m_allocator.allocate(new_size);
 
 		const std::size_t count = std::min(m_size, new_size);
-		std::move(m_array, m_array + count, array);
-		m_allocator.deallocate(m_array);
+		std::move(m_array.get(), m_array.get() + count, array.get());
+		m_allocator.deallocate(m_array.get());
 
 		m_array = array;
 		m_size  = new_size;
@@ -98,7 +104,7 @@ class Dynamic_Array
 	Allocator m_allocator;
 
 	std::size_t m_size  = 0;
-	Value      *m_array = nullptr;
+	Pointer     m_array = nullptr;
 };
 
 } // namespace dsa

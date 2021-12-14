@@ -7,6 +7,7 @@
 
 #include <dsa/dynamic_array.hpp>
 #include <dsa/vector.hpp>
+#include <dsa/weak_pointer.hpp>
 
 #include <variant>
 
@@ -16,16 +17,15 @@ namespace visual
 class User_Interface
 {
 	using Value  = Element_Monitor<int>;
-	using Array  = dsa::Dynamic_Array<Value, Memory_Monitor>;
-	using Vector = dsa::Vector<Value, Memory_Monitor>;
+	using Array  = dsa::Dynamic_Array<Value, dsa::Weak_Pointer, Memory_Monitor>;
+	using Vector = dsa::Vector<Value, dsa::Weak_Pointer, Memory_Monitor>;
 
  public:
 	void draw();
 
  private:
 	int m_selected_structure;
-	std::variant<std::monostate, Actions_UI<Array>, Actions_UI<Vector>>
-	    m_actions;
+	std::variant<std::monostate, Actions_UI<Array>, Actions_UI<Vector>> m_actions;
 };
 
 } // namespace visual
