@@ -1,6 +1,7 @@
 #ifndef VISUAL_MEMORY_MONITOR_HPP
 #define VISUAL_MEMORY_MONITOR_HPP
 
+#include "address.hpp"
 #include "allocated_array_event.hpp"
 #include "deallocated_array_event.hpp"
 #include "event.hpp"
@@ -17,10 +18,9 @@ class Memory_Monitor
 	{
 		void *pointer = ::operator new(size * sizeof(T));
 
-		visual::Dispatch(Allocated_Array_Event{
-		    reinterpret_cast<std::uint64_t>(pointer),
-		    sizeof(T),
-		    size });
+		visual::Dispatch(Allocated_Array_Event{ to_raw_address(pointer),
+							sizeof(T),
+							size });
 
 		T *typed_pointer = reinterpret_cast<T *>(pointer);
 		for (std::size_t i = 0; i < size; ++i)
@@ -34,8 +34,8 @@ class Memory_Monitor
 
 	void deallocate(T *pointer) const
 	{
-		visual::Dispatch(Deallocated_Array_Event{
-		    reinterpret_cast<std::uint64_t>(pointer) });
+		visual::Dispatch(
+		    Deallocated_Array_Event{ to_raw_address(pointer) });
 
 		::operator delete(pointer);
 	}

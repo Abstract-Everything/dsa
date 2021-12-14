@@ -1,6 +1,7 @@
 #ifndef VISUAL_MOVE_ASSIGNMENT_EVENT_HPP
 #define VISUAL_MOVE_ASSIGNMENT_EVENT_HPP
 
+#include "address.hpp"
 #include "memory_value.hpp"
 
 #include <cstdint>
@@ -11,18 +12,18 @@ class Move_Assignment_Event
 {
  public:
 	Move_Assignment_Event(
-	    std::uint64_t to_address,
-	    std::uint64_t from_address,
-	    Memory_Value  value);
+	    Address      to_address,
+	    Address      from_address,
+	    Memory_Value value);
 
-	[[nodiscard]] std::uint64_t       to_address() const;
-	[[nodiscard]] std::uint64_t       from_address() const;
+	[[nodiscard]] Address             to_address() const;
+	[[nodiscard]] Address             from_address() const;
 	[[nodiscard]] const Memory_Value &value() const;
 
  private:
-	std::uint64_t m_to_address;
-	std::uint64_t m_from_address;
-	Memory_Value  m_value;
+	Address      m_to_address;
+	Address      m_from_address;
+	Memory_Value m_value;
 };
 
 } // namespace visual

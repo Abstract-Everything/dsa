@@ -173,7 +173,7 @@ bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 
 bool Viewport::update_element(
     std::string_view    log_message,
-    std::uint64_t       address,
+    Address             address,
     const Memory_Value &value)
 {
 	bool success = update_element(address, value);
@@ -184,7 +184,7 @@ bool Viewport::update_element(
 	return success;
 }
 
-bool Viewport::update_element(std::uint64_t address, const Memory_Value &value)
+bool Viewport::update_element(Address address, const Memory_Value &value)
 {
 	auto buffer_it = std::find_if(
 	    m_buffers.begin(),
