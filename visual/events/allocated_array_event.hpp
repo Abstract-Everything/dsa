@@ -1,21 +1,19 @@
 #ifndef VISUAL_ALLOCATED_ARRAY_EVENT_HPP
 #define VISUAL_ALLOCATED_ARRAY_EVENT_HPP
 
-#include "event.hpp"
-
+#include <cstddef>
 #include <cstdint>
 
 namespace visual
 {
-class Allocated_Array_Event : public Event
+
+class Allocated_Array_Event
 {
  public:
 	Allocated_Array_Event(
 	    std::uint64_t address,
 	    std::size_t   element_size,
 	    std::size_t   size);
-
-	~Allocated_Array_Event() override = default;
 
 	[[nodiscard]] std::uint64_t address() const;
 	[[nodiscard]] std::size_t   element_size() const;

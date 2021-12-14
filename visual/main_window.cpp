@@ -48,7 +48,7 @@ const fs::path &Main_Window::executable_path()
 	return m_executable;
 }
 
-void Main_Window::add_event(std::unique_ptr<Event> &&event)
+void Main_Window::add_event(Event &&event)
 {
 	m_viewport.add_event(std::move(event));
 }

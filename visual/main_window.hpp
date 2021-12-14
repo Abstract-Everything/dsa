@@ -26,7 +26,7 @@ class Main_Window
 
 	const std::filesystem::path &executable_path();
 
-	void add_event(std::unique_ptr<Event> &&event);
+	void add_event(Event &&event);
 
 	void initialise(const std::vector<std::string> &arguments);
 	void start();

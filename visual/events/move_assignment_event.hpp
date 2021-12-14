@@ -1,22 +1,19 @@
 #ifndef VISUAL_MOVE_ASSIGNMENT_EVENT_HPP
 #define VISUAL_MOVE_ASSIGNMENT_EVENT_HPP
 
-#include "event.hpp"
 #include "memory_value.hpp"
 
 #include <cstdint>
 
 namespace visual
 {
-class Move_Assignment_Event : public Event
+class Move_Assignment_Event
 {
  public:
 	Move_Assignment_Event(
 	    std::uint64_t to_address,
 	    std::uint64_t from_address,
 	    Memory_Value  value);
-
-	~Move_Assignment_Event() override = default;
 
 	[[nodiscard]] std::uint64_t       to_address() const;
 	[[nodiscard]] std::uint64_t       from_address() const;

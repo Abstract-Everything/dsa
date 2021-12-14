@@ -3,6 +3,7 @@
 
 #include "allocated_array_event.hpp"
 #include "deallocated_array_event.hpp"
+#include "event.hpp"
 
 #include <cstdint>
 
@@ -16,10 +17,10 @@ class Memory_Monitor
 	{
 		void *pointer = ::operator new(size * sizeof(T));
 
-		visual::Event::Dispatch(std::make_unique<Allocated_Array_Event>(
+		visual::Dispatch(Allocated_Array_Event{
 		    reinterpret_cast<std::uint64_t>(pointer),
 		    sizeof(T),
-		    size));
+		    size });
 
 		T *typed_pointer = reinterpret_cast<T *>(pointer);
 		for (std::size_t i = 0; i < size; ++i)
@@ -33,8 +34,8 @@ class Memory_Monitor
 
 	void deallocate(T *pointer) const
 	{
-		visual::Event::Dispatch(std::make_unique<Deallocated_Array_Event>(
-		    reinterpret_cast<std::uint64_t>(pointer)));
+		visual::Dispatch(Deallocated_Array_Event{
+		    reinterpret_cast<std::uint64_t>(pointer) });
 
 		::operator delete(pointer);
 	}

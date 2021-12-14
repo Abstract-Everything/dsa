@@ -58,9 +58,9 @@ void draw_buffer(const visual::Buffer &buffer)
 namespace visual
 {
 
-void Viewport::add_event(std::unique_ptr<Event> &&event)
+void Viewport::add_event(Event &&event)
 {
-	spdlog::trace("Added eventof type: {}", event->name());
+	spdlog::trace("Added eventof type: {}", typeid(event).name());
 	m_events.push_back(std::move(event));
 }
 
@@ -78,7 +78,7 @@ void Viewport::update(std::chrono::microseconds deltaTime)
 	{
 		auto event = std::move(m_events.front());
 		m_events.pop_front();
-		if (process(*event))
+		if (process(event))
 		{
 			break;
 		}
@@ -95,34 +95,11 @@ void Viewport::draw() const
 
 bool Viewport::process(const Event &event)
 {
-	spdlog::trace("Processing event of type: {}", event.name());
+	spdlog::trace("Processing event of type: {}", typeid(event).name());
 
-	if (auto const *allocated_array =
-		dynamic_cast<Allocated_Array_Event const *>(&event))
-	{
-		return process(*allocated_array);
-	}
-
-	if (auto const *move_assignment =
-		dynamic_cast<Move_Assignment_Event const *>(&event))
-	{
-		return process(*move_assignment);
-	}
-
-	if (auto const *copy_assignment =
-		dynamic_cast<Copy_Assignment_Event const *>(&event))
-	{
-		return process(*copy_assignment);
-	}
-
-	if (auto const *deallocated_array =
-		dynamic_cast<Deallocated_Array_Event const *>(&event))
-	{
-		return process(*deallocated_array);
-	}
-
-	spdlog::warn("Unhandled event of type {}", event.name());
-	return false;
+	return std::visit(
+	    [this](auto &&event_typed) { return process(event_typed); },
+	    event);
 }
 
 bool Viewport::process(const Allocated_Array_Event &event)
