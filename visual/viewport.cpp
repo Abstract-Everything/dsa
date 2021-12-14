@@ -1,29 +1,56 @@
 #include "viewport.hpp"
 
+#include <imgui.h>
 #include <spdlog/spdlog.h>
 
 #include <exception>
 
 namespace
 {
+
 constexpr std::chrono::seconds event_duration{ 2 };
+constexpr ImU32                valid_background   = IM_COL32(0, 150, 255, 255);
+constexpr ImU32                invalid_background = IM_COL32(255, 50, 50, 255);
 
-[[nodiscard]] visual::Text_Widget invalid_element()
+void draw_buffer(const visual::Buffer &buffer)
 {
-	const sf::Color     invalid_background{ 255, 50, 50 };
-	visual::Text_Widget text;
-	text.set_text("?");
-	text.background(invalid_background);
-	return text;
-}
+	bool                   open         = true;
+	const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
+					      | ImGuiWindowFlags_AlwaysAutoResize
+					      | ImGuiWindowFlags_NoNav;
 
-[[nodiscard]] visual::Text_Widget valid_element(std::string_view string)
-{
-	const sf::Color     valid_background{ 0, 150, 255 };
-	visual::Text_Widget text;
-	text.set_text(string);
-	text.background(valid_background);
-	return text;
+	const ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit
+					    | ImGuiTableFlags_BordersInnerV
+					    | ImGuiTableFlags_RowBg;
+
+	const std::string window_name =
+	    fmt::format("Buffer_{}", buffer.address());
+
+	ImGui::Begin(window_name.c_str(), &open, window_flags);
+	ImGui::SetWindowFontScale(2.0F);
+
+	ImGui::BeginTable(
+	    "Elements",
+	    1 + static_cast<int>(buffer.size()),
+	    table_flags);
+
+	ImGui::TableNextColumn();
+	std::string size = std::to_string(buffer.size());
+	ImGui::TextUnformatted(size.c_str());
+
+	for (auto const &element : buffer)
+	{
+		const std::string_view value = element.value();
+		ImU32 background = element.initialised() ? valid_background
+							 : invalid_background;
+
+		ImGui::TableNextColumn();
+		ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, background);
+		ImGui::TextUnformatted(value.data(), value.data() + value.length());
+	}
+	ImGui::EndTable();
+
+	ImGui::End();
 }
 
 } // namespace
@@ -58,9 +85,12 @@ void Viewport::update(std::chrono::microseconds deltaTime)
 	}
 }
 
-void Viewport::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Viewport::draw() const
 {
-	m_arrays.draw(target, states);
+	for (auto const &buffer : m_buffers)
+	{
+		draw_buffer(buffer);
+	}
 }
 
 bool Viewport::process(const Event &event)
@@ -111,10 +141,6 @@ bool Viewport::process(const Allocated_Array_Event &event)
 	}
 
 	m_buffers.push_back(buffer);
-	m_arrays.push_back(std::make_unique<Array_Widget<Widget>>(
-	    buffer.count(),
-	    invalid_element(),
-	    Draw_Direction::Horizontal));
 
 	return true;
 }
@@ -135,8 +161,6 @@ bool Viewport::process(const Deallocated_Array_Event &event)
 	}
 
 	m_buffers.erase(buffer_it);
-	m_arrays.erase(
-	    m_arrays.begin() + std::distance(m_buffers.begin(), buffer_it));
 
 	return true;
 }
@@ -146,7 +170,6 @@ bool Viewport::process(const Copy_Assignment_Event &event)
 	return update_element(
 	    "Received an assignment event for an address outside any range",
 	    event.address(),
-	    event.initialised(),
 	    event.value());
 }
 
@@ -163,22 +186,20 @@ bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 	return update_element(
 	    "Received a move assignment event for an address outside any range",
 	    event.to_address(),
-	    event.initialised(),
 	    event.value());
 }
 
 bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 {
-	return update_element(event.from_address(), false, "");
+	return update_element(event.from_address(), Memory_Value());
 }
 
 bool Viewport::update_element(
-    std::string_view log_message,
-    std::uint64_t    address,
-    bool             initialised,
-    std::string_view string)
+    std::string_view    log_message,
+    std::uint64_t       address,
+    const Memory_Value &value)
 {
-	bool success = update_element(address, initialised, string);
+	bool success = update_element(address, value);
 	if (!success)
 	{
 		spdlog::warn(log_message);
@@ -186,10 +207,7 @@ bool Viewport::update_element(
 	return success;
 }
 
-bool Viewport::update_element(
-    std::uint64_t    address,
-    bool             initialised,
-    std::string_view string)
+bool Viewport::update_element(std::uint64_t address, const Memory_Value &value)
 {
 	auto buffer_it = std::find_if(
 	    m_buffers.begin(),
@@ -201,33 +219,18 @@ bool Viewport::update_element(
 		return false;
 	}
 
-	auto arrays_it =
-	    m_arrays.begin() + std::distance(m_buffers.begin(), buffer_it);
-
-	if (arrays_it >= m_arrays.end())
-	{
-		spdlog::error(
-		    "A buffer does not have a corresponding array "
-		    "representation.");
-		return false;
-	}
-
-	std::unique_ptr<Buffer_Widget> &buffer_widget = *arrays_it;
-
 	auto element_it =
-	    buffer_widget->begin()
+	    buffer_it->begin()
 	    + static_cast<std::ptrdiff_t>(buffer_it->index_of(address));
 
-	if (element_it >= buffer_widget->end())
+	if (element_it >= buffer_it->end())
 	{
-		spdlog::error(
-		    "A buffer element does not have a corresponding "
-		    "representation");
+		spdlog::error("Tried to update an element outside of a buffer");
 		return false;
 	}
 
-	*element_it = std::make_unique<Text_Widget>(
-	    initialised ? valid_element(string) : invalid_element());
+	*element_it = value;
+
 	return true;
 }
 

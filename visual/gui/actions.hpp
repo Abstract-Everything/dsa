@@ -31,7 +31,7 @@ class Actions_UI
 	using Value = typename Container::Value;
 
  public:
-	void draw_ui();
+	void draw();
 
  private:
 	Container m_container{ Memory_Monitor<Value>{} };
@@ -64,7 +64,7 @@ class Actions_UI
 };
 
 template<typename Container>
-void Actions_UI<Container>::draw_ui()
+void Actions_UI<Container>::draw()
 {
 	section("Properties", &Actions_UI::properties);
 	section("Accessors", &Actions_UI::accessors);

@@ -8,6 +8,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <imgui-SFML.h>
+#include <imgui.h>
 #include <spdlog/spdlog.h>
 
 #include <exception>
@@ -34,7 +35,7 @@ Main_Window::Main_Window()
 		"Visualising Data Structures and Algorithms" }
 {
 	m_window.setFramerateLimit(frame_rate);
-	ImGui::SFML::Init(m_window, true);
+	ImGui::SFML::Init(m_window, false);
 }
 
 Main_Window::~Main_Window()
@@ -45,11 +46,6 @@ Main_Window::~Main_Window()
 const fs::path &Main_Window::executable_path()
 {
 	return m_executable;
-}
-
-const sf::Font &Main_Window::default_font()
-{
-	return m_font;
 }
 
 void Main_Window::add_event(std::unique_ptr<Event> &&event)
@@ -96,12 +92,16 @@ void Main_Window::initialise(const std::vector<std::string> &arguments)
 		    fonts_path));
 	}
 
+	ImGuiIO io = ImGui::GetIO();
 	fs::path times_path = fonts_path / "times-new-roman.ttf";
-	if (!m_font.loadFromFile(times_path.string()))
+	ImFont* font = io.Fonts->AddFontFromFileTTF(times_path.string().c_str(), 40.0F);
+	if (font == nullptr)
 	{
 		throw std::runtime_error(
-		    fmt::format("Failed to load font from '{}'", fonts_path));
+		    fmt::format("Failed to load font in ImGui from '{}'", fonts_path));
 	}
+	font->Scale = 0.5F;
+	ImGui::SFML::UpdateFontTexture();
 }
 
 void Main_Window::start()
@@ -129,9 +129,26 @@ void Main_Window::start()
 
 		m_window.clear(dark_grey);
 
-		sf::RenderStates states;
-		m_viewport.draw(m_window, states);
-		m_user_interface.draw_ui();
+		m_viewport.draw();
+
+		bool             open  = true;
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
+					 | ImGuiWindowFlags_NoMove
+					 | ImGuiWindowFlags_NoResize
+					 | ImGuiWindowFlags_NoSavedSettings;
+
+		const ImGuiViewport *viewport = ImGui::GetMainViewport();
+		const ImVec2         position = viewport->WorkPos;
+		const ImVec2         size     = viewport->WorkSize;
+		ImGui::SetNextWindowPos(
+		    ImVec2{ position.x, position.y + size.y / 2 });
+		ImGui::SetNextWindowSize(ImVec2{ size.x, size.y / 2 });
+
+		if (ImGui::Begin("Data structure visualisation", &open, flags))
+		{
+			m_user_interface.draw();
+		}
+		ImGui::End();
 
 		ImGui::SFML::Render(m_window);
 		m_window.display();

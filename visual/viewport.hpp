@@ -2,7 +2,6 @@
 #define VISUAL_VIEWPORT_HPP
 
 #include "allocated_array_event.hpp"
-#include "array_widget.hpp"
 #include "buffer.hpp"
 #include "copy_assignment_event.hpp"
 #include "deallocated_array_event.hpp"
@@ -16,23 +15,17 @@
 namespace visual
 {
 
-class Viewport : public sf::Drawable
+class Viewport
 {
-	using Element_Widget = Widget;
-	using Buffer_Widget  = Array_Widget<Widget>;
-	using Memory_Widget  = Array_Widget<Buffer_Widget>;
-	using Buffers        = std::vector<Buffer>;
-
  public:
 	void add_event(std::unique_ptr<Event> &&event);
 	void update(std::chrono::microseconds deltaTime);
 
-	void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+	void draw() const;
 
  private:
 	std::list<std::unique_ptr<Event>> m_events;
-	Memory_Widget                     m_arrays{ Draw_Direction::Vertical };
-	Buffers                           m_buffers;
+	std::vector<Buffer>               m_buffers;
 	std::chrono::microseconds         m_eventTimeout{ -1 };
 
 	[[nodiscard]] bool process(const Event &event);
@@ -48,15 +41,13 @@ class Viewport : public sf::Drawable
 	    const Move_Assignment_Event &event);
 
 	[[nodiscard]] bool update_element(
-	    std::string_view log_message,
-	    std::uint64_t    address,
-	    bool             initialised,
-	    std::string_view string);
+	    std::string_view    log_message,
+	    std::uint64_t       address,
+	    const Memory_Value &value);
 
 	[[nodiscard]] bool update_element(
-	    std::uint64_t    address,
-	    bool             initialised,
-	    std::string_view string);
+	    std::uint64_t       address,
+	    const Memory_Value &value);
 };
 
 } // namespace visual

@@ -5,6 +5,7 @@ find_package(spdlog REQUIRED)
 add_executable(
 	visual
 	buffer.cpp
+	memory_value.cpp
 	events/allocated_array_event.cpp
 	events/copy_assignment_event.cpp
 	events/deallocated_array_event.cpp
@@ -13,16 +14,13 @@ add_executable(
 	gui/user_interface.cpp
 	main.cpp
 	main_window.cpp
-	viewport.cpp
-	widgets/text_widget.cpp
-	widgets/widget.cpp)
+	viewport.cpp)
 
 target_include_directories(
 	visual
 	PRIVATE ${CMAKE_CURRENT_LIST_DIR}
 		${CMAKE_CURRENT_LIST_DIR}/events
 		${CMAKE_CURRENT_LIST_DIR}/gui
-		${CMAKE_CURRENT_LIST_DIR}/widgets
 		${CMAKE_CURRENT_LIST_DIR}/monitors)
 
 target_link_libraries(
