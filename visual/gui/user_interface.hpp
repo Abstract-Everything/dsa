@@ -1,6 +1,7 @@
 #ifndef VISUAL_USER_INTERFACE_HPP
 #define VISUAL_USER_INTERFACE_HPP
 
+#include "actions.hpp"
 #include "element_monitor.hpp"
 #include "memory_monitor.hpp"
 
@@ -8,7 +9,6 @@
 #include <dsa/vector.hpp>
 
 #include <variant>
-#include "actions.hpp"
 
 namespace visual
 {
@@ -24,7 +24,8 @@ class User_Interface
 
  private:
 	int m_selected_structure;
-	std::variant<Actions_UI<Array>, Actions_UI<Vector>> m_actions;
+	std::variant<std::monostate, Actions_UI<Array>, Actions_UI<Vector>>
+	    m_actions;
 };
 
 } // namespace visual

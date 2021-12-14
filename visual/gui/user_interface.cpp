@@ -7,7 +7,7 @@
 namespace
 {
 
-constexpr std::array<const char *, 2> structures{ "Array", "Vector" };
+constexpr std::array<const char *, 3> structures{ "Empty", "Array", "Vector" };
 
 } // namespace
 
@@ -46,7 +46,17 @@ void User_Interface::draw()
 		ImGui::Unindent();
 	}
 
-	std::visit([](auto &&actions_ui) { actions_ui.draw(); }, m_actions);
+	std::visit(
+	    [](auto &&actions_ui)
+	    {
+		    if constexpr (!std::is_same_v<
+				      std::decay_t<decltype(actions_ui)>,
+				      std::monostate>)
+		    {
+			    actions_ui.draw();
+		    }
+	    },
+	    m_actions);
 
 	ImGui::Unindent();
 }
