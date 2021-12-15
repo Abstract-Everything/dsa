@@ -2,6 +2,7 @@
 #define VISUAL_MEMORY_ALLOCATION_HPP
 
 #include "address.hpp"
+#include "memory_element.hpp"
 #include "memory_value.hpp"
 
 #include <cstddef>
@@ -13,18 +14,22 @@ namespace visual
 
 class Memory_Allocation
 {
-	using Container      = std::vector<Memory_Value>;
+	using Container      = std::vector<Memory_Element>;
 	using Iterator       = Container::iterator;
 	using Const_Iterator = Container::const_iterator;
 
  public:
-	Memory_Allocation(Address address, std::size_t elements_count, std::size_t element_size);
+	Memory_Allocation(
+	    Address     address,
+	    std::size_t elements_count,
+	    std::size_t element_size);
 
 	[[nodiscard]] Address     address() const;
 	[[nodiscard]] bool        contains(Address address) const;
 	[[nodiscard]] std::size_t index_of(Address address) const;
 
 	[[nodiscard]] std::size_t size() const;
+	[[nodiscard]] std::size_t max_element_size() const;
 
 	[[nodiscard]] Iterator       begin();
 	[[nodiscard]] Const_Iterator begin() const;
@@ -32,7 +37,9 @@ class Memory_Allocation
 	[[nodiscard]] Iterator       end();
 	[[nodiscard]] Const_Iterator end() const;
 
-	[[nodiscard]] static bool overlap(const Memory_Allocation &lhs, const Memory_Allocation &rhs);
+	[[nodiscard]] static bool overlap(
+	    const Memory_Allocation &lhs,
+	    const Memory_Allocation &rhs);
 
 	void update_value(Address address, const Memory_Value &value);
 

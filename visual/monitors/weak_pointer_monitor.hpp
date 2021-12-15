@@ -114,7 +114,8 @@ class Weak_Pointer_Monitor
 	{
 		Dispatch(Copy_Assignment_Event(
 		    to_raw_address(this),
-		    Memory_Value{ true,
+		    Memory_Value{ sizeof(*this),
+				  true,
 				  std::to_string(to_raw_address(m_pointer)) }));
 	}
 
@@ -123,7 +124,8 @@ class Weak_Pointer_Monitor
 		Dispatch(Move_Assignment_Event(
 		    to_raw_address(this),
 		    to_raw_address(&pointer),
-		    Memory_Value{ true,
+		    Memory_Value{ sizeof(*this),
+				  true,
 				  std::to_string(to_raw_address(m_pointer)) }));
 	}
 };

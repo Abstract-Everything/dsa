@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <exception>
 
 namespace
@@ -11,6 +12,62 @@ namespace
 constexpr std::chrono::seconds event_duration{ 2 };
 constexpr ImU32                valid_background   = IM_COL32(0, 150, 255, 255);
 constexpr ImU32                invalid_background = IM_COL32(255, 50, 50, 255);
+
+ImU32 cell_background(bool initialised)
+{
+	return initialised ? valid_background : invalid_background;
+}
+
+void draw_buffer_size(const visual::Memory_Allocation &buffer)
+{
+	ImGui::TableNextColumn();
+	std::string size = std::to_string(buffer.size());
+	ImGui::TextUnformatted(size.c_str());
+}
+
+// We use a table to represent multiple values in a buffer element. For example
+// a buffer having elements with mutliple values can be represented in different
+// rows as:
+//
+// Element 1: Value A, Element 2: Value A, Element 3: Value A,
+//            Value B,            Value B,            Value B, ....
+//            Value C,            Value C,            Value C,
+//
+// Using a single table was the best way found to do it because ImGui does not
+// auto scale the cells in nested tables.
+void draw_buffer_elements(const visual::Memory_Allocation &buffer)
+{
+	for (std::size_t i = 0; i < buffer.max_element_size(); ++i)
+	{
+		if (i != 0)
+		{
+			ImGui::TableNextRow();
+		}
+
+		ImGui::TableSetColumnIndex(0);
+
+		for (auto const &element : buffer)
+		{
+			ImGui::TableNextColumn();
+
+			if (element.size() <= i)
+			{
+				continue;
+			}
+
+			auto const      &value     = element[i];
+			std::string_view value_str = value.value();
+
+			ImGui::TableSetBgColor(
+			    ImGuiTableBgTarget_CellBg,
+			    cell_background(value.initialised()));
+
+			ImGui::TextUnformatted(
+			    value_str.data(),
+			    value_str.data() + value_str.length());
+		}
+	}
+}
 
 void draw_buffer(const visual::Memory_Allocation &buffer)
 {
@@ -34,20 +91,9 @@ void draw_buffer(const visual::Memory_Allocation &buffer)
 	    1 + static_cast<int>(buffer.size()),
 	    table_flags);
 
-	ImGui::TableNextColumn();
-	std::string size = std::to_string(buffer.size());
-	ImGui::TextUnformatted(size.c_str());
+	draw_buffer_size(buffer);
+	draw_buffer_elements(buffer);
 
-	for (auto const &element : buffer)
-	{
-		const std::string_view value = element.value();
-		ImU32 background = element.initialised() ? valid_background
-							 : invalid_background;
-
-		ImGui::TableNextColumn();
-		ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, background);
-		ImGui::TextUnformatted(value.data(), value.data() + value.length());
-	}
 	ImGui::EndTable();
 
 	ImGui::End();
@@ -104,7 +150,9 @@ bool Viewport::process(const Event &event)
 
 bool Viewport::process(const Allocated_Array_Event &event)
 {
-	m_memory.insert(Memory_Allocation{ event.address(), event.size(), event.element_size() });
+	m_memory.insert(Memory_Allocation{ event.address(),
+					   event.size(),
+					   event.element_size() });
 	return true;
 }
 
@@ -140,7 +188,9 @@ bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 
 bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 {
-	return update_element(event.from_address(), Memory_Value());
+	return update_element(
+	    event.from_address(),
+	    Memory_Value(event.value().size(), false));
 }
 
 bool Viewport::update_element(
