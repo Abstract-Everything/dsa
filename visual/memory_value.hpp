@@ -1,5 +1,5 @@
-#ifndef VISUAL_ELEMENT_HPP
-#define VISUAL_ELEMENT_HPP
+#ifndef VISUAL_MEMORY_VALUE_HPP
+#define VISUAL_MEMORY_VALUE_HPP
 
 #include <cstddef>
 #include <cstdint>
