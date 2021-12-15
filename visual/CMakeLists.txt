@@ -4,8 +4,6 @@ find_package(spdlog REQUIRED)
 
 add_executable(
 	visual
-	buffer.cpp
-	memory_value.cpp
 	events/allocated_array_event.cpp
 	events/copy_assignment_event.cpp
 	events/deallocated_array_event.cpp
@@ -14,6 +12,9 @@ add_executable(
 	gui/user_interface.cpp
 	main.cpp
 	main_window.cpp
+	memory.cpp
+	memory_allocation.cpp
+	memory_value.cpp
 	viewport.cpp)
 
 target_include_directories(
