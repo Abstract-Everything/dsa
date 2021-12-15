@@ -1,6 +1,7 @@
 #ifndef VISUAL_VIEWPORT_HPP
 #define VISUAL_VIEWPORT_HPP
 
+#include "address.hpp"
 #include "allocated_array_event.hpp"
 #include "buffer.hpp"
 #include "copy_assignment_event.hpp"
@@ -43,12 +44,10 @@ class Viewport
 
 	[[nodiscard]] bool update_element(
 	    std::string_view    log_message,
-	    std::uint64_t       address,
+	    Address             address,
 	    const Memory_Value &value);
 
-	[[nodiscard]] bool update_element(
-	    std::uint64_t       address,
-	    const Memory_Value &value);
+	[[nodiscard]] bool update_element(Address address, const Memory_Value &value);
 };
 
 } // namespace visual

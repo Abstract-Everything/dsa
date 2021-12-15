@@ -1,6 +1,7 @@
 #ifndef VISUAL_BUFFER_HPP
 #define VISUAL_BUFFER_HPP
 
+#include "address.hpp"
 #include "memory_value.hpp"
 
 #include <cstddef>
@@ -17,14 +18,11 @@ class Buffer
 	using Const_Iterator = Container::const_iterator;
 
  public:
-	Buffer(
-	    std::uint64_t address,
-	    std::size_t   elements_count,
-	    std::size_t   element_size);
+	Buffer(Address address, std::size_t elements_count, std::size_t element_size);
 
-	[[nodiscard]] std::uint64_t address() const;
-	[[nodiscard]] bool          contains(std::uint64_t address) const;
-	[[nodiscard]] std::uint64_t index_of(std::uint64_t address) const;
+	[[nodiscard]] Address     address() const;
+	[[nodiscard]] bool        contains(Address address) const;
+	[[nodiscard]] std::size_t index_of(Address address) const;
 
 	[[nodiscard]] std::size_t size() const;
 
@@ -37,8 +35,8 @@ class Buffer
 	[[nodiscard]] static bool overlap(const Buffer &lhs, const Buffer &rhs);
 
  private:
-	std::uint64_t m_address;
-	std::size_t   m_element_size;
+	Address     m_address;
+	std::size_t m_element_size;
 
 	Container m_elements;
 };

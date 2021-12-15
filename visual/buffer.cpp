@@ -3,24 +3,24 @@
 namespace visual
 {
 
-Buffer::Buffer(std::uint64_t address, std::size_t elements_count, std::size_t element_size)
+Buffer::Buffer(Address address, std::size_t elements_count, std::size_t element_size)
     : m_address(address)
     , m_element_size(element_size)
 {
 	m_elements.resize(elements_count);
 }
 
-std::uint64_t Buffer::address() const
+Address Buffer::address() const
 {
 	return m_address;
 }
 
-bool Buffer::contains(std::uint64_t address) const
+bool Buffer::contains(Address address) const
 {
 	return index_of(address) < m_elements.size();
 }
 
-std::uint64_t Buffer::index_of(std::uint64_t address) const
+std::size_t Buffer::index_of(Address address) const
 {
 	return (address - m_address) / m_element_size;
 }

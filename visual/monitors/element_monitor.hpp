@@ -1,6 +1,7 @@
 #ifndef VISUAL_ELEMENT_MONITOR_HPP
 #define VISUAL_ELEMENT_MONITOR_HPP
 
+#include "address.hpp"
 #include "copy_assignment_event.hpp"
 #include "event.hpp"
 #include "move_assignment_event.hpp"
@@ -56,7 +57,7 @@ class Element_Monitor
 		swap(*this, temp);
 
 		visual::Dispatch(Copy_Assignment_Event{
-		    reinterpret_cast<std::uint64_t>(this),
+		    to_raw_address(this),
 		    Memory_Value{ m_initialised, to_string() } });
 
 		return *this;
@@ -71,8 +72,8 @@ class Element_Monitor
 		swap(*this, element);
 
 		visual::Dispatch(Move_Assignment_Event{
-		    reinterpret_cast<std::uint64_t>(this),
-		    reinterpret_cast<std::uint64_t>(&element),
+		    to_raw_address(this),
+		    to_raw_address(&element),
 		    Memory_Value{ m_initialised, to_string() } });
 
 		return *this;
