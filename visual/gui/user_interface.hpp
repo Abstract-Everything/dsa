@@ -4,11 +4,13 @@
 #include "actions.hpp"
 #include "element_monitor.hpp"
 #include "memory_monitor.hpp"
+#include "weak_pointer_monitor.hpp"
 
 #include <dsa/dynamic_array.hpp>
 #include <dsa/vector.hpp>
 #include <dsa/weak_pointer.hpp>
 
+#include <memory>
 #include <variant>
 
 namespace visual
@@ -17,8 +19,8 @@ namespace visual
 class User_Interface
 {
 	using Value  = Element_Monitor<int>;
-	using Array  = dsa::Dynamic_Array<Value, dsa::Weak_Pointer, Memory_Monitor>;
-	using Vector = dsa::Vector<Value, dsa::Weak_Pointer, Memory_Monitor>;
+	using Array  = dsa::Dynamic_Array<Value, Weak_Pointer_Monitor, Memory_Monitor>;
+	using Vector = dsa::Vector<Value, Weak_Pointer_Monitor, Memory_Monitor>;
 
  public:
 	void draw();
