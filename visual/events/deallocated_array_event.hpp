@@ -4,6 +4,7 @@
 #include "address.hpp"
 
 #include <cstdint>
+#include <string>
 
 namespace visual
 {
@@ -13,6 +14,8 @@ class Deallocated_Array_Event
 	explicit Deallocated_Array_Event(Address address);
 
 	[[nodiscard]] Address address() const;
+
+	[[nodiscard]] std::string to_string() const;
 
  private:
 	Address m_address;

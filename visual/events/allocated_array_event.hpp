@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 
 namespace visual
 {
@@ -20,6 +21,8 @@ class Allocated_Array_Event
 	[[nodiscard]] Address     address() const;
 	[[nodiscard]] std::size_t element_size() const;
 	[[nodiscard]] std::size_t size() const;
+
+	[[nodiscard]] std::string to_string() const;
 
  private:
 	Address     m_address;

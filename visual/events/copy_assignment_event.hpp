@@ -5,6 +5,7 @@
 #include "memory_value.hpp"
 
 #include <cstdint>
+#include <string>
 
 namespace visual
 {
@@ -16,6 +17,8 @@ class Copy_Assignment_Event
 
 	[[nodiscard]] Address             address() const;
 	[[nodiscard]] const Memory_Value &value() const;
+
+	[[nodiscard]] std::string to_string() const;
 
  private:
 	Address      m_address;

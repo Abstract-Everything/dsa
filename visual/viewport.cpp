@@ -60,7 +60,7 @@ namespace visual
 
 void Viewport::add_event(Event &&event)
 {
-	spdlog::trace("Added eventof type: {}", typeid(event).name());
+	spdlog::trace("Added eventof type: {}", to_string(event));
 	m_events.push_back(std::move(event));
 }
 
@@ -95,7 +95,7 @@ void Viewport::draw() const
 
 bool Viewport::process(const Event &event)
 {
-	spdlog::trace("Processing event of type: {}", typeid(event).name());
+	spdlog::trace("Processing event of type: {}", to_string(event));
 
 	return std::visit(
 	    [this](auto &&event_typed) { return process(event_typed); },

@@ -18,6 +18,8 @@ using Event =
 
 void Dispatch(Event&& event);
 
+std::string to_string(const Event& event);
+
 }
 
 #endif
