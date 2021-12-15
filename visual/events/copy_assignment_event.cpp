@@ -1,5 +1,7 @@
 #include "copy_assignment_event.hpp"
 
+#include <fmt/format.h>
+
 namespace visual
 {
 
@@ -17,6 +19,11 @@ Address Copy_Assignment_Event::address() const
 const Memory_Value &Copy_Assignment_Event::value() const
 {
 	return m_value;
+}
+
+std::string Copy_Assignment_Event::to_string() const
+{
+	return fmt::format("Copy {0} to {1:#x}", m_value.value(), m_address);
 }
 
 } // namespace visual
