@@ -40,11 +40,6 @@ class Element_Monitor
 	{
 	}
 
-	void uninitialize()
-	{
-		m_initialised = false;
-	}
-
 	friend void swap(Element_Monitor &lhs, Element_Monitor &rhs)
 	{
 		std::swap(lhs.m_initialised, rhs.m_initialised);
