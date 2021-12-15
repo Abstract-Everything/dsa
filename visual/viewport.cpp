@@ -12,7 +12,7 @@ constexpr std::chrono::seconds event_duration{ 2 };
 constexpr ImU32                valid_background   = IM_COL32(0, 150, 255, 255);
 constexpr ImU32                invalid_background = IM_COL32(255, 50, 50, 255);
 
-void draw_buffer(const visual::Buffer &buffer)
+void draw_buffer(const visual::Memory_Allocation &buffer)
 {
 	bool                   open         = true;
 	const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
@@ -87,7 +87,7 @@ void Viewport::update(std::chrono::microseconds deltaTime)
 
 void Viewport::draw() const
 {
-	for (auto const &buffer : m_buffers)
+	for (auto const &buffer : m_memory)
 	{
 		draw_buffer(buffer);
 	}
@@ -104,41 +104,13 @@ bool Viewport::process(const Event &event)
 
 bool Viewport::process(const Allocated_Array_Event &event)
 {
-	Buffer buffer{ event.address(), event.size(), event.element_size() };
-
-	if (std::find_if(
-		m_buffers.begin(),
-		m_buffers.end(),
-		[&buffer](const Buffer &other)
-		{ return Buffer::overlap(other, buffer); })
-	    != m_buffers.end())
-	{
-		spdlog::warn("Received a duplicated allocate event");
-		return false;
-	}
-
-	m_buffers.push_back(buffer);
-
+	m_memory.insert(Memory_Allocation{ event.address(), event.size(), event.element_size() });
 	return true;
 }
 
 bool Viewport::process(const Deallocated_Array_Event &event)
 {
-	auto buffer_it = std::find_if(
-	    m_buffers.begin(),
-	    m_buffers.end(),
-	    [&event](const Buffer &buffer)
-	    { return buffer.contains(event.address()); });
-
-	if (buffer_it == m_buffers.end())
-	{
-		spdlog::warn(
-		    "Received a deallocate event on a non monitored address");
-		return false;
-	}
-
-	m_buffers.erase(buffer_it);
-
+	m_memory.erase(event.address());
 	return true;
 }
 
@@ -186,29 +158,7 @@ bool Viewport::update_element(
 
 bool Viewport::update_element(Address address, const Memory_Value &value)
 {
-	auto buffer_it = std::find_if(
-	    m_buffers.begin(),
-	    m_buffers.end(),
-	    [address](const Buffer &buffer) { return buffer.contains(address); });
-
-	if (buffer_it >= m_buffers.end())
-	{
-		return false;
-	}
-
-	auto element_it =
-	    buffer_it->begin()
-	    + static_cast<std::ptrdiff_t>(buffer_it->index_of(address));
-
-	if (element_it >= buffer_it->end())
-	{
-		spdlog::error("Tried to update an element outside of a buffer");
-		return false;
-	}
-
-	*element_it = value;
-
-	return true;
+	return m_memory.update_element(address, value);
 }
 
 } // namespace visual

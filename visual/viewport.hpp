@@ -3,10 +3,10 @@
 
 #include "address.hpp"
 #include "allocated_array_event.hpp"
-#include "buffer.hpp"
 #include "copy_assignment_event.hpp"
 #include "deallocated_array_event.hpp"
 #include "event.hpp"
+#include "memory.hpp"
 #include "move_assignment_event.hpp"
 
 #include <SFML/Graphics/Drawable.hpp>
@@ -27,7 +27,7 @@ class Viewport
 
  private:
 	std::list<Event>          m_events;
-	std::vector<Buffer>       m_buffers;
+	Memory                    m_memory;
 	std::chrono::microseconds m_eventTimeout{ -1 };
 
 	[[nodiscard]] bool process(const Event &event);

@@ -1,5 +1,5 @@
-#ifndef VISUAL_BUFFER_HPP
-#define VISUAL_BUFFER_HPP
+#ifndef VISUAL_MEMORY_ALLOCATION_HPP
+#define VISUAL_MEMORY_ALLOCATION_HPP
 
 #include "address.hpp"
 #include "memory_value.hpp"
@@ -11,14 +11,14 @@
 namespace visual
 {
 
-class Buffer
+class Memory_Allocation
 {
 	using Container      = std::vector<Memory_Value>;
 	using Iterator       = Container::iterator;
 	using Const_Iterator = Container::const_iterator;
 
  public:
-	Buffer(Address address, std::size_t elements_count, std::size_t element_size);
+	Memory_Allocation(Address address, std::size_t elements_count, std::size_t element_size);
 
 	[[nodiscard]] Address     address() const;
 	[[nodiscard]] bool        contains(Address address) const;
@@ -32,7 +32,9 @@ class Buffer
 	[[nodiscard]] Iterator       end();
 	[[nodiscard]] Const_Iterator end() const;
 
-	[[nodiscard]] static bool overlap(const Buffer &lhs, const Buffer &rhs);
+	[[nodiscard]] static bool overlap(const Memory_Allocation &lhs, const Memory_Allocation &rhs);
+
+	void update_value(Address address, const Memory_Value &value);
 
  private:
 	Address     m_address;

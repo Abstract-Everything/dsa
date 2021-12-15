@@ -34,6 +34,11 @@ class Memory_Monitor
 
 	void deallocate(T *pointer) const
 	{
+		if (pointer == nullptr)
+		{
+			return;
+		}
+
 		visual::Dispatch(
 		    Deallocated_Array_Event{ to_raw_address(pointer) });
 

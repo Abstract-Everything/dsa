@@ -12,7 +12,9 @@ namespace visual
 class Memory_Value
 {
  public:
-	explicit Memory_Value(bool initialised = false, std::string_view value = "");
+	explicit Memory_Value(
+	    bool             initialised = false,
+	    std::string_view value       = "");
 
 	[[nodiscard]] std::string_view value() const;
 	[[nodiscard]] bool             initialised() const;
