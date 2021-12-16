@@ -190,7 +190,9 @@ bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 {
 	return update_element(
 	    event.from_address(),
-	    Memory_Value(event.value().size(), false));
+	    event.value().is_pointer()
+		? Memory_Value(event.value().size(), false, 0U)
+		: Memory_Value(event.value().size(), false, ""));
 }
 
 bool Viewport::update_element(
