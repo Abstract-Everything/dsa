@@ -1,6 +1,7 @@
 #include "memory_element.hpp"
 
 #include <cassert>
+#include <numeric>
 
 namespace visual
 {
@@ -38,6 +39,17 @@ void Memory_Element::update_value(Address address, const Memory_Value &value)
 		    ++it,
 		    Memory_Value{ old_address_end - new_address_end });
 	}
+}
+
+Address Memory_Element::address_of_element(std::size_t index) const
+{
+	return m_address
+	       + std::accumulate(
+		   begin(),
+		   begin() + static_cast<std::ptrdiff_t>(index),
+		   0ULL,
+		   [](std::size_t accumulated, const visual::Memory_Value &value)
+		   { return accumulated + value.size(); });
 }
 
 std::size_t Memory_Element::size() const

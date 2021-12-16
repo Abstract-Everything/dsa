@@ -40,6 +40,11 @@ std::size_t Memory_Allocation::size() const
 	return m_elements.size();
 }
 
+std::size_t Memory_Allocation::element_size() const
+{
+	return m_element_size;
+}
+
 std::size_t Memory_Allocation::max_element_size() const
 {
 	auto it = std::max_element(

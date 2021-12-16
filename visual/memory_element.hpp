@@ -20,6 +20,8 @@ class Memory_Element
 	Memory_Element(Address address, std::size_t element_size);
 	void update_value(Address address, const Memory_Value &value);
 
+	[[nodiscard]] Address address_of_element(std::size_t index) const;
+
 	[[nodiscard]] std::size_t size() const;
 
 	[[nodiscard]] Const_Iterator begin() const;
@@ -28,8 +30,8 @@ class Memory_Element
 	[[nodiscard]] const Value &operator[](std::size_t index) const;
 
  private:
-	Address     m_address;
-	Container   m_values;
+	Address   m_address;
+	Container m_values;
 
 	[[nodiscard]] bool overlaps(
 	    Address             lhs_address,

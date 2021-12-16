@@ -1,33 +1,64 @@
 #include "viewport.hpp"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <exception>
+#include <map>
 
 namespace
 {
 
-constexpr std::chrono::seconds event_duration{ 2 };
-constexpr ImU32                valid_background   = IM_COL32(0, 150, 255, 255);
-constexpr ImU32                invalid_background = IM_COL32(255, 50, 50, 255);
+class Table_Value
+{
+ public:
+	ImGuiTable *table;
+	int         column;
+	int         row;
+};
+
+constexpr std::chrono::seconds event_duration{ 1 };
+
+constexpr float line_thickness = 5.0F;
+constexpr ImU32 line_colour    = IM_COL32(255, 255, 255, 100);
+
+constexpr ImU32 valid_background   = IM_COL32(0, 150, 255, 255);
+constexpr ImU32 invalid_background = IM_COL32(255, 50, 50, 255);
+
+const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
+				      | ImGuiWindowFlags_AlwaysAutoResize
+				      | ImGuiWindowFlags_NoNav;
+
+const ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit
+				    | ImGuiTableFlags_BordersInnerV
+				    | ImGuiTableFlags_RowBg;
 
 ImU32 cell_background(bool initialised)
 {
 	return initialised ? valid_background : invalid_background;
 }
 
-void draw_buffer_size(const visual::Memory_Allocation &buffer)
+void draw_size(const visual::Memory_Allocation &allocation)
 {
 	ImGui::TableNextColumn();
-	std::string size = std::to_string(buffer.size());
+	std::string size = std::to_string(allocation.size());
 	ImGui::TextUnformatted(size.c_str());
 }
 
-// We use a table to represent multiple values in a buffer element. For example
-// a buffer having elements with mutliple values can be represented in different
-// rows as:
+void draw_value(visual::Memory_Value const &value)
+{
+	ImGui::TableSetBgColor(
+	    ImGuiTableBgTarget_CellBg,
+	    cell_background(value.initialised()));
+
+	ImGui::Text("%s", value.value().c_str());
+}
+
+// We use a table to represent multiple values in a allocation element. For
+// example an allocation having elements with mutliple values can be represented
+// in different rows as:
 //
 // Element 1: Value A, Element 2: Value A, Element 3: Value A,
 //            Value B,            Value B,            Value B, ....
@@ -35,9 +66,11 @@ void draw_buffer_size(const visual::Memory_Allocation &buffer)
 //
 // Using a single table was the best way found to do it because ImGui does not
 // auto scale the cells in nested tables.
-void draw_buffer_elements(const visual::Memory_Allocation &buffer)
+void draw_allocation(
+    std::map<Address, Table_Value>  &table_values,
+    const visual::Memory_Allocation &allocation)
 {
-	for (std::size_t i = 0; i < buffer.max_element_size(); ++i)
+	for (std::size_t i = 0; i < allocation.max_element_size(); ++i)
 	{
 		if (i != 0)
 		{
@@ -46,7 +79,7 @@ void draw_buffer_elements(const visual::Memory_Allocation &buffer)
 
 		ImGui::TableSetColumnIndex(0);
 
-		for (auto const &element : buffer)
+		for (auto const &element : allocation)
 		{
 			ImGui::TableNextColumn();
 
@@ -55,50 +88,111 @@ void draw_buffer_elements(const visual::Memory_Allocation &buffer)
 				continue;
 			}
 
-			auto const      &value     = element[i];
-			std::string_view value_str = value.value();
+			draw_value(element[i]);
 
-			ImGui::TableSetBgColor(
-			    ImGuiTableBgTarget_CellBg,
-			    cell_background(value.initialised()));
-
-			ImGui::TextUnformatted(
-			    value_str.data(),
-			    value_str.data() + value_str.length());
+			ImGuiContext *g = GImGui;
+			table_values[element.address_of_element(i)] =
+			    Table_Value{ g->CurrentTable,
+					 ImGui::TableGetColumnIndex(),
+					 ImGui::TableGetRowIndex() };
 		}
 	}
 }
 
-void draw_buffer(const visual::Memory_Allocation &buffer)
+std::map<Address, Table_Value> draw_values(const visual::Memory &memory)
 {
-	bool                   open         = true;
-	const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
-					      | ImGuiWindowFlags_AlwaysAutoResize
-					      | ImGuiWindowFlags_NoNav;
+	std::map<Address, Table_Value> table_values;
+	for (auto const &allocation : memory)
+	{
+		bool              open = true;
+		const std::string window_name =
+		    fmt::format("Allocation_{}", allocation.address());
 
-	const ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit
-					    | ImGuiTableFlags_BordersInnerV
-					    | ImGuiTableFlags_RowBg;
+		ImGui::Begin(window_name.c_str(), &open, window_flags);
+		ImGui::SetWindowFontScale(2.0F);
 
-	const std::string window_name =
-	    fmt::format("Buffer_{}", buffer.address());
+		ImGui::BeginTable(
+		    "Elements",
+		    1 + static_cast<int>(allocation.size()),
+		    table_flags);
 
-	ImGui::Begin(window_name.c_str(), &open, window_flags);
-	ImGui::SetWindowFontScale(2.0F);
+		draw_size(allocation);
+		draw_allocation(table_values, allocation);
 
-	ImGui::BeginTable(
-	    "Elements",
-	    1 + static_cast<int>(buffer.size()),
-	    table_flags);
+		ImGui::EndTable();
 
-	draw_buffer_size(buffer);
-	draw_buffer_elements(buffer);
-
-	ImGui::EndTable();
-
-	ImGui::End();
+		ImGui::End();
+	}
+	return table_values;
 }
 
+enum class Link_Position
+{
+	Front,
+	End
+};
+
+ImVec2 link_position(
+    const std::map<Address, Table_Value> &table_values,
+    Address                               address,
+    Link_Position                         position)
+{
+	ImGuiTable const *table  = table_values.at(address).table;
+	int const         column = table_values.at(address).column;
+	auto const  row = static_cast<float>(table_values.at(address).row);
+	float const middle_offset = 0.5F;
+
+	float horizontal = 0.0F;
+	switch (position)
+	{
+	case Link_Position::Front:
+		horizontal = table->Columns[column].MinX;
+		break;
+
+	case Link_Position::End:
+		horizontal = table->Columns[column].MaxX;
+		break;
+	}
+
+	float row_middle = table->LastFirstRowHeight * (row + middle_offset);
+
+	return ImVec2{ horizontal, table->OuterRect.Min.y + row_middle };
+}
+
+void draw_pointer_links(
+    const std::map<Address, Table_Value> &table_values,
+    const visual::Memory                 &memory)
+{
+	for (auto const &allocation : memory)
+	{
+		Address element_address = allocation.address();
+		for (auto const &element : allocation)
+		{
+			Address current_address = element_address;
+			for (auto const &value : element)
+			{
+				if (value.is_pointer()
+				    && value.pointee_address() != 0U)
+				{
+					ImGui::GetForegroundDrawList()->AddLine(
+					    link_position(
+						table_values,
+						current_address,
+						Link_Position::End),
+					    link_position(
+						table_values,
+						value.pointee_address(),
+						Link_Position::Front),
+					    line_colour,
+					    line_thickness);
+				}
+
+				current_address += value.size();
+			}
+			element_address += allocation.element_size();
+		}
+	}
+}
 } // namespace
 
 namespace visual
@@ -133,10 +227,8 @@ void Viewport::update(std::chrono::microseconds deltaTime)
 
 void Viewport::draw() const
 {
-	for (auto const &buffer : m_memory)
-	{
-		draw_buffer(buffer);
-	}
+	const std::map<Address, Table_Value> table_values = draw_values(m_memory);
+	draw_pointer_links(table_values, m_memory);
 }
 
 bool Viewport::process(const Event &event)

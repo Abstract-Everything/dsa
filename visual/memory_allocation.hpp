@@ -29,6 +29,7 @@ class Memory_Allocation
 	[[nodiscard]] std::size_t index_of(Address address) const;
 
 	[[nodiscard]] std::size_t size() const;
+	[[nodiscard]] std::size_t element_size() const;
 	[[nodiscard]] std::size_t max_element_size() const;
 
 	[[nodiscard]] Iterator       begin();
