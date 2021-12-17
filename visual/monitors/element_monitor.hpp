@@ -26,6 +26,8 @@ class Element_Monitor
 	{
 	}
 
+	~Element_Monitor() = default;
+
 	Element_Monitor(const Element_Monitor &element)
 	    : m_initialised(element.m_initialised)
 	    , m_value(element.m_value)
