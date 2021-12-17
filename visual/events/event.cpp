@@ -1,4 +1,3 @@
-
 #include "event.hpp"
 
 #include "main_window.hpp"

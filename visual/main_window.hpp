@@ -1,7 +1,6 @@
 #ifndef VISUAL_MAIN_WINDOW_HPP
 #define VISUAL_MAIN_WINDOW_HPP
 
-#include "actions.hpp"
 #include "event.hpp"
 #include "user_interface.hpp"
 #include "viewport.hpp"

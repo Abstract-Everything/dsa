@@ -4,10 +4,8 @@
 #include "allocated_array_event.hpp"
 #include "copy_assignment_event.hpp"
 #include "deallocated_array_event.hpp"
-#include "allocated_array_event.hpp"
 #include "move_assignment_event.hpp"
 
-#include <typeinfo>
 #include <variant>
 
 namespace visual

@@ -4,7 +4,6 @@
 #include "address.hpp"
 #include "memory_value.hpp"
 
-#include <cstdint>
 #include <string>
 
 namespace visual

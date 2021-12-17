@@ -1,7 +1,5 @@
 #include "user_interface.hpp"
 
-#include "templates.hpp"
-
 #include <array>
 
 namespace

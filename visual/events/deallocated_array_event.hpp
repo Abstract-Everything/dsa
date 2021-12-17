@@ -3,7 +3,6 @@
 
 #include "address.hpp"
 
-#include <cstdint>
 #include <string>
 
 namespace visual

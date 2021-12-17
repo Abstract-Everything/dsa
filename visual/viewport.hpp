@@ -9,8 +9,6 @@
 #include "memory.hpp"
 #include "move_assignment_event.hpp"
 
-#include <SFML/Graphics/Drawable.hpp>
-
 #include <chrono>
 #include <list>
 

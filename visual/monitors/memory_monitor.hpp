@@ -6,8 +6,6 @@
 #include "deallocated_array_event.hpp"
 #include "event.hpp"
 
-#include <cstdint>
-
 namespace visual
 {
 template<typename T>

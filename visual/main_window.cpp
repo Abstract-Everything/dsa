@@ -1,10 +1,5 @@
 #include "main_window.hpp"
 
-#include "event.hpp"
-
-#include <dsa/dynamic_array.hpp>
-
-#include <SFML/Graphics.hpp>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <imgui-SFML.h>

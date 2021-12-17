@@ -1,14 +1,12 @@
 #ifndef VISUAL_ACTIONS_HPP
 #define VISUAL_ACTIONS_HPP
 
-#include "element_monitor.hpp"
-#include "memory_monitor.hpp"
 #include "templates.hpp"
 
-#include <dsa/dynamic_array.hpp>
-#include <dsa/vector.hpp>
-
+#include <fmt/format.h>
 #include <imgui.h>
+
+#include <string>
 
 namespace visual
 {
