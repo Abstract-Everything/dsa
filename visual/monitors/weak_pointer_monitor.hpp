@@ -114,7 +114,7 @@ class Weak_Pointer_Monitor
 	{
 		Dispatch(Copy_Assignment_Event(
 		    to_raw_address(this),
-		    Memory_Value{ sizeof(*this), true, to_raw_address(m_pointer) }));
+		    Memory_Value{sizeof(*this), true, to_raw_address(m_pointer)}));
 	}
 
 	void dispatch_move(const Weak_Pointer_Monitor &pointer)
@@ -122,7 +122,7 @@ class Weak_Pointer_Monitor
 		Dispatch(Move_Assignment_Event(
 		    to_raw_address(this),
 		    to_raw_address(&pointer),
-		    Memory_Value{ sizeof(*this), true, to_raw_address(m_pointer) }));
+		    Memory_Value{sizeof(*this), true, to_raw_address(m_pointer)}));
 	}
 };
 

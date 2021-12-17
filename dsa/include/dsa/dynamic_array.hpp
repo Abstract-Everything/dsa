@@ -55,7 +55,7 @@ class Dynamic_Array
 	}
 
 	Dynamic_Array(Dynamic_Array &&darray) noexcept
-	    : Dynamic_Array{ darray.m_allocator }
+	    : Dynamic_Array{darray.m_allocator}
 	{
 		swap(*this, darray);
 	}

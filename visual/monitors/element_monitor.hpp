@@ -16,7 +16,7 @@ template<typename Value>
 class Element_Monitor
 {
  public:
-	Element_Monitor() : Element_Monitor{ 0 }
+	Element_Monitor() : Element_Monitor{0}
 	{
 	}
 
@@ -48,12 +48,12 @@ class Element_Monitor
 
 	Element_Monitor &operator=(const Element_Monitor &element)
 	{
-		Element_Monitor temp{ element };
+		Element_Monitor temp{element};
 		swap(*this, temp);
 
 		visual::Dispatch(Copy_Assignment_Event{
 		    to_raw_address(this),
-		    Memory_Value{ sizeof(*this), m_initialised, to_string() } });
+		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
 
 		return *this;
 	}
@@ -69,7 +69,7 @@ class Element_Monitor
 		visual::Dispatch(Move_Assignment_Event{
 		    to_raw_address(this),
 		    to_raw_address(&element),
-		    Memory_Value{ sizeof(*this), m_initialised, to_string() } });
+		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
 
 		return *this;
 	}

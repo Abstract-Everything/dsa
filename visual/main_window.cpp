@@ -12,9 +12,10 @@ namespace fs = std::filesystem;
 
 namespace
 {
-constexpr std::size_t x_resolution = 640;
-constexpr std::size_t y_resolution = 640;
-constexpr std::size_t frame_rate   = 60;
+constexpr float       font_resolution = 40.0F;
+constexpr std::size_t x_resolution    = 640;
+constexpr std::size_t y_resolution    = 640;
+constexpr std::size_t frame_rate      = 60;
 } // namespace
 
 namespace visual
@@ -26,8 +27,9 @@ Main_Window &Main_Window::instance()
 }
 
 Main_Window::Main_Window()
-    : m_window{ sf::VideoMode(x_resolution, y_resolution),
-		"Visualising Data Structures and Algorithms" }
+    : m_window{
+	sf::VideoMode(x_resolution, y_resolution),
+	"Visualising Data Structures and Algorithms"}
 {
 	m_window.setFramerateLimit(frame_rate);
 	ImGui::SFML::Init(m_window, false);
@@ -61,7 +63,7 @@ void Main_Window::initialise(const std::vector<std::string> &arguments)
 		    "The executable path was not passed through argv"));
 	}
 
-	fs::path argument{ arguments[0] };
+	fs::path argument{arguments[0]};
 	if (argument.is_absolute())
 	{
 		m_executable = argument;
@@ -87,13 +89,17 @@ void Main_Window::initialise(const std::vector<std::string> &arguments)
 		    fonts_path));
 	}
 
-	ImGuiIO io = ImGui::GetIO();
+	ImGuiIO  io         = ImGui::GetIO();
 	fs::path times_path = fonts_path / "times-new-roman.ttf";
-	ImFont* font = io.Fonts->AddFontFromFileTTF(times_path.string().c_str(), 40.0F);
+	ImFont  *font       = io.Fonts->AddFontFromFileTTF(
+            times_path.string().c_str(),
+            font_resolution);
+
 	if (font == nullptr)
 	{
-		throw std::runtime_error(
-		    fmt::format("Failed to load font in ImGui from '{}'", fonts_path));
+		throw std::runtime_error(fmt::format(
+		    "Failed to load font in ImGui from '{}'",
+		    fonts_path));
 	}
 	font->Scale = 0.5F;
 	ImGui::SFML::UpdateFontTexture();
@@ -101,7 +107,7 @@ void Main_Window::initialise(const std::vector<std::string> &arguments)
 
 void Main_Window::start()
 {
-	const sf::Color dark_grey{ 25, 25, 25 };
+	const sf::Color dark_grey{25, 25, 25};
 
 	sf::Clock deltaClock;
 	while (m_window.isOpen())
@@ -120,7 +126,7 @@ void Main_Window::start()
 		const sf::Time deltaTime = deltaClock.restart();
 		ImGui::SFML::Update(m_window, deltaTime);
 		m_viewport.update(
-		    std::chrono::microseconds{ deltaTime.asMicroseconds() });
+		    std::chrono::microseconds{deltaTime.asMicroseconds()});
 
 		m_window.clear(dark_grey);
 
@@ -136,8 +142,8 @@ void Main_Window::start()
 		const ImVec2         position = viewport->WorkPos;
 		const ImVec2         size     = viewport->WorkSize;
 		ImGui::SetNextWindowPos(
-		    ImVec2{ position.x, position.y + size.y / 2 });
-		ImGui::SetNextWindowSize(ImVec2{ size.x, size.y / 2 });
+		    ImVec2{position.x, position.y + size.y / 2});
+		ImGui::SetNextWindowSize(ImVec2{size.x, size.y / 2});
 
 		if (ImGui::Begin("Data structure visualisation", &open, flags))
 		{

@@ -16,9 +16,8 @@ class Memory_Monitor
 	{
 		void *pointer = ::operator new(size * sizeof(T));
 
-		visual::Dispatch(Allocated_Array_Event{ to_raw_address(pointer),
-							sizeof(T),
-							size });
+		visual::Dispatch(
+		    Allocated_Array_Event{to_raw_address(pointer), sizeof(T), size});
 
 		T *typed_pointer = reinterpret_cast<T *>(pointer);
 		for (std::size_t i = 0; i < size; ++i)
@@ -36,8 +35,7 @@ class Memory_Monitor
 			return;
 		}
 
-		visual::Dispatch(
-		    Deallocated_Array_Event{ to_raw_address(pointer) });
+		visual::Dispatch(Deallocated_Array_Event{to_raw_address(pointer)});
 
 		::operator delete(pointer);
 	}

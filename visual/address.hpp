@@ -6,7 +6,7 @@
 using Address = std::uint64_t;
 
 template<typename T>
-Address to_raw_address(T* instance)
+Address to_raw_address(T *instance)
 {
 	return reinterpret_cast<std::uint64_t>(instance);
 }

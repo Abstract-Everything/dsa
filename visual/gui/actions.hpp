@@ -128,7 +128,7 @@ void Actions_UI<Container>::accessors()
 		const auto write = static_cast<std::size_t>(m_write);
 		if (conditional_button("Write", is_in_range(write)))
 		{
-			m_container[write] = Value{ m_write_value };
+			m_container[write] = Value{m_write_value};
 		}
 	}
 }
@@ -174,7 +174,7 @@ void Actions_UI<Container>::modifiers()
 		ImGui::InputInt("Append Value", &m_append_value);
 		if (ImGui::Button("Append"))
 		{
-			m_container.append(Value{ m_append_value });
+			m_container.append(Value{m_append_value});
 		}
 	}
 
@@ -189,7 +189,7 @@ void Actions_UI<Container>::modifiers()
 			"Insert",
 			is_in_range(insert) || is_last_index(insert)))
 		{
-			m_container.insert(insert, Value{ m_insert_value });
+			m_container.insert(insert, Value{m_insert_value});
 		}
 	}
 

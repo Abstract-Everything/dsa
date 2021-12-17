@@ -10,7 +10,7 @@ namespace visual
 Memory_Value::Memory_Value(std::size_t size, bool initialised, std::string_view value)
     : m_size(size)
     , m_initialised(initialised)
-    , m_value(initialised ? std::string{ value } : "?")
+    , m_value(initialised ? std::string{value} : "?")
 {
 }
 

@@ -26,7 +26,7 @@ class Viewport
  private:
 	std::list<Event>          m_events;
 	Memory                    m_memory;
-	std::chrono::microseconds m_eventTimeout{ -1 };
+	std::chrono::microseconds m_eventTimeout{-1};
 
 	[[nodiscard]] bool process(const Event &event);
 	[[nodiscard]] bool process(const Allocated_Array_Event &event);
