@@ -12,10 +12,10 @@ add_executable(
 	gui/user_interface.cpp
 	main.cpp
 	main_window.cpp
-	memory.cpp
-	memory_allocation.cpp
-	memory_element.cpp
-	memory_value.cpp
+	memory_representation/memory.cpp
+	memory_representation/memory_allocation.cpp
+	memory_representation/memory_element.cpp
+	memory_representation/memory_value.cpp
 	viewport.cpp)
 
 target_include_directories(
@@ -23,7 +23,8 @@ target_include_directories(
 	PRIVATE ${CMAKE_CURRENT_LIST_DIR}
 		${CMAKE_CURRENT_LIST_DIR}/events
 		${CMAKE_CURRENT_LIST_DIR}/gui
-		${CMAKE_CURRENT_LIST_DIR}/monitors)
+		${CMAKE_CURRENT_LIST_DIR}/monitors
+		${CMAKE_CURRENT_LIST_DIR}/memory_representation)
 
 target_link_libraries(
 	visual
