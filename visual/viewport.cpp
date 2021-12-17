@@ -256,7 +256,7 @@ bool Viewport::process(const Deallocated_Array_Event &event)
 
 bool Viewport::process(const Copy_Assignment_Event &event)
 {
-	return update_element(
+	return update_value(
 	    "Received an assignment event for an address outside any range",
 	    event.address(),
 	    event.value());
@@ -272,7 +272,7 @@ bool Viewport::process(const Move_Assignment_Event &event)
 
 bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 {
-	return update_element(
+	return update_value(
 	    "Received a move assignment event for an address outside any range",
 	    event.to_address(),
 	    event.value());
@@ -287,7 +287,7 @@ bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 		: Memory_Value(event.value().size(), false, ""));
 }
 
-bool Viewport::update_element(
+bool Viewport::update_value(
     std::string_view    log_message,
     Address             address,
     const Memory_Value &value)
