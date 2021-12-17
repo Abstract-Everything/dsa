@@ -1,14 +1,12 @@
 #ifndef VISUAL_ACTIONS_HPP
 #define VISUAL_ACTIONS_HPP
 
-#include "element_monitor.hpp"
-#include "memory_monitor.hpp"
 #include "templates.hpp"
 
-#include <dsa/dynamic_array.hpp>
-#include <dsa/vector.hpp>
-
+#include <fmt/format.h>
 #include <imgui.h>
+
+#include <string>
 
 namespace visual
 {
@@ -59,7 +57,7 @@ class Actions_UI
 	bool is_last_index(std::size_t index);
 
 	void section(const char *label, void (Actions_UI::*interface)());
-	void index_input(const char *label, int &value);
+	void index_input(const char *label, int &value, bool allow_end_index);
 	bool conditional_button(const char *label, bool enabled);
 };
 
@@ -115,7 +113,7 @@ void Actions_UI<Container>::accessors()
 	if constexpr (has_member_operator_access_v<Container>)
 	{
 		ImGui::Separator();
-		index_input("Index to read", m_read);
+		index_input("Index to read", m_read, false);
 		const auto  read  = static_cast<std::size_t>(m_read);
 		std::string value = fmt::format(
 		    "{}",
@@ -124,13 +122,13 @@ void Actions_UI<Container>::accessors()
 		ImGui::LabelText("Value read", "%s", value.c_str());
 
 		ImGui::Separator();
+		index_input("Index of element to write", m_write, false);
 		ImGui::InputInt("Value to write", &m_write_value);
-		index_input("Index of element to write", m_write);
 
 		const auto write = static_cast<std::size_t>(m_write);
 		if (conditional_button("Write", is_in_range(write)))
 		{
-			m_container[write] = Value{ m_write_value };
+			m_container[write] = Value{m_write_value};
 		}
 	}
 }
@@ -176,14 +174,14 @@ void Actions_UI<Container>::modifiers()
 		ImGui::InputInt("Append Value", &m_append_value);
 		if (ImGui::Button("Append"))
 		{
-			m_container.append(Value{ m_append_value });
+			m_container.append(Value{m_append_value});
 		}
 	}
 
 	if constexpr (has_member_insert_v<Container>)
 	{
 		ImGui::Separator();
-		index_input("Index of element to insert", m_insert);
+		index_input("Index of element to insert", m_insert, true);
 		ImGui::InputInt("Insert Value", &m_insert_value);
 
 		const auto insert = static_cast<std::size_t>(m_insert);
@@ -191,7 +189,7 @@ void Actions_UI<Container>::modifiers()
 			"Insert",
 			is_in_range(insert) || is_last_index(insert)))
 		{
-			m_container.insert(insert, Value{ m_insert_value });
+			m_container.insert(insert, Value{m_insert_value});
 		}
 	}
 
@@ -199,7 +197,7 @@ void Actions_UI<Container>::modifiers()
 	{
 		ImGui::Separator();
 
-		index_input("Index of element to erase", m_erase);
+		index_input("Index of element to erase", m_erase, false);
 
 		const auto erase = static_cast<std::size_t>(m_erase);
 		if (conditional_button("Erase", is_in_range(erase)))
@@ -235,10 +233,10 @@ void Actions_UI<Container>::section(const char *label, void (Actions_UI::*interf
 }
 
 template<typename Container>
-void Actions_UI<Container>::index_input(const char *label, int &value)
+void Actions_UI<Container>::index_input(const char *label, int &value, bool allow_end_index)
 {
 	const auto size      = static_cast<int>(m_container.size());
-	const auto max_index = std::max(0, size - 1);
+	const auto max_index = std::max(0, allow_end_index ? size : size - 1);
 	value                = std::clamp(value, 0, max_index);
 	ImGui::SliderInt(label, &value, 0, max_index);
 }

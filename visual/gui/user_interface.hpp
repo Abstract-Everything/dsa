@@ -9,9 +9,7 @@
 #include <dsa/dynamic_array.hpp>
 #include <dsa/list.hpp>
 #include <dsa/vector.hpp>
-#include <dsa/weak_pointer.hpp>
 
-#include <memory>
 #include <variant>
 
 namespace visual

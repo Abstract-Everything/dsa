@@ -89,7 +89,7 @@ class Vector
 	{
 		if (should_grow())
 		{
-			Storage storage{ grow_size(), m_storage.allocator() };
+			Storage storage{grow_size(), m_storage.allocator()};
 			std::move(&m_storage[0], &m_storage[index], &storage[0]);
 			std::move(
 			    &m_storage[index],
@@ -114,7 +114,7 @@ class Vector
 	{
 		if (should_shrink())
 		{
-			Storage storage{ shrink_size(), m_storage.allocator() };
+			Storage storage{shrink_size(), m_storage.allocator()};
 			std::move(&m_storage[0], &m_storage[index], &storage[0]);
 			std::move(
 			    &m_storage[index + 1],

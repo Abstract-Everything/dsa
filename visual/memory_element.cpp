@@ -9,7 +9,7 @@ namespace visual
 Memory_Element::Memory_Element(Address address, std::size_t element_size)
     : m_address(address)
 {
-	m_values.push_back(Memory_Value{ element_size });
+	m_values.push_back(Memory_Value{element_size});
 }
 
 void Memory_Element::update_value(Address address, const Memory_Value &value)
@@ -27,7 +27,7 @@ void Memory_Element::update_value(Address address, const Memory_Value &value)
 
 	if (old_address < address)
 	{
-		it = m_values.insert(it, Memory_Value{ address - old_address });
+		it = m_values.insert(it, Memory_Value{address - old_address});
 		it++;
 	}
 
@@ -37,7 +37,7 @@ void Memory_Element::update_value(Address address, const Memory_Value &value)
 	{
 		m_values.insert(
 		    ++it,
-		    Memory_Value{ old_address_end - new_address_end });
+		    Memory_Value{old_address_end - new_address_end});
 	}
 }
 

@@ -12,13 +12,11 @@
 namespace visual
 {
 
-template<typename Value_t>
+template<typename Value>
 class Element_Monitor
 {
-	using Value = Value_t;
-
  public:
-	Element_Monitor() : Element_Monitor{ 0 }
+	Element_Monitor() : Element_Monitor{0}
 	{
 	}
 
@@ -27,6 +25,8 @@ class Element_Monitor
 	    , m_value(std::move(value))
 	{
 	}
+
+	~Element_Monitor() = default;
 
 	Element_Monitor(const Element_Monitor &element)
 	    : m_initialised(element.m_initialised)
@@ -48,12 +48,12 @@ class Element_Monitor
 
 	Element_Monitor &operator=(const Element_Monitor &element)
 	{
-		Element_Monitor temp{ element };
+		Element_Monitor temp{element};
 		swap(*this, temp);
 
 		visual::Dispatch(Copy_Assignment_Event{
 		    to_raw_address(this),
-		    Memory_Value{ sizeof(*this), m_initialised, to_string() } });
+		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
 
 		return *this;
 	}
@@ -69,7 +69,7 @@ class Element_Monitor
 		visual::Dispatch(Move_Assignment_Event{
 		    to_raw_address(this),
 		    to_raw_address(&element),
-		    Memory_Value{ sizeof(*this), m_initialised, to_string() } });
+		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
 
 		return *this;
 	}

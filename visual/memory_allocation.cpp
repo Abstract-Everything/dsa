@@ -1,7 +1,7 @@
 #include "memory_allocation.hpp"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
 namespace visual
 {
@@ -16,7 +16,7 @@ Memory_Allocation::Memory_Allocation(
 	for (std::size_t i = 0; i < elements_count; ++i)
 	{
 		m_elements.push_back(
-		    Memory_Element{ address + i * element_size, element_size });
+		    Memory_Element{address + i * element_size, element_size});
 	}
 }
 

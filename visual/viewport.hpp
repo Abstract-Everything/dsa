@@ -9,8 +9,6 @@
 #include "memory.hpp"
 #include "move_assignment_event.hpp"
 
-#include <SFML/Graphics/Drawable.hpp>
-
 #include <chrono>
 #include <list>
 
@@ -28,7 +26,7 @@ class Viewport
  private:
 	std::list<Event>          m_events;
 	Memory                    m_memory;
-	std::chrono::microseconds m_eventTimeout{ -1 };
+	std::chrono::microseconds m_eventTimeout{-1};
 
 	[[nodiscard]] bool process(const Event &event);
 	[[nodiscard]] bool process(const Allocated_Array_Event &event);
@@ -42,7 +40,7 @@ class Viewport
 	[[nodiscard]] bool updated_moved_from_element(
 	    const Move_Assignment_Event &event);
 
-	[[nodiscard]] bool update_element(
+	[[nodiscard]] bool update_value(
 	    std::string_view    log_message,
 	    Address             address,
 	    const Memory_Value &value);

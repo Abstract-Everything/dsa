@@ -19,7 +19,7 @@ class Table_Value
 	int         row;
 };
 
-constexpr std::chrono::seconds event_duration{ 1 };
+constexpr std::chrono::seconds event_duration{1};
 
 constexpr float line_thickness = 5.0F;
 constexpr ImU32 line_colour    = IM_COL32(255, 255, 255, 100);
@@ -90,11 +90,11 @@ void draw_allocation(
 
 			draw_value(element[i]);
 
-			ImGuiContext *g = GImGui;
-			table_values[element.address_of_element(i)] =
-			    Table_Value{ g->CurrentTable,
-					 ImGui::TableGetColumnIndex(),
-					 ImGui::TableGetRowIndex() };
+			ImGuiContext *g                             = GImGui;
+			table_values[element.address_of_element(i)] = Table_Value{
+			    g->CurrentTable,
+			    ImGui::TableGetColumnIndex(),
+			    ImGui::TableGetRowIndex()};
 		}
 	}
 }
@@ -156,7 +156,7 @@ ImVec2 link_position(
 
 	float row_middle = table->LastFirstRowHeight * (row + middle_offset);
 
-	return ImVec2{ horizontal, table->OuterRect.Min.y + row_middle };
+	return ImVec2{horizontal, table->OuterRect.Min.y + row_middle};
 }
 
 void draw_pointer_links(
@@ -174,7 +174,7 @@ void draw_pointer_links(
 				if (value.is_pointer()
 				    && value.pointee_address() != 0U)
 				{
-					ImGui::GetForegroundDrawList()->AddLine(
+					ImGui::GetBackgroundDrawList()->AddLine(
 					    link_position(
 						table_values,
 						current_address,
@@ -242,9 +242,8 @@ bool Viewport::process(const Event &event)
 
 bool Viewport::process(const Allocated_Array_Event &event)
 {
-	m_memory.insert(Memory_Allocation{ event.address(),
-					   event.size(),
-					   event.element_size() });
+	m_memory.insert(
+	    Memory_Allocation{event.address(), event.size(), event.element_size()});
 	return true;
 }
 
@@ -256,7 +255,7 @@ bool Viewport::process(const Deallocated_Array_Event &event)
 
 bool Viewport::process(const Copy_Assignment_Event &event)
 {
-	return update_element(
+	return update_value(
 	    "Received an assignment event for an address outside any range",
 	    event.address(),
 	    event.value());
@@ -272,7 +271,7 @@ bool Viewport::process(const Move_Assignment_Event &event)
 
 bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 {
-	return update_element(
+	return update_value(
 	    "Received a move assignment event for an address outside any range",
 	    event.to_address(),
 	    event.value());
@@ -287,7 +286,7 @@ bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 		: Memory_Value(event.value().size(), false, ""));
 }
 
-bool Viewport::update_element(
+bool Viewport::update_value(
     std::string_view    log_message,
     Address             address,
     const Memory_Value &value)

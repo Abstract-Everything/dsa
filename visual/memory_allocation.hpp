@@ -6,7 +6,6 @@
 #include "memory_value.hpp"
 
 #include <cstddef>
-#include <cstdint>
 #include <vector>
 
 namespace visual

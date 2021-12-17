@@ -4,7 +4,6 @@
 #include "address.hpp"
 
 #include <cstddef>
-#include <cstdint>
 #include <string>
 #include <variant>
 #include <vector>
