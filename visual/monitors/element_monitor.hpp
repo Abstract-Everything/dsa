@@ -12,11 +12,9 @@
 namespace visual
 {
 
-template<typename Value_t>
+template<typename Value>
 class Element_Monitor
 {
-	using Value = Value_t;
-
  public:
 	Element_Monitor() : Element_Monitor{ 0 }
 	{
