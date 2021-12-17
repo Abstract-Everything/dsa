@@ -124,8 +124,8 @@ void Actions_UI<Container>::accessors()
 		ImGui::LabelText("Value read", "%s", value.c_str());
 
 		ImGui::Separator();
-		ImGui::InputInt("Value to write", &m_write_value);
 		index_input("Index of element to write", m_write, false);
+		ImGui::InputInt("Value to write", &m_write_value);
 
 		const auto write = static_cast<std::size_t>(m_write);
 		if (conditional_button("Write", is_in_range(write)))
