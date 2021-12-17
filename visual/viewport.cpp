@@ -174,7 +174,7 @@ void draw_pointer_links(
 				if (value.is_pointer()
 				    && value.pointee_address() != 0U)
 				{
-					ImGui::GetForegroundDrawList()->AddLine(
+					ImGui::GetBackgroundDrawList()->AddLine(
 					    link_position(
 						table_values,
 						current_address,
