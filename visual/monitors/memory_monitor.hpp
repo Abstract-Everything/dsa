@@ -26,7 +26,6 @@ class Memory_Monitor
 		for (std::size_t i = 0; i < size; ++i)
 		{
 			new (typed_pointer + i) T{};
-			typed_pointer[i].uninitialize();
 		}
 
 		return typed_pointer;

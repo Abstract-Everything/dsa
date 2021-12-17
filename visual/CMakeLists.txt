@@ -14,6 +14,7 @@ add_executable(
 	main_window.cpp
 	memory.cpp
 	memory_allocation.cpp
+	memory_element.cpp
 	memory_value.cpp
 	viewport.cpp)
 

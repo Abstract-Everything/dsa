@@ -10,17 +10,17 @@ namespace dsa
 {
 
 // ToDo: Use iterators for indices
-template<typename T, template<typename> typename Allocator_t = std::allocator>
+template<
+    typename Value_t,
+    template<typename> typename Pointer_Base   = dsa::Weak_Pointer,
+    template<typename> typename Allocator_Base = std::allocator>
 class Vector
 {
  public:
-	template<typename Allocator_Value>
-	using Allocator_Base = Allocator_t<Allocator_Value>;
+	using Value     = Value_t;
+	using Allocator = Allocator_Base<Value>;
 
-	using Value     = T;
-	using Allocator = Allocator_t<Value>;
-
-	using Storage = Dynamic_Array<Value, Allocator_Base>;
+	using Storage = Dynamic_Array<Value, Pointer_Base, Allocator_Base>;
 
 	explicit Vector(const Allocator &allocator = Allocator{})
 	    : m_storage(allocator)

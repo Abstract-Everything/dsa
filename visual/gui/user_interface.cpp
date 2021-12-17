@@ -7,7 +7,7 @@
 namespace
 {
 
-constexpr std::array<const char *, 3> structures{ "Empty", "Array", "Vector" };
+constexpr std::array<const char *, 4> structures{ "Empty", "Array", "Vector", "List" };
 
 } // namespace
 

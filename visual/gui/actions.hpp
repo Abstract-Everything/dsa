@@ -34,7 +34,7 @@ class Actions_UI
 	void draw();
 
  private:
-	Container m_container{ Memory_Monitor<Value>{} };
+	Container m_container;
 
 	int         m_read = 0;
 	std::string m_read_value;

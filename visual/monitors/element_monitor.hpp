@@ -40,11 +40,6 @@ class Element_Monitor
 	{
 	}
 
-	void uninitialize()
-	{
-		m_initialised = false;
-	}
-
 	friend void swap(Element_Monitor &lhs, Element_Monitor &rhs)
 	{
 		std::swap(lhs.m_initialised, rhs.m_initialised);
@@ -58,7 +53,7 @@ class Element_Monitor
 
 		visual::Dispatch(Copy_Assignment_Event{
 		    to_raw_address(this),
-		    Memory_Value{ m_initialised, to_string() } });
+		    Memory_Value{ sizeof(*this), m_initialised, to_string() } });
 
 		return *this;
 	}
@@ -74,7 +69,7 @@ class Element_Monitor
 		visual::Dispatch(Move_Assignment_Event{
 		    to_raw_address(this),
 		    to_raw_address(&element),
-		    Memory_Value{ m_initialised, to_string() } });
+		    Memory_Value{ sizeof(*this), m_initialised, to_string() } });
 
 		return *this;
 	}
