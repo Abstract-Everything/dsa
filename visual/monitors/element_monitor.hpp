@@ -90,6 +90,26 @@ class Element_Monitor
 		return "<Uninitialized memory>";
 	}
 
+	bool operator<(const Element_Monitor<Value> element) const
+	{
+		return m_value < element.m_value;
+	}
+
+	bool operator>(const Element_Monitor<Value> element) const
+	{
+		return m_value > element.m_value;
+	}
+
+	bool operator==(const Element_Monitor<Value> element) const
+	{
+		return m_value == element.m_value;
+	}
+
+	bool operator!=(const Element_Monitor<Value> element) const
+	{
+		return m_value != element.m_value;
+	}
+
  private:
 	bool  m_initialised = false;
 	Value m_value{};
