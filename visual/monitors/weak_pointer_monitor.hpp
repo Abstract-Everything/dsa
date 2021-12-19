@@ -60,21 +60,24 @@ class Weak_Pointer_Monitor
 		return *this;
 	}
 
-	Weak_Pointer_Monitor &operator=(std::nullptr_t) noexcept
+	bool operator==(const Weak_Pointer_Monitor &pointer) const
 	{
-		m_pointer = nullptr;
-		dispatch_copy();
-		return *this;
+		return this->operator==(pointer.m_pointer);
 	}
 
-	bool operator==(std::nullptr_t) const
+	bool operator==(Value *pointer) const
 	{
-		return m_pointer == nullptr;
+		return m_pointer == pointer;
 	}
 
-	bool operator!=(std::nullptr_t) const
+	bool operator!=(const Weak_Pointer_Monitor &pointer) const
 	{
-		return !this->operator==(nullptr);
+		return !this->operator==(pointer.m_pointer);
+	}
+
+	bool operator!=(Value *pointer) const
+	{
+		return !this->operator==(pointer);
 	}
 
 	Value &operator*()
