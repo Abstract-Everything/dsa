@@ -48,7 +48,8 @@ class Actions_UI
 
 	int m_append_value = 0;
 
-	int m_erase = 0;
+	int m_erase_value = 0;
+	int m_erase       = 0;
 
 	void properties();
 	void accessors();
@@ -73,7 +74,8 @@ class Actions_UI
 	static constexpr bool has_append          = has_member_append_v<Container, Value>;
 	static constexpr bool has_indexed_insert  = has_member_insert_v<Container, std::size_t, Value>;
 	static constexpr bool has_insert          = has_member_insert_v<Container, Value>;
-	static constexpr bool has_erase           = has_member_erase_v<Container, std::size_t>;
+	static constexpr bool has_indexed_erase   = has_member_erase_v<Container, std::size_t>;
+	static constexpr bool has_erase           = has_member_erase_v<Container, Value>;
 };
 
 template<typename Container>
@@ -201,14 +203,25 @@ void Actions_UI<Container>::modifiers()
 
 		const auto insert = static_cast<std::size_t>(m_insert);
 		if (conditional_button(
-			"Insert",
+			"Indexed Insert",
 			is_in_range(insert) || is_last_index(insert)))
 		{
 			m_container.insert(insert, Value{m_insert_value});
 		}
 	}
 
-	if constexpr (has_erase)
+	if constexpr (has_insert)
+	{
+		ImGui::Separator();
+		ImGui::InputInt("Insert Value", &m_insert_value);
+
+		if (ImGui::Button("Insert"))
+		{
+			m_container.insert(Value{m_insert_value});
+		}
+	}
+
+	if constexpr (has_indexed_erase)
 	{
 		ImGui::Separator();
 
@@ -218,6 +231,19 @@ void Actions_UI<Container>::modifiers()
 		if (conditional_button("Erase", is_in_range(erase)))
 		{
 			m_container.erase(erase);
+		}
+	}
+
+	if constexpr (has_erase)
+	{
+		ImGui::Separator();
+
+		ImGui::InputInt("Erase Value", &m_erase_value);
+
+		Value erase_value{m_erase_value};
+		if (conditional_button("Erase", m_container.contains(erase_value)))
+		{
+			m_container.erase(erase_value);
 		}
 	}
 }
