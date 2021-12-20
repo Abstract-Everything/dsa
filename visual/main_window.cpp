@@ -109,7 +109,7 @@ void Main_Window::start()
 {
 	const sf::Color dark_grey{25, 25, 25};
 
-	sf::Clock deltaClock;
+	sf::Clock delta_clock;
 	while (m_window.isOpen())
 	{
 		sf::Event event{};
@@ -123,10 +123,10 @@ void Main_Window::start()
 			}
 		}
 
-		const sf::Time deltaTime = deltaClock.restart();
-		ImGui::SFML::Update(m_window, deltaTime);
+		const sf::Time delta_time = delta_clock.restart();
+		ImGui::SFML::Update(m_window, delta_time);
 		m_viewport.update(
-		    std::chrono::microseconds{deltaTime.asMicroseconds()});
+		    std::chrono::microseconds{delta_time.asMicroseconds()});
 
 		m_window.clear(dark_grey);
 

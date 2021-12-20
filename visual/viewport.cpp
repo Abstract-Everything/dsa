@@ -204,15 +204,15 @@ void Viewport::add_event(Event &&event)
 	m_events.push_back(std::move(event));
 }
 
-void Viewport::update(std::chrono::microseconds deltaTime)
+void Viewport::update(std::chrono::microseconds delta_time)
 {
-	if (m_eventTimeout.count() > 0)
+	if (m_event_timeout.count() > 0)
 	{
-		m_eventTimeout -= deltaTime;
+		m_event_timeout -= delta_time;
 		return;
 	}
 
-	m_eventTimeout = event_duration;
+	m_event_timeout = event_duration;
 
 	while (!m_events.empty())
 	{
