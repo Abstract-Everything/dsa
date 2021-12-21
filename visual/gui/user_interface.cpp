@@ -42,7 +42,7 @@ void User_Interface::draw()
 		auto selection = static_cast<std::size_t>(m_selected_structure);
 		if (m_actions.index() != selection)
 		{
-			construct_variant_by_index(m_actions, selection);
+			tmpl::construct_variant_by_index(m_actions, selection);
 		}
 
 		ImGui::Unindent();

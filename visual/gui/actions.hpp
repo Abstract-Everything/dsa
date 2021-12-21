@@ -14,14 +14,15 @@ namespace visual
 DEFINE_HAS_MEMBER(empty);
 DEFINE_HAS_MEMBER(size);
 DEFINE_HAS_MEMBER(capacity);
-DEFINE_HAS_MEMBER_OVERLOADED(front);
-DEFINE_HAS_MEMBER_OVERLOADED(back);
+DEFINE_HAS_MEMBER(front);
+DEFINE_HAS_MEMBER(back);
+DEFINE_HAS_MEMBER(resize);
 DEFINE_HAS_MEMBER(clear);
 DEFINE_HAS_MEMBER(shrink_to_fit);
-DEFINE_HAS_MEMBER(resize);
 DEFINE_HAS_MEMBER(append);
 DEFINE_HAS_MEMBER(insert);
 DEFINE_HAS_MEMBER(erase);
+DEFINE_HAS_OPERATOR_ACCESS();
 
 template<typename Container>
 class Actions_UI
@@ -59,6 +60,20 @@ class Actions_UI
 	void section(const char *label, void (Actions_UI::*interface)());
 	void index_input(const char *label, int &value, bool allow_end_index);
 	bool conditional_button(const char *label, bool enabled);
+
+	static constexpr bool has_empty           = has_member_empty_v<Container>;
+	static constexpr bool has_size            = has_member_size_v<Container>;
+	static constexpr bool has_capacity        = has_member_capacity_v<Container>;
+	static constexpr bool has_front           = has_member_front_v<Container>;
+	static constexpr bool has_back            = has_member_back_v<Container>;
+	static constexpr bool has_operator_access = has_member_operator_access_v<Container, std::size_t>;
+	static constexpr bool has_clear           = has_member_clear_v<Container>;
+	static constexpr bool has_shrink_to_fit   = has_member_shrink_to_fit_v<Container>;
+	static constexpr bool has_resize          = has_member_resize_v<Container, std::size_t>;
+	static constexpr bool has_append          = has_member_append_v<Container, Value>;
+	static constexpr bool has_indexed_insert  = has_member_insert_v<Container, std::size_t, Value>;
+	static constexpr bool has_insert          = has_member_insert_v<Container, Value>;
+	static constexpr bool has_erase           = has_member_erase_v<Container, std::size_t>;
 };
 
 template<typename Container>
@@ -72,17 +87,17 @@ void Actions_UI<Container>::draw()
 template<typename Container>
 void Actions_UI<Container>::properties()
 {
-	if constexpr (has_member_empty_v<Container>)
+	if constexpr (has_empty)
 	{
 		ImGui::LabelText("Is empty", m_container.empty() ? "true" : "false");
 	}
 
-	if constexpr (has_member_size_v<Container>)
+	if constexpr (has_size)
 	{
 		ImGui::LabelText("Size", "%lu", m_container.size());
 	}
 
-	if constexpr (has_member_capacity_v<Container>)
+	if constexpr (has_capacity)
 	{
 		ImGui::LabelText("Capacity", "%lu", m_container.capacity());
 	}
@@ -91,7 +106,7 @@ void Actions_UI<Container>::properties()
 template<typename Container>
 void Actions_UI<Container>::accessors()
 {
-	if constexpr (has_member_front_v<Container>)
+	if constexpr (has_front)
 	{
 		ImGui::LabelText(
 		    "Front element",
@@ -101,7 +116,7 @@ void Actions_UI<Container>::accessors()
 			: m_container.front().to_string().c_str());
 	}
 
-	if constexpr (has_member_back_v<Container>)
+	if constexpr (has_back)
 	{
 		ImGui::LabelText(
 		    "Back element",
@@ -110,7 +125,7 @@ void Actions_UI<Container>::accessors()
 					: m_container.back().to_string().c_str());
 	}
 
-	if constexpr (has_member_operator_access_v<Container>)
+	if constexpr (has_operator_access)
 	{
 		ImGui::Separator();
 		index_input("Index to read", m_read, false);
@@ -136,7 +151,7 @@ void Actions_UI<Container>::accessors()
 template<typename Container>
 void Actions_UI<Container>::modifiers()
 {
-	if constexpr (has_member_clear_v<Container>)
+	if constexpr (has_clear)
 	{
 		ImGui::Text("Remove all the elements from the m_container");
 		ImGui::SameLine();
@@ -146,7 +161,7 @@ void Actions_UI<Container>::modifiers()
 		}
 	}
 
-	if constexpr (has_member_shrink_to_fit_v<Container>)
+	if constexpr (has_shrink_to_fit)
 	{
 		ImGui::Text("Deallocate unused space");
 		ImGui::SameLine();
@@ -156,7 +171,7 @@ void Actions_UI<Container>::modifiers()
 		}
 	}
 
-	if constexpr (has_member_resize_v<Container>)
+	if constexpr (has_resize)
 	{
 		ImGui::Separator();
 		ImGui::InputInt("Container size to set", &m_resize);
@@ -168,7 +183,7 @@ void Actions_UI<Container>::modifiers()
 		}
 	}
 
-	if constexpr (has_member_append_v<Container>)
+	if constexpr (has_append)
 	{
 		ImGui::Separator();
 		ImGui::InputInt("Append Value", &m_append_value);
@@ -178,7 +193,7 @@ void Actions_UI<Container>::modifiers()
 		}
 	}
 
-	if constexpr (has_member_insert_v<Container>)
+	if constexpr (has_indexed_insert)
 	{
 		ImGui::Separator();
 		index_input("Index of element to insert", m_insert, true);
@@ -193,7 +208,7 @@ void Actions_UI<Container>::modifiers()
 		}
 	}
 
-	if constexpr (has_member_erase_v<Container>)
+	if constexpr (has_erase)
 	{
 		ImGui::Separator();
 
