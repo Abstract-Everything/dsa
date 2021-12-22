@@ -53,7 +53,7 @@ jobs:
         path: |
           ~/.cache/pip
           ${{ env.CONAN_USER_HOME }}
-        key: ${{ runner.os }}-${{ hashFiles('dependencies/CMakeLists.txt') }}
+        key: ${{ matrix.config.cc }}-${{ env.build_type }}-${{ hashFiles('dependencies/CMakeLists.txt') }}
 
     - name: Create Build Environment
       shell: bash
