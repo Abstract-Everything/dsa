@@ -40,7 +40,7 @@ class Dynamic_Array
 
 	~Dynamic_Array()
 	{
-		m_allocator.deallocate(m_array.get());
+		m_allocator.deallocate(m_array.get(), m_size);
 	}
 
 	Dynamic_Array(const Dynamic_Array &darray)
@@ -94,7 +94,7 @@ class Dynamic_Array
 
 		const std::size_t count = std::min(m_size, new_size);
 		std::move(m_array.get(), m_array.get() + count, array.get());
-		m_allocator.deallocate(m_array.get());
+		m_allocator.deallocate(m_array.get(), m_size);
 
 		m_array = array;
 		m_size  = new_size;

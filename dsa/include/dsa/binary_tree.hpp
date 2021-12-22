@@ -142,7 +142,7 @@ class Binary_Tree
 
 		delete_node(node->left);
 		delete_node(node->right);
-		m_allocator.deallocate(node.get());
+		m_allocator.deallocate(node.get(), 1);
 	}
 
 	Pointer extract_previous_node(Pointer node) const
