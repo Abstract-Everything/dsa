@@ -45,6 +45,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Cache conan
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-conan-modules
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.CONAN_USER_HOME }}
+        key: ${{ matrix.config.cc }}-${{ env.build_type }}-${{ hashFiles('dependencies/CMakeLists.txt') }}
+
     - name: Create Build Environment
       shell: bash
       run: cmake -E make_directory "${{ runner.workspace }}/build"
@@ -53,8 +63,10 @@ jobs:
       shell: bash
       run: |
         python3 -m pip install --upgrade pip setuptools
-        python3 -m pip install conan
+        python3 -m pip install --upgrade conan
         conan config set general.revisions_enabled=1
+        # Without this clear reruns on different machines sometimes fail
+        conan remove --system-reqs '*'
 
     - name: Configure CMake
       shell: bash
