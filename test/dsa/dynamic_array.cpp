@@ -115,3 +115,12 @@ TEST(dynamic_array, access_operator)
 	ASSERT_EQ(array[1], 0);
 	ASSERT_EQ(array[2], 1);
 }
+
+TEST(dynamic_array, resize_keep_first_few)
+{
+	dsa::Dynamic_Array array{test_array[0], test_array[1], test_array[2], 3, 4, 5};
+
+	array.resize(test_array.size());
+
+	ASSERT_EQ(array, test_array);
+}
