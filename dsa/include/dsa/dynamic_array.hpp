@@ -174,6 +174,7 @@ class Dynamic_Array
 	}
 
  private:
+	// ToDo: If allocator instances are the same this member is not needed
 	Allocator m_allocator;
 
 	std::size_t m_size = 0;
