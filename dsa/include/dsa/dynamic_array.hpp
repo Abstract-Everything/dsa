@@ -38,6 +38,18 @@ class Dynamic_Array
 		resize(size);
 	}
 
+	Dynamic_Array(
+	    std::initializer_list<Value> values,
+	    const Allocator             &allocator = Allocator{})
+	    : Dynamic_Array(values.size(), allocator)
+	{
+		std::size_t index = 0;
+		for (auto value : values)
+		{
+			this->operator[](index++) = std::move(value);
+		}
+	}
+
 	~Dynamic_Array()
 	{
 		m_allocator.deallocate(m_array.get(), m_size);
