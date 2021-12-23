@@ -4,6 +4,13 @@
 
 static_assert(std::is_same_v<dsa::Dynamic_Array<int>::Value, int>);
 
+namespace
+{
+
+const dsa::Dynamic_Array test_array{0, 1, 2};
+
+}
+
 TEST(dynamic_array, default_initialisation)
 {
 	dsa::Dynamic_Array<int> array;
@@ -28,4 +35,11 @@ TEST(dynamic_array, list_initialisation)
 	ASSERT_EQ(array[0], 0);
 	ASSERT_EQ(array[1], 1);
 	ASSERT_EQ(array[2], 2);
+}
+
+TEST(dynamic_array, copy_initialisation)
+{
+	dsa::Dynamic_Array copy(test_array);
+
+	ASSERT_EQ(copy, test_array);
 }
