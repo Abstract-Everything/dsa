@@ -9,6 +9,17 @@
 namespace dsa
 {
 
+/**
+ * @brief Represents a set of contigious elements of the same type whose size
+ * can be changed at runtime.
+ *
+ * @ingroup containers
+ *
+ * @tparam Value_t: The type of element to store
+ * @tparam Pointer_Base: The type of pointer used to refer to memory
+ * @tparam Allocator_Base: The type of allocator used for memory management
+ *
+ */
 template<
     typename Value_t,
     template<typename> typename Pointer_Base   = dsa::Weak_Pointer,
@@ -25,11 +36,18 @@ class Dynamic_Array
 		return m_allocator;
 	}
 
+	/**
+	 * @brief Constructs an empty array
+	 */
 	explicit Dynamic_Array(const Allocator &allocator = Allocator{})
 	    : m_allocator(allocator)
 	{
 	}
 
+	/**
+	 * @brief Constructs an array of the given size filled with
+	 * uninitialised values
+	 */
 	explicit Dynamic_Array(
 	    std::size_t      size,
 	    const Allocator &allocator = Allocator{})
@@ -39,6 +57,9 @@ class Dynamic_Array
 	{
 	}
 
+	/**
+	 * @brief Constructs an array filled with the given values
+	 */
 	Dynamic_Array(
 	    std::initializer_list<Value> values,
 	    const Allocator             &allocator = Allocator{})
@@ -94,16 +115,26 @@ class Dynamic_Array
 		return m_array.get()[index];
 	}
 
-	[[nodiscard]] Value const *data()
+	/**
+	 * Returns a pointer to the allocated storage
+	 */
+	[[nodiscard]] Value *data()
 	{
 		return m_array.get();
 	}
 
+	/**
+	 * Returns the current number of elements that can be held
+	 */
 	[[nodiscard]] std::size_t size() const
 	{
 		return m_size;
 	}
 
+	/**
+	 * Changes the size of the container. The first min(size, new_size)
+	 * elements are moved into the new allocation
+	 */
 	void resize(std::size_t new_size)
 	{
 		Pointer array = m_allocator.allocate(new_size);
