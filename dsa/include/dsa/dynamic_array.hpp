@@ -25,17 +25,17 @@ class Dynamic_Array
 		return m_allocator;
 	}
 
+	explicit Dynamic_Array(const Allocator &allocator = Allocator{})
+	    : m_allocator(allocator)
+	{
+	}
+
 	explicit Dynamic_Array(
 	    std::size_t      size,
 	    const Allocator &allocator = Allocator{})
 	    : Dynamic_Array(allocator)
 	{
 		resize(size);
-	}
-
-	explicit Dynamic_Array(const Allocator &allocator = Allocator{})
-	    : m_allocator(allocator)
-	{
 	}
 
 	~Dynamic_Array()
