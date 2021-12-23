@@ -5,11 +5,12 @@
 namespace
 {
 
-constexpr std::array<const char *, 4> structures{
+constexpr std::array<const char *, 5> structures{
     "Empty",
     "Array",
     "Vector",
-    "List"};
+    "List",
+    "Binary Tree"};
 
 } // namespace
 
