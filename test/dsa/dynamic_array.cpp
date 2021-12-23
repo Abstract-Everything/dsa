@@ -96,3 +96,22 @@ TEST(dynamic_array, move_assignment)
 	ASSERT_EQ(from.data(), nullptr);
 	ASSERT_EQ(to, test_array);
 }
+
+TEST(dynamic_array, access_operator)
+{
+	dsa::Dynamic_Array array(test_array);
+
+	ASSERT_EQ(array.size(), test_array.size());
+	ASSERT_EQ(array[0], 0);
+	ASSERT_EQ(array[1], 1);
+	ASSERT_EQ(array[2], 2);
+
+	array[0] = 2;
+	array[1] = 0;
+	array[2] = 1;
+
+	ASSERT_EQ(array.size(), test_array.size());
+	ASSERT_EQ(array[0], 2);
+	ASSERT_EQ(array[1], 0);
+	ASSERT_EQ(array[2], 1);
+}
