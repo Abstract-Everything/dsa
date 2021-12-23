@@ -86,3 +86,13 @@ TEST(dynamic_array, copy_assignment)
 
 	ASSERT_EQ(copy, test_array);
 }
+
+TEST(dynamic_array, move_assignment)
+{
+	dsa::Dynamic_Array      from(test_array);
+	dsa::Dynamic_Array<int> to;
+	to = std::move(from);
+
+	ASSERT_EQ(from.data(), nullptr);
+	ASSERT_EQ(to, test_array);
+}
