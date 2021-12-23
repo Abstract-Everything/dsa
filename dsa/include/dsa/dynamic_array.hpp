@@ -74,7 +74,11 @@ class Dynamic_Array
 
 	~Dynamic_Array()
 	{
-		m_allocator.deallocate(m_array.get(), m_size);
+		// This can be set to nullptr after a move
+		if (m_array != nullptr)
+		{
+			m_allocator.deallocate(m_array.get(), m_size);
+		}
 	}
 
 	Dynamic_Array(const Dynamic_Array &darray)
@@ -87,7 +91,8 @@ class Dynamic_Array
 	}
 
 	Dynamic_Array(Dynamic_Array &&darray) noexcept
-	    : Dynamic_Array{darray.m_allocator}
+	    : m_allocator{darray.m_allocator}
+	    , m_array(nullptr)
 	{
 		swap(*this, darray);
 	}
@@ -171,8 +176,12 @@ class Dynamic_Array
  private:
 	Allocator m_allocator;
 
-	std::size_t m_size  = 0;
-	Pointer     m_array = nullptr;
+	std::size_t m_size = 0;
+
+	// Allocator::deallocate cannot be called with nullptr, thus creating an
+	// allocation of 0 elements allows us to call deallocate without
+	// explicitly checking for nullptr when resizing
+	Pointer m_array = m_allocator.allocate(0);
 };
 
 } // namespace dsa

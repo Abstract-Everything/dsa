@@ -127,6 +127,14 @@ TEST(dynamic_array, resize_keep_first_few)
 	ASSERT_EQ(array, sample);
 }
 
+TEST(dynamic_array, resize_data_should_not_be_nullptr)
+{
+	dsa::Dynamic_Array array{0, 1, 2, 4, 5, 6};
+
+	array.resize(0);
+	ASSERT_EQ(array.size(), 0ULL);
+}
+
 TEST(dynamic_array, swap)
 {
 	dsa::Dynamic_Array array_1(test_array_1);
