@@ -20,7 +20,7 @@ class Dynamic_Array
 	using Pointer   = Pointer_Base<Value_t>;
 	using Allocator = Allocator_Base<Value>;
 
-	[[nodiscard]] const Allocator &allocator()
+	[[nodiscard]] const Allocator &allocator() const
 	{
 		return m_allocator;
 	}
@@ -33,9 +33,10 @@ class Dynamic_Array
 	explicit Dynamic_Array(
 	    std::size_t      size,
 	    const Allocator &allocator = Allocator{})
-	    : Dynamic_Array(allocator)
+	    : m_allocator(allocator)
+	    , m_size(size)
+	    , m_array(m_allocator.allocate(size))
 	{
-		resize(size);
 	}
 
 	Dynamic_Array(
@@ -56,9 +57,7 @@ class Dynamic_Array
 	}
 
 	Dynamic_Array(const Dynamic_Array &darray)
-	    : m_allocator(darray.m_allocator)
-	    , m_size(darray.size())
-	    , m_array(darray.m_allocator.allocate(darray.size()))
+	    : Dynamic_Array(darray.m_size, darray.allocator())
 	{
 		std::copy(
 		    darray.m_array.get(),
