@@ -8,6 +8,7 @@ namespace
 {
 
 const dsa::Dynamic_Array test_array_1{0, 1, 2};
+const dsa::Dynamic_Array test_array_2{0, -1, -2, -3, -4, -5};
 
 } // namespace
 
@@ -124,4 +125,15 @@ TEST(dynamic_array, resize_keep_first_few)
 	array.resize(sample.size());
 
 	ASSERT_EQ(array, sample);
+}
+
+TEST(dynamic_array, swap)
+{
+	dsa::Dynamic_Array array_1(test_array_1);
+	dsa::Dynamic_Array array_2(test_array_2);
+
+	swap(array_1, array_2);
+
+	ASSERT_EQ(array_1, test_array_2);
+	ASSERT_EQ(array_2, test_array_1);
 }

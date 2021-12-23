@@ -94,7 +94,6 @@ class Dynamic_Array
 
 	friend void swap(Dynamic_Array &lhs, Dynamic_Array &rhs)
 	{
-		std::swap(lhs.m_allocator, rhs.m_allocator);
 		std::swap(lhs.m_size, rhs.m_size);
 		std::swap(lhs.m_array, rhs.m_array);
 	}
