@@ -51,14 +51,14 @@ class Weak_Pointer
 		return *this;
 	}
 
-	bool operator==(std::nullptr_t) const
+	bool operator==(const Weak_Pointer& pointer) const
 	{
-		return m_pointer == nullptr;
+		return m_pointer == pointer.m_pointer;
 	}
 
-	bool operator!=(std::nullptr_t) const
+	bool operator!=(const Weak_Pointer& pointer) const
 	{
-		return !this->operator==(nullptr);
+		return !this->operator==(pointer);
 	}
 
 	Value &operator*()

@@ -118,7 +118,7 @@ class Dynamic_Array
 	/**
 	 * Returns a pointer to the allocated storage
 	 */
-	[[nodiscard]] Value *data()
+	[[nodiscard]] Pointer data()
 	{
 		return m_array.get();
 	}
