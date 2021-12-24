@@ -31,6 +31,11 @@ class Dynamic_Array
 	using Pointer   = Pointer_Base<Value_t>;
 	using Allocator = Allocator_Base<Value>;
 
+ private:
+	static constexpr bool has_trivial_destruction =
+	    std::is_trivially_destructible_v<Value>;
+
+ public:
 	[[nodiscard]] const Allocator &allocator() const
 	{
 		return m_allocator;
@@ -55,6 +60,28 @@ class Dynamic_Array
 	    , m_size(size)
 	    , m_array(m_allocator.allocate(size))
 	{
+		static_assert(
+		    has_trivial_destruction,
+		    "Not initialising values can break destructors, use the "
+		    "initialisation overload ");
+	}
+
+	/**
+	 * @brief Constructs an array of the given size whose values are
+	 * initialised to the given value
+	 */
+	Dynamic_Array(
+	    std::size_t      size,
+	    const Value     &value,
+	    const Allocator &allocator = Allocator{})
+	    : m_allocator(allocator)
+	    , m_size(size)
+	    , m_array(m_allocator.allocate(size))
+	{
+		for (std::size_t i = 0; i < size; ++i)
+		{
+			::new (m_array.get() + i) Value{value};
+		}
 	}
 
 	/**
