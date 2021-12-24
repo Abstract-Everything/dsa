@@ -7,9 +7,9 @@ static_assert(std::is_same_v<dsa::Dynamic_Array<int>::Value, int>);
 namespace
 {
 
-const dsa::Dynamic_Array test_array{0, 1, 2};
+const dsa::Dynamic_Array test_array_1{0, 1, 2};
 
-}
+} // namespace
 
 TEST(dynamic_array, default_initialisation)
 {
@@ -39,18 +39,18 @@ TEST(dynamic_array, list_initialisation)
 
 TEST(dynamic_array, copy_initialisation)
 {
-	dsa::Dynamic_Array copy(test_array);
+	dsa::Dynamic_Array copy(test_array_1);
 
-	ASSERT_EQ(copy, test_array);
+	ASSERT_EQ(copy, test_array_1);
 }
 
 TEST(dynamic_array, move_initialisation)
 {
-	dsa::Dynamic_Array from(test_array);
+	dsa::Dynamic_Array from(test_array_1);
 	dsa::Dynamic_Array to(std::move(from));
 
 	ASSERT_EQ(from.data(), nullptr);
-	ASSERT_EQ(to, test_array);
+	ASSERT_EQ(to, test_array_1);
 }
 
 TEST(dynamic_array, comparison_operator_differing_size)
@@ -82,26 +82,26 @@ TEST(dynamic_array, comparison_operator_equal)
 TEST(dynamic_array, copy_assignment)
 {
 	dsa::Dynamic_Array<int> copy;
-	copy = test_array;
+	copy = test_array_1;
 
-	ASSERT_EQ(copy, test_array);
+	ASSERT_EQ(copy, test_array_1);
 }
 
 TEST(dynamic_array, move_assignment)
 {
-	dsa::Dynamic_Array      from(test_array);
+	dsa::Dynamic_Array      from(test_array_1);
 	dsa::Dynamic_Array<int> to;
 	to = std::move(from);
 
 	ASSERT_EQ(from.data(), nullptr);
-	ASSERT_EQ(to, test_array);
+	ASSERT_EQ(to, test_array_1);
 }
 
 TEST(dynamic_array, access_operator)
 {
-	dsa::Dynamic_Array array(test_array);
+	dsa::Dynamic_Array array(test_array_1);
 
-	ASSERT_EQ(array.size(), test_array.size());
+	ASSERT_EQ(array.size(), test_array_1.size());
 	ASSERT_EQ(array[0], 0);
 	ASSERT_EQ(array[1], 1);
 	ASSERT_EQ(array[2], 2);
@@ -110,7 +110,7 @@ TEST(dynamic_array, access_operator)
 	array[1] = 0;
 	array[2] = 1;
 
-	ASSERT_EQ(array.size(), test_array.size());
+	ASSERT_EQ(array.size(), test_array_1.size());
 	ASSERT_EQ(array[0], 2);
 	ASSERT_EQ(array[1], 0);
 	ASSERT_EQ(array[2], 1);
@@ -118,9 +118,10 @@ TEST(dynamic_array, access_operator)
 
 TEST(dynamic_array, resize_keep_first_few)
 {
-	dsa::Dynamic_Array array{test_array[0], test_array[1], test_array[2], 3, 4, 5};
+	auto const        &sample = test_array_1;
+	dsa::Dynamic_Array array{sample[0], sample[1], sample[2], 3, 4, 5};
 
-	array.resize(test_array.size());
+	array.resize(sample.size());
 
-	ASSERT_EQ(array, test_array);
+	ASSERT_EQ(array, sample);
 }
