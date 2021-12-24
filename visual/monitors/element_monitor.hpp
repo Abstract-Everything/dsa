@@ -110,6 +110,11 @@ class Element_Monitor
 		return m_value != element.m_value;
 	}
 
+	void uninitialise()
+	{
+		m_initialised = false;
+	}
+
  private:
 	bool  m_initialised = false;
 	Value m_value{};
