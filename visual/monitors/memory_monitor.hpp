@@ -28,7 +28,7 @@ class Memory_Monitor
 		return typed_pointer;
 	}
 
-	void deallocate(T *pointer) const
+	void deallocate(T *pointer, std::size_t /* size */) const
 	{
 		if (pointer == nullptr)
 		{

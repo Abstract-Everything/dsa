@@ -98,7 +98,7 @@ class List
 		while (node != nullptr)
 		{
 			Pointer next = node->next;
-			m_allocator.deallocate(node.get());
+			m_allocator.deallocate(node.get(), 1);
 			node = next;
 		}
 	}
@@ -136,14 +136,14 @@ class List
 		{
 			Pointer remove = m_head;
 			m_head         = m_head->next;
-			m_allocator.deallocate(remove.get());
+			m_allocator.deallocate(remove.get(), 1);
 			return;
 		}
 
 		Pointer previous = at(index - 1);
 		Pointer remove   = previous->next;
 		previous->next   = remove->next;
-		m_allocator.deallocate(remove.get());
+		m_allocator.deallocate(remove.get(), 1);
 	}
 
  private:
