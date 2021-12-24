@@ -104,6 +104,13 @@ class Dynamic_Array
 		// This can be set to nullptr after a move
 		if (m_array != nullptr)
 		{
+			for (std::size_t i = 0; i < m_size; ++i)
+			{
+				std::allocator<Value> allocator;
+				std::allocator_traits<std::allocator<Value>>::destroy(
+				    allocator,
+				    m_array.get() + i);
+			}
 			m_allocator.deallocate(m_array.get(), m_size);
 		}
 	}

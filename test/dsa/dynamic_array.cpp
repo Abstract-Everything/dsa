@@ -1,5 +1,7 @@
 #include <dsa/dynamic_array.hpp>
 
+#include <memory>
+
 #include <gtest/gtest.h>
 
 static_assert(std::is_same_v<dsa::Dynamic_Array<int>::Value, int>);
@@ -175,4 +177,16 @@ TEST(dynamic_array, swap)
 
 	ASSERT_EQ(array_1, test_array_2);
 	ASSERT_EQ(array_2, test_array_1);
+}
+
+TEST(dynamic_array, destroy_elements)
+{
+	constexpr std::size_t length  = 3;
+	std::shared_ptr<int>  counter = std::make_shared<int>(0);
+	{
+		dsa::Dynamic_Array<std::shared_ptr<int>> array(length, counter);
+		ASSERT_EQ(counter.use_count(), length + 1);
+	}
+
+	ASSERT_EQ(counter.use_count(), 1);
 }
