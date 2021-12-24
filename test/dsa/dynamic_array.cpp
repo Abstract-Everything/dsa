@@ -78,3 +78,11 @@ TEST(dynamic_array, comparison_operator_equal)
 
 	ASSERT_EQ(array_1, array_2);
 }
+
+TEST(dynamic_array, copy_assignment)
+{
+	dsa::Dynamic_Array<int> copy;
+	copy = test_array;
+
+	ASSERT_EQ(copy, test_array);
+}
