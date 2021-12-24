@@ -43,3 +43,12 @@ TEST(dynamic_array, copy_initialisation)
 
 	ASSERT_EQ(copy, test_array);
 }
+
+TEST(dynamic_array, move_initialisation)
+{
+	dsa::Dynamic_Array from(test_array);
+	dsa::Dynamic_Array to(std::move(from));
+
+	ASSERT_EQ(from.data(), nullptr);
+	ASSERT_EQ(to, test_array);
+}

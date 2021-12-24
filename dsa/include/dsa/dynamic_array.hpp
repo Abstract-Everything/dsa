@@ -94,6 +94,11 @@ class Dynamic_Array
 		return m_array.get()[index];
 	}
 
+	[[nodiscard]] Value const *data()
+	{
+		return m_array.get();
+	}
+
 	[[nodiscard]] std::size_t size() const
 	{
 		return m_size;
