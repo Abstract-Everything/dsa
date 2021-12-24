@@ -52,3 +52,29 @@ TEST(dynamic_array, move_initialisation)
 	ASSERT_EQ(from.data(), nullptr);
 	ASSERT_EQ(to, test_array);
 }
+
+TEST(dynamic_array, comparison_operator_differing_size)
+{
+	dsa::Dynamic_Array<int> array_1(1);
+	dsa::Dynamic_Array<int> array_2(2);
+
+	ASSERT_NE(array_1, array_2);
+}
+
+TEST(dynamic_array, comparison_operator_differing_element)
+{
+	dsa::Dynamic_Array array_1{0, 0, 0};
+	dsa::Dynamic_Array array_2{0, 0, 1};
+	dsa::Dynamic_Array array_3{1, 0, 1};
+
+	ASSERT_NE(array_1, array_2);
+	ASSERT_NE(array_2, array_3);
+}
+
+TEST(dynamic_array, comparison_operator_equal)
+{
+	dsa::Dynamic_Array array_1{0, -1, 5};
+	dsa::Dynamic_Array array_2{0, -1, 5};
+
+	ASSERT_EQ(array_1, array_2);
+}
