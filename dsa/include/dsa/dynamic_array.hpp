@@ -100,6 +100,28 @@ class Dynamic_Array
 		m_size  = new_size;
 	}
 
+	friend bool operator==(Dynamic_Array const &lhs, Dynamic_Array const &rhs) noexcept
+	{
+		if (lhs.size() != rhs.size())
+		{
+			return false;
+		}
+
+		for (std::size_t i = 0; i < lhs.size(); ++i)
+		{
+			if (lhs[i] != rhs[i])
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	friend bool operator!=(Dynamic_Array const &lhs, Dynamic_Array const &rhs) noexcept
+	{
+		return !(lhs == rhs);
+	}
+
  private:
 	Allocator m_allocator;
 
