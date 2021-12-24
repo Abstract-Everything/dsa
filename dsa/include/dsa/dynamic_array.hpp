@@ -164,14 +164,43 @@ class Dynamic_Array
 
 	/**
 	 * Changes the size of the container. The first min(size, new_size)
-	 * elements are moved into the new allocation
+	 * elements are moved into from the previous memory, the rest are left
+	 * uninitialised
 	 */
 	void resize(std::size_t new_size)
+	{
+		static_assert(
+		    has_trivial_destruction,
+		    "Not initialising values can break destructors, use the "
+		    "initialisation overload ");
+
+		Pointer array = m_allocator.allocate(new_size);
+
+		const std::size_t count = std::min(m_size, new_size);
+		std::move(m_array.get(), m_array.get() + count, array.get());
+		m_allocator.deallocate(m_array.get(), m_size);
+
+		m_array = array;
+		m_size  = new_size;
+	}
+
+	/**
+	 * Changes the size of the container. The first min(size, new_size)
+	 * elements are moved from the previous memory, the rest are initialised
+	 * to the given value
+	 */
+	void resize(std::size_t new_size, Value const &value)
 	{
 		Pointer array = m_allocator.allocate(new_size);
 
 		const std::size_t count = std::min(m_size, new_size);
 		std::move(m_array.get(), m_array.get() + count, array.get());
+
+		for (std::size_t i = m_size; i < new_size; ++i)
+		{
+			::new (array.get() + i) Value{value};
+		}
+
 		m_allocator.deallocate(m_array.get(), m_size);
 
 		m_array = array;

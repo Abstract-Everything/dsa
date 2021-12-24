@@ -139,6 +139,25 @@ TEST(dynamic_array, resize_keep_first_few)
 	ASSERT_EQ(array, sample);
 }
 
+TEST(dynamic_array, resize_default_value)
+{
+	constexpr int      value  = -4;
+	auto const        &sample = test_array_1;
+	dsa::Dynamic_Array expected{
+	    test_array_1[0],
+	    test_array_1[1],
+	    test_array_1[2],
+	    value,
+	    value,
+	    value};
+
+	dsa::Dynamic_Array array(test_array_1);
+
+	array.resize(expected.size(), value);
+
+	ASSERT_EQ(array, expected);
+}
+
 TEST(dynamic_array, resize_data_should_not_be_nullptr)
 {
 	dsa::Dynamic_Array array{0, 1, 2, 4, 5, 6};
