@@ -24,9 +24,15 @@ TEST(dynamic_array, default_initialisation)
 TEST(dynamic_array, sized_initialisation)
 {
 	constexpr std::size_t   length = 5;
+	constexpr int           value  = int{};
 	dsa::Dynamic_Array<int> array(length);
 
 	ASSERT_EQ(array.size(), length);
+	ASSERT_EQ(array[0], value);
+	ASSERT_EQ(array[1], value);
+	ASSERT_EQ(array[2], value);
+	ASSERT_EQ(array[3], value);
+	ASSERT_EQ(array[4], value);
 }
 
 TEST(dynamic_array, sized_initialisation_default_value)
