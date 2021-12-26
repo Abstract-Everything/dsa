@@ -5,6 +5,9 @@
 #include "allocated_array_event.hpp"
 #include "deallocated_array_event.hpp"
 #include "event.hpp"
+#include "templates.hpp"
+
+DEFINE_HAS_MEMBER(uninitialise);
 
 namespace visual
 {
@@ -23,6 +26,10 @@ class Memory_Monitor
 		for (std::size_t i = 0; i < size; ++i)
 		{
 			new (typed_pointer + i) T{};
+			if constexpr (has_member_uninitialise_v<T>)
+			{
+				typed_pointer[i].uninitialise();
+			}
 		}
 
 		return typed_pointer;
