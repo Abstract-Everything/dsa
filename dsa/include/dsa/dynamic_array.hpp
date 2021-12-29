@@ -146,7 +146,7 @@ class Dynamic_Array
 	 */
 	[[nodiscard]] Pointer data()
 	{
-		return m_array.get();
+		return m_array;
 	}
 
 	/**
