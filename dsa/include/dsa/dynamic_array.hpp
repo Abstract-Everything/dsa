@@ -83,7 +83,7 @@ class Dynamic_Array
 		std::size_t index = 0;
 		for (auto value : values)
 		{
-			this->operator[](index++) = std::move(value);
+			this->operator[](index++) = value;
 		}
 	}
 
