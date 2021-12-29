@@ -208,6 +208,10 @@ class Dynamic_Array
 
 	std::size_t m_size = 0;
 
+	// We maintain the values in the array initialised, otherwise moving,
+	// destroying and writing new values to the elements becomes
+	// significantly more difficult to do well.
+	//
 	// Allocator::deallocate cannot be called with nullptr, thus creating an
 	// allocation of 0 elements allows us to call deallocate without
 	// explicitly checking for nullptr when resizing
