@@ -124,9 +124,9 @@ TEST(dynamic_array, access_operator)
 
 	ASSERT_EQ(array.size(), sample.size());
 
-	*(array.data().get() + 0ULL) = 2;
-	*(array.data().get() + 1ULL) = 0;
-	*(array.data().get() + 2ULL) = 1;
+	*(array.data() + 0ULL) = 2;
+	*(array.data() + 1ULL) = 0;
+	*(array.data() + 2ULL) = 1;
 
 	ASSERT_EQ(array.size(), sample.size());
 	ASSERT_EQ(array[0], 2);

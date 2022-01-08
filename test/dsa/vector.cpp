@@ -67,7 +67,7 @@ TEST(vector, copy_initialisation)
 	dsa::Vector copy(sample);
 
 	ASSERT_EQ(copy, sample);
-	ASSERT_NE(copy.data().get(), sample.data().get());
+	ASSERT_NE(copy.data(), sample.data());
 }
 
 TEST(vector, move_initialisation)
@@ -76,7 +76,7 @@ TEST(vector, move_initialisation)
 	dsa::Vector to(std::move(from));
 
 	ASSERT_EQ(from.capacity(), 0ULL);
-	ASSERT_NE(to.data().get(), from.data().get());
+	ASSERT_NE(to.data(), from.data());
 	ASSERT_EQ(to, sample);
 }
 
@@ -122,7 +122,7 @@ TEST(vector, copy_assignment)
 	copy = sample;
 
 	ASSERT_EQ(copy, sample);
-	ASSERT_NE(copy.data().get(), sample.data().get());
+	ASSERT_NE(copy.data(), sample.data());
 }
 
 TEST(vector, move_assignment)
@@ -132,7 +132,7 @@ TEST(vector, move_assignment)
 	to = std::move(from);
 
 	ASSERT_EQ(from.capacity(), 0ULL);
-	ASSERT_NE(to.data().get(), from.data().get());
+	ASSERT_NE(to.data(), from.data());
 	ASSERT_EQ(to, sample);
 }
 
@@ -140,9 +140,9 @@ TEST(vector, access_operator)
 {
 	dsa::Vector<int> vector(3ULL);
 
-	*(vector.data().get() + 0ULL) = 1;
-	*(vector.data().get() + 1ULL) = 2;
-	*(vector.data().get() + 2ULL) = 3;
+	*(vector.data() + 0ULL) = 1;
+	*(vector.data() + 1ULL) = 2;
+	*(vector.data() + 2ULL) = 3;
 
 	ASSERT_EQ(vector[0], 1);
 	ASSERT_EQ(vector[1], 2);
