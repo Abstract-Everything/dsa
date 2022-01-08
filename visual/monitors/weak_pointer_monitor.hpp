@@ -14,6 +14,12 @@ template<typename Value>
 class Weak_Pointer_Monitor
 {
  public:
+	using iterator_category = std::random_access_iterator_tag;
+	using difference_type   = std::ptrdiff_t;
+	using value_type        = Value;
+	using reference         = Value &;
+	using pointer           = Weak_Pointer_Monitor;
+
 	Weak_Pointer_Monitor() = default;
 
 	Weak_Pointer_Monitor(Value *pointer) : m_pointer(pointer)
@@ -60,6 +66,43 @@ class Weak_Pointer_Monitor
 		return *this;
 	}
 
+	Weak_Pointer_Monitor operator++()
+	{
+		m_pointer++;
+		Weak_Pointer_Monitor pointer(m_pointer);
+		return pointer;
+	}
+
+	const Weak_Pointer_Monitor operator++(int)
+	{
+		Weak_Pointer_Monitor pointer(m_pointer);
+		m_pointer++;
+		return pointer;
+	}
+
+	// ToDo: Use concepts to filter T
+	template<typename T>
+	friend Weak_Pointer_Monitor operator+(
+	    Weak_Pointer_Monitor const &pointer,
+	    T                           offset)
+	{
+		return pointer.m_pointer + offset;
+	}
+
+	// ToDo: Use concepts to filter T
+	friend difference_type operator-(
+	    Weak_Pointer_Monitor const &pointer,
+	    Weak_Pointer_Monitor const &offset)
+	{
+		return pointer.m_pointer - offset.m_pointer;
+	}
+
+	template<typename T>
+	friend difference_type operator-(Weak_Pointer_Monitor const &pointer, T offset)
+	{
+		return pointer.m_pointer - offset;
+	}
+
 	bool operator==(const Weak_Pointer_Monitor &pointer) const
 	{
 		return this->operator==(pointer.m_pointer);
@@ -80,22 +123,18 @@ class Weak_Pointer_Monitor
 		return !this->operator==(pointer);
 	}
 
-	Value &operator*()
+	template<typename T>
+	Value &operator[](T index) const
+	{
+		return m_pointer[index];
+	}
+
+	Value &operator*() const
 	{
 		return *m_pointer;
 	}
 
-	const Value &operator*() const
-	{
-		return *m_pointer;
-	}
-
-	Value *operator->()
-	{
-		return m_pointer;
-	}
-
-	const Value *operator->() const
+	Value *operator->() const
 	{
 		return m_pointer;
 	}

@@ -6,45 +6,83 @@
 #include "deallocated_array_event.hpp"
 #include "event.hpp"
 #include "templates.hpp"
+#include "weak_pointer_monitor.hpp"
+
+#include <dsa/allocator_traits.hpp>
+#include <dsa/default_allocator.hpp>
 
 DEFINE_HAS_MEMBER(uninitialise);
 
 namespace visual
 {
-template<typename T>
+
+template<typename Value_t>
 class Memory_Monitor
 {
  public:
-	[[nodiscard]] T *allocate(std::size_t size) const
+	using Value         = Value_t;
+	using Pointer       = Weak_Pointer_Monitor<Value>;
+	using Const_Pointer = Weak_Pointer_Monitor<const Value>;
+
+ private:
+	using Allocator    = dsa::Default_Allocator<Value>;
+	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
+
+ public:
+	[[nodiscard]] Pointer allocate(std::size_t size) const
 	{
-		void *pointer = ::operator new(size * sizeof(T));
+		Allocator allocator;
+		Pointer   pointer = Alloc_Traits::allocate(allocator, size);
 
-		visual::Dispatch(
-		    Allocated_Array_Event{to_raw_address(pointer), sizeof(T), size});
+		visual::Dispatch(Allocated_Array_Event{
+		    to_raw_address(pointer.get()),
+		    sizeof(Value),
+		    size});
 
-		T *typed_pointer = reinterpret_cast<T *>(pointer);
 		for (std::size_t i = 0; i < size; ++i)
 		{
-			new (typed_pointer + i) T{};
-			if constexpr (has_member_uninitialise_v<T>)
+			Alloc_Traits::construct(
+			    allocator,
+			    (pointer + i).get(),
+			    Value());
+
+			if constexpr (has_member_uninitialise_v<Value>)
 			{
-				typed_pointer[i].uninitialise();
+				pointer[i].uninitialise();
 			}
 		}
 
-		return typed_pointer;
+		return pointer;
 	}
 
-	void deallocate(T *pointer, std::size_t /* size */) const
+	void deallocate(Pointer pointer, std::size_t size)
 	{
 		if (pointer == nullptr)
 		{
 			return;
 		}
 
-		visual::Dispatch(Deallocated_Array_Event{to_raw_address(pointer)});
+		visual::Dispatch(
+		    Deallocated_Array_Event{to_raw_address(pointer.get())});
 
-		::operator delete(pointer);
+		Allocator allocator;
+		Alloc_Traits::deallocate(allocator, pointer.get(), size);
+	}
+
+	template<typename... Arguments>
+	void construct(Pointer pointer, Arguments &&...arguments)
+	{
+		Allocator allocator;
+		Alloc_Traits::construct(
+		    allocator,
+		    pointer.get(),
+		    std::forward<Arguments>(arguments)...);
+	}
+
+	void destroy(Pointer pointer)
+	{
+		Allocator allocator;
+		Alloc_Traits::destroy(allocator, pointer.get());
 	}
 };
 
