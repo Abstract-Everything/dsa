@@ -4,6 +4,13 @@
 
 static_assert(std::is_same_v<dsa::Vector<int>::Value, int>);
 
+namespace
+{
+
+const dsa::Vector<int> sample{0, 1, 2};
+
+}
+
 TEST(vector, default_initialisation)
 {
 	dsa::Vector<int> vector;
@@ -51,3 +58,20 @@ TEST(vector, list_initialisation)
 	ASSERT_EQ(vector[1], 1);
 	ASSERT_EQ(vector[2], 2);
 }
+
+TEST(vector, copy_initialisation)
+{
+	dsa::Vector copy(sample);
+
+	ASSERT_EQ(copy, sample);
+}
+
+TEST(vector, move_initialisation)
+{
+	dsa::Vector from(sample);
+	dsa::Vector to(std::move(from));
+
+	ASSERT_EQ(from.capacity(), 0ULL);
+	ASSERT_EQ(to, sample);
+}
+

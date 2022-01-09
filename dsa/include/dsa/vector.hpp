@@ -44,6 +44,23 @@ class Vector
 	{
 	}
 
+	friend bool operator==(const Vector &lhs, const Vector &rhs)
+	{
+		if (lhs.size() != rhs.size())
+		{
+			return false;
+		}
+
+		for (std::size_t i = 0; i < lhs.size(); ++i)
+		{
+			if (lhs[i] != rhs[i])
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	[[nodiscard]] Value &front()
 	{
 		return m_storage[0];
