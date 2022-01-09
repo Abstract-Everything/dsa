@@ -22,8 +22,25 @@ class Vector
 
 	using Storage = Dynamic_Array<Value, Pointer_Base, Allocator_Base>;
 
-	explicit Vector(const Allocator &allocator = Allocator{})
+	explicit Vector(const Allocator &allocator = Allocator())
 	    : m_storage(allocator)
+	{
+	}
+
+	explicit Vector(
+	    std::size_t      size,
+	    const Value     &value     = Value(),
+	    const Allocator &allocator = Allocator())
+	    : m_storage(size, value, allocator)
+	    , m_end(size)
+	{
+	}
+
+	Vector(
+	    std::initializer_list<Value> values,
+	    const Allocator             &allocator = Allocator())
+	    : m_storage(values, allocator)
+	    , m_end(values.size())
 	{
 	}
 
