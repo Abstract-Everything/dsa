@@ -133,3 +133,18 @@ TEST(vector, move_assignment)
 	ASSERT_EQ(to, sample);
 }
 
+TEST(vector, access_operator)
+{
+	dsa::Vector<int> vector(3ULL);
+
+	*(vector.data().get() + 0ULL) = 1;
+	*(vector.data().get() + 1ULL) = 2;
+	*(vector.data().get() + 2ULL) = 3;
+
+	ASSERT_EQ(vector[0], 1);
+	ASSERT_EQ(vector[1], 2);
+	ASSERT_EQ(vector[2], 3);
+	ASSERT_EQ(vector.front(), 1);
+	ASSERT_EQ(vector.back(), 3);
+}
+
