@@ -190,6 +190,16 @@ class Vector
 		}
 	}
 
+	void reserve(std::size_t size)
+	{
+		if (capacity() > size)
+		{
+			return;
+		}
+
+		m_storage.resize(size);
+	}
+
  private:
 	std::size_t m_end = 0;
 	Storage     m_storage;

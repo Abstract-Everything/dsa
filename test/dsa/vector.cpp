@@ -75,3 +75,39 @@ TEST(vector, move_initialisation)
 	ASSERT_EQ(to, sample);
 }
 
+TEST(vector, comparison_operator_differing_size)
+{
+	dsa::Vector<int> vector_1(1);
+	dsa::Vector<int> vector_2(2);
+
+	ASSERT_NE(vector_1, vector_2);
+}
+
+TEST(vector, comparison_operator_differing_element)
+{
+	dsa::Vector vector_1{0, 0, 0};
+	dsa::Vector vector_2{0, 0, 1};
+	dsa::Vector vector_3{1, 0, 1};
+
+	ASSERT_NE(vector_1, vector_2);
+	ASSERT_NE(vector_2, vector_3);
+}
+
+TEST(vector, comparison_operator_equal)
+{
+	dsa::Vector vector_1{0, -1, 5};
+	dsa::Vector vector_2{0, -1, 5};
+
+	ASSERT_EQ(vector_1, vector_2);
+}
+
+TEST(vector, comparison_operator_equal_differing_capacity)
+{
+	dsa::Vector vector_1{0, -1, 5};
+	vector_1.reserve(4ULL);
+
+	dsa::Vector vector_2{0, -1, 5};
+
+	ASSERT_EQ(vector_1, vector_2);
+}
+
