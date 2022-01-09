@@ -239,3 +239,12 @@ TEST(vector, shirink_to_fit)
 
 	ASSERT_EQ(vector.size(), vector.capacity());
 }
+
+TEST(vector, clear)
+{
+	dsa::Vector vector(sample);
+
+	vector.clear();
+	ASSERT_TRUE(vector.empty());
+	ASSERT_EQ(vector.capacity(), 0ULL);
+}
