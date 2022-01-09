@@ -25,6 +25,7 @@ TEST(vector, sized_initialisation)
 	constexpr int         value  = int{};
 	dsa::Vector<int>      vector(length);
 
+	ASSERT_FALSE(vector.empty());
 	ASSERT_EQ(vector.size(), length);
 	ASSERT_EQ(vector.capacity(), length);
 	ASSERT_EQ(vector[0], value);
@@ -40,6 +41,7 @@ TEST(vector, sized_initialisation_default_value)
 	constexpr int         value  = -5;
 	dsa::Vector           vector(length, value);
 
+	ASSERT_FALSE(vector.empty());
 	ASSERT_EQ(vector.size(), length);
 	ASSERT_EQ(vector.capacity(), length);
 	ASSERT_EQ(vector[0], value);
@@ -52,6 +54,7 @@ TEST(vector, list_initialisation)
 	constexpr std::size_t length = 3;
 	dsa::Vector           vector{0, 1, 2};
 
+	ASSERT_FALSE(vector.empty());
 	ASSERT_EQ(vector.size(), length);
 	ASSERT_EQ(vector.capacity(), length);
 	ASSERT_EQ(vector[0], 0);
