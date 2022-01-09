@@ -248,3 +248,27 @@ TEST(vector, clear)
 	ASSERT_TRUE(vector.empty());
 	ASSERT_EQ(vector.capacity(), 0ULL);
 }
+
+TEST(vector, resize_to_smaller_size)
+{
+	dsa::Vector vector(sample);
+	dsa::Vector expectation{sample[0], sample[1]};
+
+	vector.resize(expectation.size());
+	ASSERT_EQ(vector, expectation);
+}
+
+TEST(vector, resize_to_larger_size)
+{
+	constexpr int default_value = int();
+	dsa::Vector   vector(sample);
+	dsa::Vector   expectation{
+            sample[0],
+            sample[1],
+            sample[2],
+            default_value,
+            default_value};
+
+	vector.resize(expectation.size());
+	ASSERT_EQ(vector, expectation);
+}

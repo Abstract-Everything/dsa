@@ -194,17 +194,13 @@ class Vector
 		else
 		{
 			m_storage.resize(size);
-			for (std::size_t i = m_end; i < size; ++i)
-			{
-				m_storage[i] = Value{};
-			}
 			m_end = size;
 		}
 	}
 
 	void reserve(std::size_t size)
 	{
-		if (capacity() > size)
+		if (capacity() >= size)
 		{
 			return;
 		}
