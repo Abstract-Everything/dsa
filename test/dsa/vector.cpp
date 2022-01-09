@@ -161,3 +161,14 @@ TEST(vector, append)
 
 	ASSERT_EQ(vector, expectation);
 }
+
+TEST(vector, insert_front)
+{
+	constexpr int value = -4;
+	dsa::Vector   vector(sample);
+	dsa::Vector   expectation{value, sample[0], sample[1], sample[2]};
+
+	vector.insert(0, value);
+
+	ASSERT_EQ(vector, expectation);
+}
