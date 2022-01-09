@@ -194,3 +194,33 @@ TEST(vector, insert_end)
 
 	ASSERT_EQ(vector, expectation);
 }
+
+TEST(vector, erase_front)
+{
+	dsa::Vector vector(sample);
+	dsa::Vector expectation{sample[1], sample[2]};
+
+	vector.erase(0);
+
+	ASSERT_EQ(vector, expectation);
+}
+
+TEST(vector, erase_middle)
+{
+	dsa::Vector vector(sample);
+	dsa::Vector expectation{sample[0], sample[2]};
+
+	vector.erase(1);
+
+	ASSERT_EQ(vector, expectation);
+}
+
+TEST(vector, erase_back)
+{
+	dsa::Vector vector(sample);
+	dsa::Vector expectation{sample[0], sample[1]};
+
+	vector.erase(2);
+
+	ASSERT_EQ(vector, expectation);
+}
