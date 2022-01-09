@@ -9,7 +9,18 @@
 namespace dsa
 {
 
-// ToDo: Use iterators for indices
+/**
+ * @brief Holds a set of contigious elements of the same type. The size of the
+ * container is scaled automatically in order to achieve amortized constant
+ * operations when working close to the back of the array.
+ *
+ * @ingroup containers
+ *
+ * @tparam Value_t: The type of element to store
+ * @tparam Pointer_Base: The type of pointer used to refer to memory
+ * @tparam Allocator_Base: The type of allocator used for memory management
+ *
+ */
 template<
     typename Value_t,
     template<typename> typename Pointer_Base   = dsa::Weak_Pointer,
@@ -24,20 +35,40 @@ class Vector
 
 	using Storage = Dynamic_Array<Value, Pointer_Base, Allocator_Base>;
 
+	/**
+	 * @brief Constucts an empty vector
+	 */
 	explicit Vector(const Allocator &allocator = Allocator())
 	    : m_storage(allocator)
 	{
 	}
 
+	/**
+	 * @brief Constructs a vector of the given size whose elements are
+	 * default initalised
+	 */
+	explicit Vector(std::size_t size, const Allocator &allocator = Allocator())
+	    : m_storage(size, Value(), allocator)
+	    , m_end(size)
+	{
+	}
+
+	/**
+	 * @brief Constructs a vector of the given size whose elements are
+	 * initalised to the given value
+	 */
 	explicit Vector(
 	    std::size_t      size,
-	    const Value     &value     = Value(),
+	    const Value     &value,
 	    const Allocator &allocator = Allocator())
 	    : m_storage(size, value, allocator)
 	    , m_end(size)
 	{
 	}
 
+	/**
+	 * @brief Constructs an vector filled with the given values
+	 */
 	Vector(
 	    std::initializer_list<Value> values,
 	    const Allocator             &allocator = Allocator())
@@ -46,7 +77,10 @@ class Vector
 	{
 	}
 
-	friend bool operator==(const Vector &lhs, const Vector &rhs)
+	/**
+	 * @brief Checks if each element in both vectors is equal
+	 */
+	[[nodiscard]] friend bool operator==(Vector const &lhs, Vector const &rhs) noexcept
 	{
 		if (lhs.size() != rhs.size())
 		{
@@ -63,36 +97,73 @@ class Vector
 		return true;
 	}
 
+	/**
+	 * @brief Checks if any element in both vectors differs
+	 */
+	[[nodiscard]] friend bool operator!=(Vector const &lhs, Vector const &rhs) noexcept
+	{
+		return !(lhs == rhs);
+	}
+
+	/**
+	 * @brief Gets the first element in the vector. This is undefined
+	 * behaviour if the vector is empty
+	 */
 	[[nodiscard]] Value &front()
 	{
 		return m_storage[0];
 	}
 
+	/**
+	 * @brief Gets the first element in the vector. This is undefined
+	 * behaviour if the vector is empty
+	 */
 	[[nodiscard]] const Value &front() const
 	{
 		return m_storage[0];
 	}
 
+	/**
+	 * @brief Gets the last element in the vector. This is undefined
+	 * behaviour if the vector is empty
+	 */
 	[[nodiscard]] Value &back()
 	{
 		return m_storage[m_end - 1];
 	}
 
+	/**
+	 * @brief Gets the last element in the vector. This is undefined
+	 * behaviour if the vector is empty
+	 */
 	[[nodiscard]] const Value &back() const
 	{
 		return m_storage[m_end - 1];
 	}
 
+	/**
+	 * @brief Returns true if the vector contains no initialised elements.
+	 * Note that the capacity may still be larger than zero even if the
+	 * vector is empty
+	 */
 	[[nodiscard]] bool empty() const
 	{
 		return m_end == 0;
 	}
 
+	/**
+	 * @brief Returns the number of initialised elements that the vector
+	 * holds
+	 */
 	[[nodiscard]] std::size_t size() const
 	{
 		return m_end;
 	}
 
+	/**
+	 * @brief Returns the maximum number of initialised elements that the
+	 * vector can hold without having to resize
+	 */
 	[[nodiscard]] std::size_t capacity() const
 	{
 		return m_storage.size();
@@ -108,22 +179,36 @@ class Vector
 		return m_storage[index];
 	}
 
+	/**
+	 * @brief Returns a pointer to the underlying memory array where the
+	 * elements are held
+	 */
 	[[nodiscard]] Pointer data()
 	{
 		return m_storage.data();
 	}
 
+	/**
+	 * @brief Returns a pointer to the underlying memory array where the
+	 * elements are held
+	 */
 	[[nodiscard]] Const_Pointer data() const
 	{
 		return m_storage.data();
 	}
 
+	/**
+	 * @brief Clears all elements from the vector
+	 */
 	void clear()
 	{
 		m_end = 0;
 		shrink_to_fit();
 	}
 
+	/**
+	 * @brief Inserts the given value at the end of the vector
+	 */
 	void append(Value value)
 	{
 		grow();
@@ -131,6 +216,10 @@ class Vector
 		m_end++;
 	}
 
+	/**
+	 * @brief Inserts the given value at the given index. The behaviour is
+	 * undefined if the index is outside of the range: [0, size()]
+	 */
 	void insert(std::size_t index, Value value)
 	{
 		if (should_grow())
@@ -156,6 +245,10 @@ class Vector
 		m_end++;
 	}
 
+	/**
+	 * @brief Erases the value at the given index. The behaviour is
+	 * undefined if the index is outside of the vector size.
+	 */
 	void erase(std::size_t index)
 	{
 		if (should_shrink())
@@ -179,11 +272,20 @@ class Vector
 		m_end--;
 	}
 
+	/**
+	 * @brief Shrinks the vector so that no memory is occuppied outside of
+	 * the elements held
+	 */
 	void shrink_to_fit()
 	{
 		m_storage.resize(m_end);
 	}
 
+	/**
+	 * @brief Resizes the vector to contain the given amount of elements.
+	 * If the new size is larger than the old, new elements are default
+	 * initialised
+	 */
 	void resize(std::size_t size)
 	{
 		if (size < capacity())
@@ -198,6 +300,10 @@ class Vector
 		}
 	}
 
+	/**
+	 * @brief Reallocates the underlying memory to hold at least the given
+	 * number of elements without having to resize
+	 */
 	void reserve(std::size_t size)
 	{
 		if (capacity() >= size)
@@ -212,7 +318,11 @@ class Vector
 	std::size_t m_end = 0;
 	Storage     m_storage;
 
-	bool should_grow()
+	/**
+	 * @brief Returns whether the vector needs to grow in order to contain
+	 * an additional element
+	 */
+	[[nodiscard]] bool should_grow()
 	{
 		return size() >= m_storage.size();
 	}
@@ -225,17 +335,21 @@ class Vector
 		}
 	}
 
-	std::size_t grow_size()
+	[[nodiscard]] std::size_t grow_size()
 	{
 		return std::max(1ULL, 2ULL * capacity());
 	}
 
-	bool should_shrink()
+	/**
+	 * @brief Returns whether the vector should shrink after removing a
+	 * single element from it
+	 */
+	[[nodiscard]] bool should_shrink()
 	{
 		return capacity() / 4ULL >= size() - 1;
 	}
 
-	std::size_t shrink_size()
+	[[nodiscard]] std::size_t shrink_size()
 	{
 		return capacity() / 2ULL;
 	}
