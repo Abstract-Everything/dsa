@@ -224,3 +224,18 @@ TEST(vector, erase_back)
 
 	ASSERT_EQ(vector, expectation);
 }
+
+TEST(vector, shirink_to_fit)
+{
+	constexpr int value = 0;
+	dsa::Vector   vector(sample);
+
+	// Force growth
+	vector.append(value);
+
+	ASSERT_NE(vector.size(), vector.capacity());
+
+	vector.shrink_to_fit();
+
+	ASSERT_EQ(vector.size(), vector.capacity());
+}
