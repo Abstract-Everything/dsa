@@ -17,8 +17,10 @@ template<
 class Vector
 {
  public:
-	using Value     = Value_t;
-	using Allocator = Allocator_Base<Value>;
+	using Value         = Value_t;
+	using Pointer       = Pointer_Base<Value_t>;
+	using Const_Pointer = Pointer_Base<const Value_t>;
+	using Allocator     = Allocator_Base<Value>;
 
 	using Storage = Dynamic_Array<Value, Pointer_Base, Allocator_Base>;
 
@@ -104,6 +106,16 @@ class Vector
 	[[nodiscard]] const Value &operator[](std::size_t index) const
 	{
 		return m_storage[index];
+	}
+
+	[[nodiscard]] Pointer data()
+	{
+		return m_storage.data();
+	}
+
+	[[nodiscard]] Const_Pointer data() const
+	{
+		return m_storage.data();
 	}
 
 	void clear()

@@ -27,9 +27,10 @@ template<
 class Dynamic_Array
 {
  public:
-	using Value     = Value_t;
-	using Pointer   = Pointer_Base<Value_t>;
-	using Allocator = Allocator_Base<Value>;
+	using Value         = Value_t;
+	using Pointer       = Pointer_Base<Value_t>;
+	using Const_Pointer = Pointer_Base<const Value_t>;
+	using Allocator     = Allocator_Base<Value>;
 
  public:
 	[[nodiscard]] const Allocator &allocator() const
@@ -147,6 +148,14 @@ class Dynamic_Array
 	[[nodiscard]] Pointer data()
 	{
 		return m_array;
+	}
+
+	/**
+	 * Returns a pointer to the allocated storage
+	 */
+	[[nodiscard]] Const_Pointer data() const
+	{
+		return Const_Pointer(m_array);
 	}
 
 	/**

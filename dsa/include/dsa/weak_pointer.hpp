@@ -1,6 +1,8 @@
 #ifndef DSA_WEAK_POINTER_HPP
 #define DSA_WEAK_POINTER_HPP
 
+#include <dsa/type_traits.hpp>
+
 #include <cstddef>
 #include <utility>
 
@@ -20,6 +22,12 @@ class Weak_Pointer
 	~Weak_Pointer() = default;
 
 	Weak_Pointer(const Weak_Pointer &pointer) : m_pointer(pointer.m_pointer)
+	{
+	}
+
+	template<typename T, typename std::enable_if_t<Is_Const_Version_Of<T, Value>, bool> = true>
+	explicit Weak_Pointer(const Weak_Pointer<T> &pointer)
+	    : m_pointer(pointer.get())
 	{
 	}
 
@@ -51,12 +59,12 @@ class Weak_Pointer
 		return *this;
 	}
 
-	bool operator==(const Weak_Pointer& pointer) const
+	bool operator==(const Weak_Pointer &pointer) const
 	{
 		return m_pointer == pointer.m_pointer;
 	}
 
-	bool operator!=(const Weak_Pointer& pointer) const
+	bool operator!=(const Weak_Pointer &pointer) const
 	{
 		return !this->operator==(pointer);
 	}

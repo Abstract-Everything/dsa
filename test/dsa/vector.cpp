@@ -64,6 +64,7 @@ TEST(vector, copy_initialisation)
 	dsa::Vector copy(sample);
 
 	ASSERT_EQ(copy, sample);
+	ASSERT_NE(copy.data().get(), sample.data().get());
 }
 
 TEST(vector, move_initialisation)
@@ -72,6 +73,7 @@ TEST(vector, move_initialisation)
 	dsa::Vector to(std::move(from));
 
 	ASSERT_EQ(from.capacity(), 0ULL);
+	ASSERT_NE(to.data().get(), from.data().get());
 	ASSERT_EQ(to, sample);
 }
 
@@ -109,5 +111,25 @@ TEST(vector, comparison_operator_equal_differing_capacity)
 	dsa::Vector vector_2{0, -1, 5};
 
 	ASSERT_EQ(vector_1, vector_2);
+}
+
+TEST(vector, copy_assignment)
+{
+	dsa::Vector<int> copy;
+	copy = sample;
+
+	ASSERT_EQ(copy, sample);
+	ASSERT_NE(copy.data().get(), sample.data().get());
+}
+
+TEST(vector, move_assignment)
+{
+	dsa::Vector      from(sample);
+	dsa::Vector<int> to;
+	to = std::move(from);
+
+	ASSERT_EQ(from.capacity(), 0ULL);
+	ASSERT_NE(to.data().get(), from.data().get());
+	ASSERT_EQ(to, sample);
 }
 
