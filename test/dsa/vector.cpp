@@ -172,3 +172,25 @@ TEST(vector, insert_front)
 
 	ASSERT_EQ(vector, expectation);
 }
+
+TEST(vector, insert_middle)
+{
+	constexpr int value = -4;
+	dsa::Vector   vector(sample);
+	dsa::Vector   expectation{sample[0], sample[1], value, sample[2]};
+
+	vector.insert(2, value);
+
+	ASSERT_EQ(vector, expectation);
+}
+
+TEST(vector, insert_end)
+{
+	constexpr int value = -4;
+	dsa::Vector   vector(sample);
+	dsa::Vector   expectation{sample[0], sample[1], sample[2], value};
+
+	vector.insert(vector.size(), value);
+
+	ASSERT_EQ(vector, expectation);
+}
