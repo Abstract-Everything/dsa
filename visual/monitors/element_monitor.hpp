@@ -32,12 +32,14 @@ class Element_Monitor
 	    : m_initialised(element.m_initialised)
 	    , m_value(element.m_value)
 	{
+		dispatch_copy();
 	}
 
 	Element_Monitor(Element_Monitor &&element) noexcept
 	    : m_initialised(element.m_initialised)
 	    , m_value(std::move(element.m_value))
 	{
+		dispatch_move(element);
 	}
 
 	friend void swap(Element_Monitor &lhs, Element_Monitor &rhs)
@@ -51,9 +53,7 @@ class Element_Monitor
 		Element_Monitor temp{element};
 		swap(*this, temp);
 
-		visual::Dispatch(Copy_Assignment_Event{
-		    to_raw_address(this),
-		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
+		dispatch_copy();
 
 		return *this;
 	}
@@ -66,10 +66,7 @@ class Element_Monitor
 		swap(*this, tmp);
 		swap(*this, element);
 
-		visual::Dispatch(Move_Assignment_Event{
-		    to_raw_address(this),
-		    to_raw_address(&element),
-		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
+		dispatch_move(element);
 
 		return *this;
 	}
@@ -118,6 +115,21 @@ class Element_Monitor
  private:
 	bool  m_initialised = false;
 	Value m_value{};
+
+	void dispatch_copy()
+	{
+		visual::Dispatch(Copy_Assignment_Event{
+		    to_raw_address(this),
+		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
+	}
+
+	void dispatch_move(const Element_Monitor &element)
+	{
+		visual::Dispatch(Move_Assignment_Event{
+		    to_raw_address(this),
+		    to_raw_address(&element),
+		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
+	}
 };
 
 } // namespace visual

@@ -31,6 +31,7 @@ class Dynamic_Array
 	using Pointer   = Pointer_Base<Value_t>;
 	using Allocator = Allocator_Base<Value>;
 
+ public:
 	[[nodiscard]] const Allocator &allocator() const
 	{
 		return m_allocator;
@@ -40,21 +41,35 @@ class Dynamic_Array
 	 * @brief Constructs an empty array
 	 */
 	explicit Dynamic_Array(const Allocator &allocator = Allocator{})
-	    : m_allocator(allocator)
+	    : Dynamic_Array(0, allocator)
 	{
 	}
 
 	/**
-	 * @brief Constructs an array of the given size filled with
-	 * uninitialised values
+	 * @brief Constructs an array of the given size whose values are
+	 * default initialised
+	 */
+	explicit Dynamic_Array(std::size_t size, const Allocator &allocator)
+	    : Dynamic_Array(size, Value{}, allocator)
+	{
+	}
+
+	/**
+	 * @brief Constructs an array of the given size whose values are
+	 * initialised to the given value
 	 */
 	explicit Dynamic_Array(
 	    std::size_t      size,
-	    const Allocator &allocator = Allocator{})
+	    const Value     &value     = {},
+	    const Allocator &allocator = {})
 	    : m_allocator(allocator)
 	    , m_size(size)
 	    , m_array(m_allocator.allocate(size))
 	{
+		for (std::size_t i = 0; i < size; ++i)
+		{
+			::new (m_array.get() + i) Value{value};
+		}
 	}
 
 	/**
@@ -62,13 +77,13 @@ class Dynamic_Array
 	 */
 	Dynamic_Array(
 	    std::initializer_list<Value> values,
-	    const Allocator             &allocator = Allocator{})
+	    const Allocator             &allocator = {})
 	    : Dynamic_Array(values.size(), allocator)
 	{
 		std::size_t index = 0;
 		for (auto value : values)
 		{
-			this->operator[](index++) = std::move(value);
+			this->operator[](index++) = value;
 		}
 	}
 
@@ -77,6 +92,13 @@ class Dynamic_Array
 		// This can be set to nullptr after a move
 		if (m_array != nullptr)
 		{
+			for (std::size_t i = 0; i < m_size; ++i)
+			{
+				std::allocator<Value> allocator;
+				std::allocator_traits<std::allocator<Value>>::destroy(
+				    allocator,
+				    m_array.get() + i);
+			}
 			m_allocator.deallocate(m_array.get(), m_size);
 		}
 	}
@@ -124,7 +146,7 @@ class Dynamic_Array
 	 */
 	[[nodiscard]] Pointer data()
 	{
-		return m_array.get();
+		return m_array;
 	}
 
 	/**
@@ -137,14 +159,21 @@ class Dynamic_Array
 
 	/**
 	 * Changes the size of the container. The first min(size, new_size)
-	 * elements are moved into the new allocation
+	 * elements are moved from the previous memory, the rest are initialised
+	 * to the given value
 	 */
-	void resize(std::size_t new_size)
+	void resize(std::size_t new_size, Value const &value = {})
 	{
 		Pointer array = m_allocator.allocate(new_size);
 
 		const std::size_t count = std::min(m_size, new_size);
-		std::move(m_array.get(), m_array.get() + count, array.get());
+		std::uninitialized_move(m_array.get(), m_array.get() + count, array.get());
+
+		for (std::size_t i = m_size; i < new_size; ++i)
+		{
+			::new (array.get() + i) Value{value};
+		}
+
 		m_allocator.deallocate(m_array.get(), m_size);
 
 		m_array = array;
@@ -179,6 +208,10 @@ class Dynamic_Array
 
 	std::size_t m_size = 0;
 
+	// We maintain the values in the array initialised, otherwise moving,
+	// destroying and writing new values to the elements becomes
+	// significantly more difficult to do well.
+	//
 	// Allocator::deallocate cannot be called with nullptr, thus creating an
 	// allocation of 0 elements allows us to call deallocate without
 	// explicitly checking for nullptr when resizing
