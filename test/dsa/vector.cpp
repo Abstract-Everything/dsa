@@ -151,3 +151,13 @@ TEST(vector, access_operator)
 	ASSERT_EQ(vector.back(), 3);
 }
 
+TEST(vector, append)
+{
+	constexpr int value = -4;
+	dsa::Vector   vector(sample);
+	dsa::Vector   expectation{sample[0], sample[1], sample[2], value};
+
+	vector.append(value);
+
+	ASSERT_EQ(vector, expectation);
+}
