@@ -315,8 +315,8 @@ class Vector
 	}
 
  private:
-	std::size_t m_end = 0;
 	Storage     m_storage;
+	std::size_t m_end = 0;
 
 	/**
 	 * @brief Returns whether the vector needs to grow in order to contain
