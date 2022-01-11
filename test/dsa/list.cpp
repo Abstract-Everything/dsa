@@ -79,3 +79,14 @@ TEST(list, clear)
 	ASSERT_TRUE(list.empty());
 	ASSERT_EQ(list.size(), 0ULL);
 }
+
+TEST(list, prepend)
+{
+	constexpr int value = -1;
+	dsa::List     list(sample);
+	dsa::List     expected{value, sample[0], sample[1], sample[2]};
+
+	list.prepend(value);
+
+	ASSERT_EQ(list, expected);
+}
