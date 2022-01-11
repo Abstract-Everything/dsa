@@ -163,3 +163,51 @@ TEST(list, erase_back)
 
 	ASSERT_EQ(list, expected);
 }
+
+TEST(list, comparison_operator_empty_lists)
+{
+	dsa::List<int> list_1;
+	dsa::List<int> list_2;
+
+	ASSERT_EQ(list_1, list_2);
+}
+
+TEST(list, comparison_operator_differing_element)
+{
+	dsa::List list_1{0};
+	dsa::List list_2{1};
+
+	ASSERT_NE(list_1, list_2);
+}
+
+TEST(list, comparison_operator_same_single_element)
+{
+	dsa::List<int> list_1{0};
+	dsa::List<int> list_2{0};
+
+	ASSERT_EQ(list_1, list_2);
+}
+
+TEST(list, comparison_operator_same_multiple_elements)
+{
+	dsa::List<int> list_1{0, 1, 2};
+	dsa::List<int> list_2{0, 1, 2};
+
+	ASSERT_EQ(list_1, list_2);
+}
+
+TEST(list, comparison_operator_single_differing_element)
+{
+	dsa::List<int> list_1{0, 1, 2};
+	dsa::List<int> list_2{0, 1, 3};
+
+	ASSERT_NE(list_1, list_2);
+}
+
+TEST(list, comparison_operator_differing_size)
+{
+	dsa::List<int> list_1{0, 1};
+	dsa::List<int> list_2{0, 1, 2};
+
+	ASSERT_NE(list_1, list_2);
+}
