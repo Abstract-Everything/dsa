@@ -90,3 +90,36 @@ TEST(list, prepend)
 
 	ASSERT_EQ(list, expected);
 }
+
+TEST(list, insert_front)
+{
+	constexpr int value = -1;
+	dsa::List     list(sample);
+	dsa::List     expected{value, sample[0], sample[1], sample[2]};
+
+	list.insert(0, value);
+
+	ASSERT_EQ(list, expected);
+}
+
+TEST(list, insert_middle)
+{
+	constexpr int value = -1;
+	dsa::List     list(sample);
+	dsa::List     expected{sample[0], sample[1], value, sample[2]};
+
+	list.insert(2, value);
+
+	ASSERT_EQ(list, expected);
+}
+
+TEST(list, insert_back)
+{
+	constexpr int value = -1;
+	dsa::List     list(sample);
+	dsa::List     expected{sample[0], sample[1], sample[2], value};
+
+	list.insert(list.size(), value);
+
+	ASSERT_EQ(list, expected);
+}
