@@ -223,3 +223,19 @@ TEST(list, comparison_operator_differing_size)
 
 	ASSERT_NE(list_1, list_2);
 }
+
+TEST(list, destroy_elements)
+{
+	constexpr std::size_t length  = 3;
+	std::shared_ptr<int>  counter = std::make_shared<int>(0);
+	{
+		dsa::List<std::shared_ptr<int>> list;
+		for (std::size_t i = 0; i < length; ++i)
+		{
+			list.prepend(counter);
+		}
+		ASSERT_EQ(counter.use_count(), length + 1);
+	}
+
+	ASSERT_EQ(counter.use_count(), 1);
+}

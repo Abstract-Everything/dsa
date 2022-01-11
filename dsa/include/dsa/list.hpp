@@ -125,7 +125,7 @@ class List
 		while (node != nullptr)
 		{
 			Pointer next = node->next;
-			m_allocator.deallocate(node.get(), 1);
+			destroy_node(node);
 			node = next;
 		}
 		m_head = nullptr;
@@ -164,21 +164,21 @@ class List
 		{
 			Pointer remove = m_head;
 			m_head         = m_head->next;
-			m_allocator.deallocate(remove.get(), 1);
+			destroy_node(remove);
 			return;
 		}
 
 		Pointer previous = at(index - 1);
 		Pointer remove   = previous->next;
 		previous->next   = remove->next;
-		m_allocator.deallocate(remove.get(), 1);
+		destroy_node(remove);
 	}
 
 	friend bool operator==(List const &lhs, List const &rhs) noexcept
 	{
 		Pointer lhs_node = lhs.m_head;
 		Pointer rhs_node = rhs.m_head;
-		while(lhs_node != nullptr && rhs_node != nullptr)
+		while (lhs_node != nullptr && rhs_node != nullptr)
 		{
 			if (lhs_node->value != rhs_node->value)
 			{
@@ -227,6 +227,15 @@ class List
 			node = node->next;
 		}
 		return node;
+	}
+
+	void destroy_node(Pointer node)
+	{
+		std::allocator<Value> allocator;
+		std::allocator_traits<std::allocator<Value>>::destroy(
+		    allocator,
+		    &node->value);
+		m_allocator.deallocate(node.get(), 1);
 	}
 };
 
