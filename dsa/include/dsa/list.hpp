@@ -128,6 +128,7 @@ class List
 			m_allocator.deallocate(node.get(), 1);
 			node = next;
 		}
+		m_head = nullptr;
 	}
 
 	void prepend(Value value)

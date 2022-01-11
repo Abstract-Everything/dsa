@@ -67,3 +67,15 @@ TEST(list, move_assignment)
 	ASSERT_TRUE(from.empty());
 	ASSERT_EQ(to, sample);
 }
+
+TEST(list, clear)
+{
+	dsa::List list(sample);
+
+	ASSERT_FALSE(list.empty());
+
+	list.clear();
+
+	ASSERT_TRUE(list.empty());
+	ASSERT_EQ(list.size(), 0ULL);
+}
