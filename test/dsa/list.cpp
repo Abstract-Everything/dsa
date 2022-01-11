@@ -133,3 +133,33 @@ TEST(list, detatch_front)
 
 	ASSERT_EQ(list, expected);
 }
+
+TEST(list, erase_front)
+{
+	dsa::List     list(sample);
+	dsa::List     expected{sample[1], sample[2]};
+
+	list.erase(0);
+
+	ASSERT_EQ(list, expected);
+}
+
+TEST(list, erase_middle)
+{
+	dsa::List     list(sample);
+	dsa::List     expected{sample[0], sample[2]};
+
+	list.erase(1);
+
+	ASSERT_EQ(list, expected);
+}
+
+TEST(list, erase_back)
+{
+	dsa::List     list(sample);
+	dsa::List     expected{sample[0], sample[1]};
+
+	list.erase(2);
+
+	ASSERT_EQ(list, expected);
+}
