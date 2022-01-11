@@ -8,6 +8,7 @@ namespace
 {
 
 const dsa::List<int> sample{0, 1, 2};
+const dsa::List<int> long_sample{0, 1, 2, 3, 4};
 
 }
 
@@ -66,6 +67,17 @@ TEST(list, move_assignment)
 
 	ASSERT_TRUE(from.empty());
 	ASSERT_EQ(to, sample);
+}
+
+TEST(list, swap)
+{
+	dsa::List list_1(sample);
+	dsa::List list_2(long_sample);
+
+	swap(list_1, list_2);
+
+	ASSERT_EQ(list_1, long_sample);
+	ASSERT_EQ(list_2, sample);
 }
 
 TEST(list, clear)
