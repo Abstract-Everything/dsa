@@ -48,3 +48,22 @@ TEST(list, move_initialisation)
 	ASSERT_TRUE(from.empty());
 	ASSERT_EQ(to, sample);
 }
+
+TEST(list, copy_assignment)
+{
+	dsa::List<int> list;
+	list = sample;
+
+	ASSERT_EQ(list, sample);
+	ASSERT_NE(&list[0], &sample[0]);
+}
+
+TEST(list, move_assignment)
+{
+	dsa::List      from(sample);
+	dsa::List<int> to;
+	to = std::move(from);
+
+	ASSERT_TRUE(from.empty());
+	ASSERT_EQ(to, sample);
+}
