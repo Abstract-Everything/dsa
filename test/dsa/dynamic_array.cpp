@@ -123,13 +123,10 @@ TEST(dynamic_array, access_operator)
 	dsa::Dynamic_Array array(sample);
 
 	ASSERT_EQ(array.size(), sample.size());
-	ASSERT_EQ(array[0], 0);
-	ASSERT_EQ(array[1], 1);
-	ASSERT_EQ(array[2], 2);
 
-	array[0] = 2;
-	array[1] = 0;
-	array[2] = 1;
+	*(array.data().get() + 0ULL) = 2;
+	*(array.data().get() + 1ULL) = 0;
+	*(array.data().get() + 2ULL) = 1;
 
 	ASSERT_EQ(array.size(), sample.size());
 	ASSERT_EQ(array[0], 2);
