@@ -153,9 +153,9 @@ class List
 		previous->next   = node;
 	}
 
-	void detatch_front(Value value)
+	void detatch_front()
 	{
-		erase(0, std::move(value));
+		erase(0);
 	}
 
 	void erase(std::size_t index)

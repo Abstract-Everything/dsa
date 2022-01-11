@@ -123,3 +123,13 @@ TEST(list, insert_back)
 
 	ASSERT_EQ(list, expected);
 }
+
+TEST(list, detatch_front)
+{
+	dsa::List list(sample);
+	dsa::List expected{sample[1], sample[2]};
+
+	list.detatch_front();
+
+	ASSERT_EQ(list, expected);
+}
