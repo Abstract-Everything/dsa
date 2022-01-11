@@ -9,6 +9,18 @@
 namespace dsa
 {
 
+// ToDo: Use iterators to make insertion/ deletion constant time
+
+/**
+ * @brief Holds a set of non contigious elements in a singly linked list.
+ *
+ * @ingroup containers
+ *
+ * @tparam Value_t: The type of element to store
+ * @tparam Pointer_Base: The type of pointer used to refer to memory
+ * @tparam Allocator_Base: The type of allocator used for memory management
+ *
+ */
 template<
     typename Value_t,
     template<typename> typename Pointer_Base   = Weak_Pointer,
@@ -22,11 +34,17 @@ class List
  public:
 	using Value = Value_t;
 
+	/**
+	 * @brief Constructs an empty list
+	 */
 	explicit List(const Allocator &allocator = Allocator{})
 	    : m_allocator(allocator)
 	{
 	}
 
+	/**
+	 * @brief Constructs a list filled with the given values
+	 */
 	List(
 	    std::initializer_list<Value_t> values,
 	    const Allocator               &allocator = Allocator())
@@ -92,6 +110,10 @@ class List
 		return at(index)->value;
 	}
 
+	/**
+	 * @brief Gets the number of elements currently in the list.
+	 * Note: This operation is not constant as the size is not cached
+	 */
 	[[nodiscard]] std::size_t size() const
 	{
 		std::size_t list_size = 0;
@@ -104,21 +126,35 @@ class List
 		return list_size;
 	}
 
+	/**
+	 * @brief Gets the first element in the list. This is undefined
+	 * behaviour if the list is empty
+	 */
 	[[nodiscard]] Value &front()
 	{
 		return m_head->value;
 	}
 
+	/**
+	 * @brief Gets the first element in the list. This is undefined
+	 * behaviour if the list is empty
+	 */
 	[[nodiscard]] const Value &front() const
 	{
 		return m_head->value;
 	}
 
+	/**
+	 * @brief Returns true if the list contains no elements
+	 */
 	[[nodiscard]] bool empty() const
 	{
 		return m_head == nullptr;
 	}
 
+	/**
+	 * @brief Clears all elements from the list
+	 */
 	void clear()
 	{
 		Pointer node = m_head;
@@ -131,11 +167,18 @@ class List
 		m_head = nullptr;
 	}
 
+	/**
+	 * @brief Inserts the given value at the front of the list
+	 */
 	void prepend(Value value)
 	{
 		insert(0, std::move(value));
 	}
 
+	/**
+	 * @brief Inserts the given value at the given index. The behaviour is
+	 * undefined if the index is outside of the range: [0, size()]
+	 */
 	void insert(std::size_t index, Value value)
 	{
 		Pointer node = m_allocator.allocate(1);
@@ -153,11 +196,19 @@ class List
 		previous->next   = node;
 	}
 
+	/**
+	 * @brief Erases the value at the front of the list. The behaviour is
+	 * undefined if the list is empty
+	 */
 	void detatch_front()
 	{
 		erase(0);
 	}
 
+	/**
+	 * @brief Erases the value at the given index. The behaviour is
+	 * undefined if the index is outside of the list size.
+	 */
 	void erase(std::size_t index)
 	{
 		if (index == 0)
@@ -209,6 +260,10 @@ class List
 
 	Pointer m_head;
 
+	/**
+	 * @brief Gets the node at the given index. The behaviour is undefined
+	 * if the index is outside of the list range
+	 */
 	Pointer at(std::size_t index)
 	{
 		Pointer node = m_head;
@@ -219,6 +274,10 @@ class List
 		return node;
 	}
 
+	/**
+	 * @brief Gets the node at the given index. The behaviour is undefined
+	 * if the index is outside of the list range
+	 */
 	Pointer at(std::size_t index) const
 	{
 		Pointer node = m_head;
