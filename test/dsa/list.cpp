@@ -39,3 +39,12 @@ TEST(list, copy_initialisation)
 	ASSERT_EQ(list, sample);
 	ASSERT_NE(&list[0], &sample[0]);
 }
+
+TEST(list, move_initialisation)
+{
+	dsa::List from(sample);
+	dsa::List to(std::move(from));
+
+	ASSERT_TRUE(from.empty());
+	ASSERT_EQ(to, sample);
+}
