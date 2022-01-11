@@ -27,6 +27,23 @@ class List
 	{
 	}
 
+	List(
+	    std::initializer_list<Value_t> values,
+	    const Allocator               &allocator = Allocator())
+	    : m_allocator(allocator)
+	{
+		Pointer *next = &m_head;
+		for (auto value : values)
+		{
+			Pointer &to = *next;
+			to          = m_allocator.allocate(1);
+			to->value   = value;
+			to->next    = nullptr;
+
+			next = &to->next;
+		}
+	}
+
 	~List()
 	{
 		clear();
@@ -65,7 +82,17 @@ class List
 		return *this;
 	}
 
-	std::size_t size() const
+	[[nodiscard]] Value &operator[](std::size_t index)
+	{
+		return at(index)->value;
+	}
+
+	[[nodiscard]] const Value &operator[](std::size_t index) const
+	{
+		return at(index)->value;
+	}
+
+	[[nodiscard]] std::size_t size() const
 	{
 		std::size_t list_size = 0;
 		Pointer     node      = m_head;
