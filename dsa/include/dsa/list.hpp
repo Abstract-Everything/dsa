@@ -57,10 +57,10 @@ class List
 		{
 			Pointer &to = *next;
 			to          = m_allocator.allocate(1);
-			to->value   = from.value;
+			to->value   = from->value;
 			to->next    = nullptr;
 
-			to   = &to->next;
+			next = &to->next;
 			from = from->next;
 		}
 	}
@@ -171,6 +171,29 @@ class List
 		Pointer remove   = previous->next;
 		previous->next   = remove->next;
 		m_allocator.deallocate(remove.get(), 1);
+	}
+
+	friend bool operator==(List const &lhs, List const &rhs) noexcept
+	{
+		Pointer lhs_node = lhs.m_head;
+		Pointer rhs_node = rhs.m_head;
+		while(lhs_node != nullptr && rhs_node != nullptr)
+		{
+			if (lhs_node->value != rhs_node->value)
+			{
+				return false;
+			}
+
+			lhs_node = lhs_node->next;
+			rhs_node = rhs_node->next;
+		}
+
+		return lhs_node == nullptr && rhs_node == nullptr;
+	}
+
+	friend bool operator!=(List const &lhs, List const &rhs) noexcept
+	{
+		return !(lhs == rhs);
 	}
 
  private:

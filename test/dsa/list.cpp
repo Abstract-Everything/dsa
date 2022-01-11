@@ -4,6 +4,13 @@
 
 static_assert(std::is_same_v<dsa::List<int>::Value, int>);
 
+namespace
+{
+
+const dsa::List<int> sample{0, 1, 2};
+
+}
+
 TEST(list, default_initialisation)
 {
 	dsa::List<int> list;
@@ -23,4 +30,12 @@ TEST(list, list_initialisation)
 	ASSERT_EQ(list[0], 0);
 	ASSERT_EQ(list[1], 1);
 	ASSERT_EQ(list[2], 2);
+}
+
+TEST(list, copy_initialisation)
+{
+	dsa::List list(sample);
+
+	ASSERT_EQ(list, sample);
+	ASSERT_NE(&list[0], &sample[0]);
 }
