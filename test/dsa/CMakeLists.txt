@@ -1,7 +1,7 @@
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(dsa_test dynamic_array.cpp vector.cpp list.cpp)
+add_executable(dsa_test dynamic_array.cpp vector.cpp list.cpp binary_tree.cpp)
 
 target_link_libraries(
 	dsa_test

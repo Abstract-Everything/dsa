@@ -3,6 +3,8 @@
 
 #include "dsa/weak_pointer.hpp"
 
+#include <memory>
+
 namespace dsa
 {
 
