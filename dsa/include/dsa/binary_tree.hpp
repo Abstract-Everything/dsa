@@ -101,10 +101,7 @@ class Binary_Tree
 
 	void insert(Value value)
 	{
-		Pointer insert = m_allocator.allocate(1);
-		insert->value  = value;
-		insert->left   = nullptr;
-		insert->right  = nullptr;
+		Pointer insert = construct_node(std::move(value));
 
 		Pointer *node_ptr = &m_head;
 		while (*node_ptr != nullptr)
@@ -211,8 +208,7 @@ class Binary_Tree
 			return nullptr;
 		}
 
-		Pointer root = m_allocator.allocate(1);
-		root->value  = subtree->value;
+		Pointer root = construct_node(subtree->value);
 		root->left   = copy_subtree(subtree->left);
 		root->right  = copy_subtree(subtree->right);
 		return root;
@@ -227,6 +223,32 @@ class Binary_Tree
 
 		delete_node(node->left);
 		delete_node(node->right);
+
+		destroy_node(node);
+	}
+
+	[[nodiscard]] Pointer construct_node(Value value)
+	{
+		Pointer node = m_allocator.allocate(1);
+		node->left   = nullptr;
+		node->right  = nullptr;
+
+		std::allocator<Value> allocator;
+		std::allocator_traits<std::allocator<Value>>::construct(
+		    allocator,
+		    &(node->value),
+		    std::move(value));
+
+		return node;
+	}
+
+	void destroy_node(Pointer node)
+	{
+		std::allocator<Value> allocator;
+		std::allocator_traits<std::allocator<Value>>::destroy(
+		    allocator,
+		    &node->value);
+
 		m_allocator.deallocate(node.get(), 1);
 	}
 

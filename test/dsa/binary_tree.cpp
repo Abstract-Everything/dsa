@@ -10,7 +10,25 @@ namespace
 const dsa::Binary_Tree<int> sample{1, 0, 2};
 const dsa::Binary_Tree<int> long_sample{3, 1, 5, 0, 2, 4, 6};
 
-}
+struct Counter
+{
+	explicit Counter(std::size_t value, std::shared_ptr<int> counter)
+	    : m_value(value)
+	    , m_counter(std::move(counter))
+	{
+	}
+
+	[[nodiscard]] friend bool operator<(Counter const &lhs, Counter const &rhs) noexcept
+	{
+		return lhs.m_value < rhs.m_value;
+	}
+
+ private:
+	std::size_t          m_value;
+	std::shared_ptr<int> m_counter;
+};
+
+} // namespace
 
 TEST(binary_tree, default_initialisation)
 {
@@ -224,3 +242,19 @@ TEST(binary_tree, comparison_operator_differing_insert_order)
 	ASSERT_EQ(binary_tree_1, binary_tree_2);
 }
 
+TEST(binary_tree, destroy_elements)
+{
+	constexpr std::size_t count   = 3;
+	std::shared_ptr<int>  counter = std::make_shared<int>(0);
+	{
+		dsa::Binary_Tree<Counter> binary_tree;
+		for (std::size_t i = 0; i < count; ++i)
+		{
+			binary_tree.insert(Counter(i, counter));
+		}
+
+		ASSERT_EQ(counter.use_count(), count + 1);
+	}
+
+	ASSERT_EQ(counter.use_count(), 1);
+}
