@@ -49,6 +49,13 @@ class Binary_Tree
 	{
 	}
 
+	Binary_Tree(Binary_Tree &&binary_tree) noexcept
+	    : m_allocator(binary_tree.m_allocator)
+	    , m_head(binary_tree.m_head)
+	{
+		binary_tree.m_head = nullptr;
+	}
+
 	void swap(Binary_Tree &lhs, Binary_Tree &rhs)
 	{
 		std::swap(lhs.m_allocator, rhs.m_allocator);

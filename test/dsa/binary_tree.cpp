@@ -38,3 +38,13 @@ TEST(binary_tree, copy_initialisation)
 	copy.insert(-1);
 	ASSERT_FALSE(sample.contains(-1));
 }
+
+TEST(binary_tree, move_initialisation)
+{
+	dsa::Binary_Tree from(sample);
+	dsa::Binary_Tree to(std::move(from));
+
+	ASSERT_TRUE(from.empty());
+	ASSERT_EQ(to, sample);
+}
+
