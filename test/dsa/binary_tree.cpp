@@ -80,3 +80,29 @@ TEST(binary_tree, swap)
 	ASSERT_EQ(binary_tree_1, long_sample);
 	ASSERT_EQ(binary_tree_2, sample);
 }
+
+TEST(binary_tree, insert_single_value)
+{
+	dsa::Binary_Tree<int> binary_tree;
+
+	binary_tree.insert(1);
+
+	ASSERT_FALSE(binary_tree.empty());
+	ASSERT_FALSE(binary_tree.contains(0));
+	ASSERT_TRUE(binary_tree.contains(1));
+	ASSERT_FALSE(binary_tree.contains(2));
+}
+
+TEST(binary_tree, insert_multiple_values)
+{
+	dsa::Binary_Tree<int> binary_tree;
+
+	binary_tree.insert(0);
+	binary_tree.insert(1);
+	binary_tree.insert(2);
+
+	ASSERT_FALSE(binary_tree.empty());
+	ASSERT_TRUE(binary_tree.contains(0));
+	ASSERT_TRUE(binary_tree.contains(1));
+	ASSERT_TRUE(binary_tree.contains(2));
+}
