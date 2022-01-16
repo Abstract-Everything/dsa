@@ -4,6 +4,7 @@
 #include "dsa/weak_pointer.hpp"
 
 #include <memory>
+#include <cassert>
 
 namespace dsa
 {
@@ -135,12 +136,10 @@ class Binary_Tree
 		}
 		else if (node->right != nullptr)
 		{
-			Pointer remove = node->right;
-			*node          = std::move(*node->right);
+			*pointer = node->right;
 
-			remove->left  = nullptr;
-			remove->right = nullptr;
-			delete_node(remove);
+			node->right = nullptr;
+			delete_node(node);
 		}
 		else
 		{

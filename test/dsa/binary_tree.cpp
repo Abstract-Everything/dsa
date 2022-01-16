@@ -106,3 +106,54 @@ TEST(binary_tree, insert_multiple_values)
 	ASSERT_TRUE(binary_tree.contains(1));
 	ASSERT_TRUE(binary_tree.contains(2));
 }
+
+TEST(binary_tree, erase_head)
+{
+	dsa::Binary_Tree<int>       binary_tree{0};
+	const dsa::Binary_Tree<int> expected;
+
+	binary_tree.erase(0);
+
+	ASSERT_TRUE(binary_tree.empty());
+	ASSERT_EQ(binary_tree, expected);
+}
+
+TEST(binary_tree, erase_leaf)
+{
+	dsa::Binary_Tree<int>       binary_tree{0, 1};
+	const dsa::Binary_Tree<int> expected{0};
+
+	binary_tree.erase(1);
+
+	ASSERT_EQ(binary_tree, expected);
+}
+
+TEST(binary_tree, erase_node_no_left_child)
+{
+	dsa::Binary_Tree<int>       binary_tree{0, 1, 2};
+	const dsa::Binary_Tree<int> expected{0, 2};
+
+	binary_tree.erase(1);
+
+	ASSERT_EQ(binary_tree, expected);
+}
+
+TEST(binary_tree, erase_node_immediate_left_child_present)
+{
+	dsa::Binary_Tree<int>       binary_tree{0, 3, 4, 2, 1};
+	const dsa::Binary_Tree<int> expected{0, 2, 4, 1};
+
+	binary_tree.erase(3);
+
+	ASSERT_EQ(binary_tree, expected);
+}
+
+TEST(binary_tree, erase_node_deep_left_child_present)
+{
+	dsa::Binary_Tree<int>       binary_tree{3, 1, 0, 2};
+	const dsa::Binary_Tree<int> expected{2, 1, 0};
+
+	binary_tree.erase(3);
+
+	ASSERT_EQ(binary_tree, expected);
+}
