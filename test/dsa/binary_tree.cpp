@@ -157,3 +157,12 @@ TEST(binary_tree, erase_node_deep_left_child_present)
 
 	ASSERT_EQ(binary_tree, expected);
 }
+
+TEST(binary_tree, clear)
+{
+	dsa::Binary_Tree binary_tree(sample);
+
+	binary_tree.clear();
+
+	ASSERT_TRUE(binary_tree.empty());
+}

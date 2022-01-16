@@ -82,6 +82,7 @@ class Binary_Tree
 	void clear()
 	{
 		delete_node(m_head);
+		m_head = nullptr;
 	}
 
 	[[nodiscard]] bool contains(const Value &value) const
