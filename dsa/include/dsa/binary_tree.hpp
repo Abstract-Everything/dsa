@@ -43,6 +43,24 @@ class Binary_Tree
 		clear();
 	}
 
+	Binary_Tree(Binary_Tree const &binary_tree)
+	    : m_allocator(binary_tree.m_allocator)
+	    , m_head(copy_subtree(binary_tree.m_head))
+	{
+	}
+
+	void swap(Binary_Tree &lhs, Binary_Tree &rhs)
+	{
+		std::swap(lhs.m_allocator, rhs.m_allocator);
+		std::swap(lhs.m_head, rhs.m_head);
+	}
+
+	Binary_Tree &operator=(Binary_Tree binary_tree) noexcept
+	{
+		swap(*this, binary_tree);
+		return *this;
+	}
+
 	[[nodiscard]] bool empty() const
 	{
 		return m_head == nullptr;
@@ -124,6 +142,17 @@ class Binary_Tree
 		}
 	}
 
+
+	friend bool operator==(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
+	{
+		return subtree_equal(lhs.m_head, rhs.m_head);
+	}
+
+	friend bool operator!=(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
+	{
+		return !(lhs == rhs);
+	}
+
  private:
 	class Node
 	{
@@ -144,6 +173,29 @@ class Binary_Tree
 			return 0;
 		}
 		return 1 + count_nodes(node->left) + count_nodes(node->right);
+	}
+
+	[[nodiscard]] static bool subtree_equal(Pointer lhs, Pointer rhs)
+	{
+		return (lhs == rhs)
+		       || (lhs != nullptr && rhs != nullptr
+			   && lhs->value == rhs->value
+			   && subtree_equal(lhs->left, rhs->left)
+			   && subtree_equal(lhs->right, rhs->right));
+	}
+
+	[[nodiscard]] Pointer copy_subtree(Pointer subtree)
+	{
+		if (subtree == nullptr)
+		{
+			return nullptr;
+		}
+
+		Pointer root = m_allocator.allocate(1);
+		root->value  = subtree->value;
+		root->left   = copy_subtree(subtree->left);
+		root->right  = copy_subtree(subtree->right);
+		return root;
 	}
 
 	void delete_node(Pointer node)

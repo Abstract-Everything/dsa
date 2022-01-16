@@ -4,6 +4,13 @@
 
 static_assert(std::is_same_v<dsa::Binary_Tree<int>::Value, int>);
 
+namespace
+{
+
+const dsa::Binary_Tree<int> sample{1, 0, 2};
+
+}
+
 TEST(binary_tree, default_initialisation)
 {
 	dsa::Binary_Tree<int> binary_tree;
@@ -20,4 +27,14 @@ TEST(binary_tree, list_initialisation)
 	ASSERT_TRUE(binary_tree.contains(0));
 	ASSERT_TRUE(binary_tree.contains(1));
 	ASSERT_TRUE(binary_tree.contains(2));
+}
+
+TEST(binary_tree, copy_initialisation)
+{
+	dsa::Binary_Tree copy(sample);
+
+	ASSERT_EQ(copy, sample);
+
+	copy.insert(-1);
+	ASSERT_FALSE(sample.contains(-1));
 }
