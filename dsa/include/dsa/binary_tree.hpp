@@ -3,13 +3,24 @@
 
 #include "dsa/weak_pointer.hpp"
 
-#include <memory>
 #include <cassert>
+#include <memory>
 
 namespace dsa
 {
 
 // ToDo: Use concepts to check that Value is sortable
+
+/**
+ * @brief Holds a set of sortable elements in a binary tree.
+ *
+ * @ingroup containers
+ *
+ * @tparam Value_t: The type of element to store
+ * @tparam Pointer_Base: The type of pointer used to refer to memory
+ * @tparam Allocator_Base: The type of allocator used for memory management
+ *
+ */
 template<
     typename Value_t,
     template<typename> typename Pointer_Base   = Weak_Pointer,
@@ -23,11 +34,17 @@ class Binary_Tree
  public:
 	using Value = Value_t;
 
+	/**
+	 * @brief Constructs an empty binary tree
+	 */
 	explicit Binary_Tree(const Allocator &allocator = Allocator{})
 	    : m_allocator(allocator)
 	{
 	}
 
+	/**
+	 * @brief Constructs a binary tree filled with the given values
+	 */
 	Binary_Tree(
 	    std::initializer_list<Value_t> values,
 	    const Allocator               &allocator = Allocator())
@@ -69,22 +86,35 @@ class Binary_Tree
 		return *this;
 	}
 
+	/**
+	 * @brief Returns true if the binary tree contains no elements
+	 */
 	[[nodiscard]] bool empty() const
 	{
 		return m_head == nullptr;
 	}
 
+	/**
+	 * @brief Gets the number of elements currently in the binary tree.
+	 * Note: This operation is not constant as the size is not cached
+	 */
 	[[nodiscard]] std::size_t size() const
 	{
 		return count_nodes(m_head);
 	}
 
+	/**
+	 * @brief Clears all elements from the binary tree
+	 */
 	void clear()
 	{
 		delete_node(m_head);
 		m_head = nullptr;
 	}
 
+	/**
+	 * @brief Returns true if the binary tree contains the given element
+	 */
 	[[nodiscard]] bool contains(const Value &value) const
 	{
 		Pointer node = m_head;
@@ -99,6 +129,9 @@ class Binary_Tree
 		return false;
 	}
 
+	/**
+	 * @brief Adds the given element into the binary tree
+	 */
 	void insert(Value value)
 	{
 		Pointer insert = construct_node(std::move(value));
@@ -114,6 +147,10 @@ class Binary_Tree
 		*node_ptr = insert;
 	}
 
+	/**
+	 * @brief Removes the given element from the binary tree. The behaviour
+	 * is undefined if the value is not present in the binary tree
+	 */
 	void erase(Value value)
 	{
 		Pointer *pointer = &m_head;
@@ -146,7 +183,6 @@ class Binary_Tree
 		}
 	}
 
-
 	friend bool operator==(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
 	{
 		return lhs.size() == rhs.size() && is_subset(lhs.m_head, rhs);
@@ -157,7 +193,13 @@ class Binary_Tree
 		return !(lhs == rhs);
 	}
 
-	[[nodiscard]] static bool same_structure(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
+	/**
+	 * @brief Returns true if the node structure and every nodes value is
+	 * the same for both trees
+	 */
+	[[nodiscard]] static bool same_structure(
+	    Binary_Tree const &lhs,
+	    Binary_Tree const &rhs) noexcept
 	{
 		return compare_structure(lhs.m_head, rhs.m_head);
 	}
