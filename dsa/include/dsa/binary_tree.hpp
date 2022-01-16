@@ -27,6 +27,17 @@ class Binary_Tree
 	{
 	}
 
+	Binary_Tree(
+	    std::initializer_list<Value_t> values,
+	    const Allocator               &allocator = Allocator())
+	    : m_allocator(allocator)
+	{
+		for (auto value : values)
+		{
+			insert(value);
+		}
+	}
+
 	~Binary_Tree()
 	{
 		clear();
