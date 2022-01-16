@@ -8,6 +8,7 @@ namespace
 {
 
 const dsa::Binary_Tree<int> sample{1, 0, 2};
+const dsa::Binary_Tree<int> long_sample{3, 1, 5, 0, 2, 4, 6};
 
 }
 
@@ -67,4 +68,15 @@ TEST(binary_tree, move_assignment)
 
 	ASSERT_TRUE(from.empty());
 	ASSERT_EQ(to, sample);
+}
+
+TEST(binary_tree, swap)
+{
+	dsa::Binary_Tree binary_tree_1(sample);
+	dsa::Binary_Tree binary_tree_2(long_sample);
+
+	swap(binary_tree_1, binary_tree_2);
+
+	ASSERT_EQ(binary_tree_1, long_sample);
+	ASSERT_EQ(binary_tree_2, sample);
 }
