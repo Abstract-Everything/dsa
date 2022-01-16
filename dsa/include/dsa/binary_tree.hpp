@@ -152,12 +152,17 @@ class Binary_Tree
 
 	friend bool operator==(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
 	{
-		return subtree_equal(lhs.m_head, rhs.m_head);
+		return lhs.size() == rhs.size() && is_subset(lhs.m_head, rhs);
 	}
 
 	friend bool operator!=(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
 	{
 		return !(lhs == rhs);
+	}
+
+	[[nodiscard]] static bool same_structure(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
+	{
+		return compare_structure(lhs.m_head, rhs.m_head);
 	}
 
  private:
@@ -182,13 +187,21 @@ class Binary_Tree
 		return 1 + count_nodes(node->left) + count_nodes(node->right);
 	}
 
-	[[nodiscard]] static bool subtree_equal(Pointer lhs, Pointer rhs)
+	[[nodiscard]] static bool is_subset(Pointer node, Binary_Tree const &binary_tree)
+	{
+		return (node == nullptr)
+		       || (binary_tree.contains(node->value)
+			   && is_subset(node->left, binary_tree)
+			   && is_subset(node->right, binary_tree));
+	}
+
+	[[nodiscard]] static bool compare_structure(Pointer lhs, Pointer rhs)
 	{
 		return (lhs == rhs)
 		       || (lhs != nullptr && rhs != nullptr
 			   && lhs->value == rhs->value
-			   && subtree_equal(lhs->left, rhs->left)
-			   && subtree_equal(lhs->right, rhs->right));
+			   && compare_structure(lhs->left, rhs->left)
+			   && compare_structure(lhs->right, rhs->right));
 	}
 
 	[[nodiscard]] Pointer copy_subtree(Pointer subtree)

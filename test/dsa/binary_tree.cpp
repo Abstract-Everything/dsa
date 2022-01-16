@@ -34,7 +34,7 @@ TEST(binary_tree, copy_initialisation)
 {
 	dsa::Binary_Tree copy(sample);
 
-	ASSERT_EQ(copy, sample);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(copy, sample));
 
 	copy.insert(-1);
 	ASSERT_FALSE(sample.contains(-1));
@@ -46,7 +46,7 @@ TEST(binary_tree, move_initialisation)
 	dsa::Binary_Tree to(std::move(from));
 
 	ASSERT_TRUE(from.empty());
-	ASSERT_EQ(to, sample);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(to, sample));
 }
 
 TEST(binary_tree, copy_assignment)
@@ -54,7 +54,7 @@ TEST(binary_tree, copy_assignment)
 	dsa::Binary_Tree<int> copy;
 	copy = sample;
 
-	ASSERT_EQ(copy, sample);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(copy, sample));
 
 	copy.insert(-1);
 	ASSERT_FALSE(sample.contains(-1));
@@ -67,7 +67,7 @@ TEST(binary_tree, move_assignment)
 	to = std::move(from);
 
 	ASSERT_TRUE(from.empty());
-	ASSERT_EQ(to, sample);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(to, sample));
 }
 
 TEST(binary_tree, swap)
@@ -77,8 +77,9 @@ TEST(binary_tree, swap)
 
 	swap(binary_tree_1, binary_tree_2);
 
-	ASSERT_EQ(binary_tree_1, long_sample);
-	ASSERT_EQ(binary_tree_2, sample);
+	ASSERT_TRUE(
+	    dsa::Binary_Tree<int>::same_structure(binary_tree_1, long_sample));
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(binary_tree_2, sample));
 }
 
 TEST(binary_tree, insert_single_value)
@@ -115,7 +116,7 @@ TEST(binary_tree, erase_head)
 	binary_tree.erase(0);
 
 	ASSERT_TRUE(binary_tree.empty());
-	ASSERT_EQ(binary_tree, expected);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(binary_tree, expected));
 }
 
 TEST(binary_tree, erase_leaf)
@@ -125,7 +126,7 @@ TEST(binary_tree, erase_leaf)
 
 	binary_tree.erase(1);
 
-	ASSERT_EQ(binary_tree, expected);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(binary_tree, expected));
 }
 
 TEST(binary_tree, erase_node_no_left_child)
@@ -135,7 +136,7 @@ TEST(binary_tree, erase_node_no_left_child)
 
 	binary_tree.erase(1);
 
-	ASSERT_EQ(binary_tree, expected);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(binary_tree, expected));
 }
 
 TEST(binary_tree, erase_node_immediate_left_child_present)
@@ -145,7 +146,7 @@ TEST(binary_tree, erase_node_immediate_left_child_present)
 
 	binary_tree.erase(3);
 
-	ASSERT_EQ(binary_tree, expected);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(binary_tree, expected));
 }
 
 TEST(binary_tree, erase_node_deep_left_child_present)
@@ -155,7 +156,7 @@ TEST(binary_tree, erase_node_deep_left_child_present)
 
 	binary_tree.erase(3);
 
-	ASSERT_EQ(binary_tree, expected);
+	ASSERT_TRUE(dsa::Binary_Tree<int>::same_structure(binary_tree, expected));
 }
 
 TEST(binary_tree, clear)
@@ -166,3 +167,60 @@ TEST(binary_tree, clear)
 
 	ASSERT_TRUE(binary_tree.empty());
 }
+
+TEST(binary_tree, comparison_operator_empty)
+{
+	dsa::Binary_Tree<int> binary_tree_1;
+	dsa::Binary_Tree<int> binary_tree_2;
+
+	ASSERT_EQ(binary_tree_1, binary_tree_2);
+}
+
+TEST(binary_tree, comparison_operator_differing_element)
+{
+	dsa::Binary_Tree binary_tree_1{0};
+	dsa::Binary_Tree binary_tree_2{1};
+
+	ASSERT_NE(binary_tree_1, binary_tree_2);
+}
+
+TEST(binary_tree, comparison_operator_same_single_element)
+{
+	dsa::Binary_Tree<int> binary_tree_1{0};
+	dsa::Binary_Tree<int> binary_tree_2{0};
+
+	ASSERT_EQ(binary_tree_1, binary_tree_2);
+}
+
+TEST(binary_tree, comparison_operator_same_multiple_elements)
+{
+	dsa::Binary_Tree<int> binary_tree_1{0, 1, 2};
+	dsa::Binary_Tree<int> binary_tree_2{0, 1, 2};
+
+	ASSERT_EQ(binary_tree_1, binary_tree_2);
+}
+
+TEST(binary_tree, comparison_operator_single_differing_element)
+{
+	dsa::Binary_Tree<int> binary_tree_1{0, 1, 2};
+	dsa::Binary_Tree<int> binary_tree_2{0, 1, 3};
+
+	ASSERT_NE(binary_tree_1, binary_tree_2);
+}
+
+TEST(binary_tree, comparison_operator_differing_size)
+{
+	dsa::Binary_Tree<int> binary_tree_1{0, 1};
+	dsa::Binary_Tree<int> binary_tree_2{0, 1, 2};
+
+	ASSERT_NE(binary_tree_1, binary_tree_2);
+}
+
+TEST(binary_tree, comparison_operator_differing_insert_order)
+{
+	dsa::Binary_Tree<int> binary_tree_1{0, 1, 2};
+	dsa::Binary_Tree<int> binary_tree_2{0, 2, 1};
+
+	ASSERT_EQ(binary_tree_1, binary_tree_2);
+}
+
