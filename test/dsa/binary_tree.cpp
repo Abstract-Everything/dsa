@@ -48,3 +48,23 @@ TEST(binary_tree, move_initialisation)
 	ASSERT_EQ(to, sample);
 }
 
+TEST(binary_tree, copy_assignment)
+{
+	dsa::Binary_Tree<int> copy;
+	copy = sample;
+
+	ASSERT_EQ(copy, sample);
+
+	copy.insert(-1);
+	ASSERT_FALSE(sample.contains(-1));
+}
+
+TEST(binary_tree, move_assignment)
+{
+	dsa::Binary_Tree      from(sample);
+	dsa::Binary_Tree<int> to;
+	to = std::move(from);
+
+	ASSERT_TRUE(from.empty());
+	ASSERT_EQ(to, sample);
+}
