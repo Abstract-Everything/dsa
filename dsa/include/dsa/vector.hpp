@@ -21,19 +21,19 @@ namespace dsa
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
-template<
-    typename Value_t,
-    template<typename> typename Pointer_Base   = dsa::Weak_Pointer,
-    template<typename> typename Allocator_Base = std::allocator>
+template<typename Value_t, template<typename> typename Allocator_Base = Default_Allocator>
 class Vector
 {
- public:
-	using Value         = Value_t;
-	using Pointer       = Pointer_Base<Value_t>;
-	using Const_Pointer = Pointer_Base<const Value_t>;
-	using Allocator     = Allocator_Base<Value>;
+ private:
+	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
 
-	using Storage = Dynamic_Array<Value, Pointer_Base, Allocator_Base>;
+ public:
+	using Allocator     = typename Alloc_Traits::Allocator;
+	using Value         = typename Alloc_Traits::Value;
+	using Pointer       = typename Alloc_Traits::Pointer;
+	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
+
+	using Storage = Dynamic_Array<Value, Allocator_Base>;
 
 	/**
 	 * @brief Constucts an empty vector
@@ -59,7 +59,7 @@ class Vector
 	 */
 	explicit Vector(
 	    std::size_t      size,
-	    const Value     &value,
+	    const Value_t   &value,
 	    const Allocator &allocator = Allocator())
 	    : m_storage(size, value, allocator)
 	    , m_end(size)
@@ -70,8 +70,8 @@ class Vector
 	 * @brief Constructs an vector filled with the given values
 	 */
 	Vector(
-	    std::initializer_list<Value> values,
-	    const Allocator             &allocator = Allocator())
+	    std::initializer_list<Value_t> values,
+	    const Allocator               &allocator = Allocator())
 	    : m_storage(values, allocator)
 	    , m_end(values.size())
 	{

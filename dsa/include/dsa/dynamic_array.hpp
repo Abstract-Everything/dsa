@@ -1,7 +1,8 @@
 #ifndef DSA_DYNAMIC_ARRAY_HPP
 #define DSA_DYNAMIC_ARRAY_HPP
 
-#include <dsa/weak_pointer.hpp>
+#include <dsa/allocator_traits.hpp>
+#include <dsa/default_allocator.hpp>
 
 #include <cstddef>
 #include <memory>
@@ -16,23 +17,21 @@ namespace dsa
  * @ingroup containers
  *
  * @tparam Value_t: The type of element to store
- * @tparam Pointer_Base: The type of pointer used to refer to memory
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
-template<
-    typename Value_t,
-    template<typename> typename Pointer_Base   = dsa::Weak_Pointer,
-    template<typename> typename Allocator_Base = std::allocator>
+template<typename Value_t, template<typename> typename Allocator_Base = Default_Allocator>
 class Dynamic_Array
 {
- public:
-	using Value         = Value_t;
-	using Pointer       = Pointer_Base<Value_t>;
-	using Const_Pointer = Pointer_Base<const Value_t>;
-	using Allocator     = Allocator_Base<Value>;
+ private:
+	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
 
  public:
+	using Allocator     = typename Alloc_Traits::Allocator;
+	using Value         = typename Alloc_Traits::Value;
+	using Pointer       = typename Alloc_Traits::Pointer;
+	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
+
 	[[nodiscard]] const Allocator &allocator() const
 	{
 		return m_allocator;
@@ -61,15 +60,15 @@ class Dynamic_Array
 	 */
 	explicit Dynamic_Array(
 	    std::size_t      size,
-	    const Value     &value     = {},
+	    const Value_t   &value     = {},
 	    const Allocator &allocator = {})
 	    : m_allocator(allocator)
 	    , m_size(size)
-	    , m_array(m_allocator.allocate(size))
+	    , m_array(Alloc_Traits::allocate(m_allocator, size))
 	{
 		for (std::size_t i = 0; i < size; ++i)
 		{
-			::new (m_array.get() + i) Value{value};
+			Alloc_Traits::construct(m_allocator, m_array + i, value);
 		}
 	}
 
@@ -77,8 +76,8 @@ class Dynamic_Array
 	 * @brief Constructs an array filled with the given values
 	 */
 	Dynamic_Array(
-	    std::initializer_list<Value> values,
-	    const Allocator             &allocator = {})
+	    std::initializer_list<Value_t> values,
+	    const Allocator               &allocator = Allocator{})
 	    : Dynamic_Array(values.size(), allocator)
 	{
 		std::size_t index = 0;
@@ -95,22 +94,16 @@ class Dynamic_Array
 		{
 			for (std::size_t i = 0; i < m_size; ++i)
 			{
-				std::allocator<Value> allocator;
-				std::allocator_traits<std::allocator<Value>>::destroy(
-				    allocator,
-				    m_array.get() + i);
+				Alloc_Traits::destroy(m_allocator, m_array + i);
 			}
-			m_allocator.deallocate(m_array.get(), m_size);
+			Alloc_Traits::deallocate(m_allocator, m_array, m_size);
 		}
 	}
 
 	Dynamic_Array(const Dynamic_Array &darray)
 	    : Dynamic_Array(darray.m_size, darray.allocator())
 	{
-		std::copy(
-		    darray.m_array.get(),
-		    darray.m_array.get() + darray.size(),
-		    m_array.get());
+		std::copy(darray.m_array, darray.m_array + darray.size(), m_array);
 	}
 
 	Dynamic_Array(Dynamic_Array &&darray) noexcept
@@ -134,12 +127,12 @@ class Dynamic_Array
 
 	[[nodiscard]] Value &operator[](std::size_t index)
 	{
-		return m_array.get()[index];
+		return m_array[index];
 	}
 
 	[[nodiscard]] const Value &operator[](std::size_t index) const
 	{
-		return m_array.get()[index];
+		return m_array[index];
 	}
 
 	/**
@@ -173,17 +166,17 @@ class Dynamic_Array
 	 */
 	void resize(std::size_t new_size, Value const &value = {})
 	{
-		Pointer array = m_allocator.allocate(new_size);
+		Pointer array = Alloc_Traits::allocate(m_allocator, new_size);
 
 		const std::size_t count = std::min(m_size, new_size);
-		std::uninitialized_move(m_array.get(), m_array.get() + count, array.get());
+		std::uninitialized_move(m_array, m_array + count, array);
 
 		for (std::size_t i = m_size; i < new_size; ++i)
 		{
-			::new (array.get() + i) Value{value};
+			Alloc_Traits::construct(m_allocator, array + i, value);
 		}
 
-		m_allocator.deallocate(m_array.get(), m_size);
+		Alloc_Traits::deallocate(m_allocator, m_array, m_size);
 
 		m_array = array;
 		m_size  = new_size;
