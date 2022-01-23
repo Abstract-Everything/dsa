@@ -26,7 +26,7 @@ class User_Interface
 
 	using Array       = dsa::Dynamic_Array<Value, Allocator>;
 	using Vector      = dsa::Vector<Value, Allocator>;
-	using List        = dsa::List<Value, Pointer, Allocator>;
+	using List        = dsa::List<Value, Allocator>;
 	using Binary_Tree = dsa::Binary_Tree<Value, Pointer, Allocator>;
 
  public:

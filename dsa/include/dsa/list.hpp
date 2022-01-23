@@ -1,13 +1,69 @@
 #ifndef DSA_LIST_HPP
 #define DSA_LIST_HPP
 
-#include <dsa/weak_pointer.hpp>
+#include <dsa/allocator_traits.hpp>
+#include <dsa/default_allocator.hpp>
 
 #include <cstddef>
 #include <memory>
 
 namespace dsa
 {
+
+namespace list::detail
+{
+
+template<typename Value_t, template<typename> typename Allocator_Base>
+class Node
+{
+ private:
+	using Value_Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
+	using Value              = typename Value_Alloc_Traits::Value;
+	using Value_Allocator    = typename Value_Alloc_Traits::Allocator;
+
+	using Alloc_Traits = Allocator_Traits<Allocator_Base<Node>>;
+
+ public:
+	using Allocator     = typename Alloc_Traits::Allocator;
+	using Pointer       = typename Alloc_Traits::Pointer;
+	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
+
+	/**
+	 * @brief Allocates a node and constructs the held value.
+	 */
+	[[nodiscard]] static Pointer create_node(Allocator allocator, Value value)
+	{
+		Pointer pointer = Alloc_Traits::allocate(allocator, 1);
+		pointer->m_next = nullptr;
+
+		Value_Allocator value_allocator(allocator);
+		Value_Alloc_Traits::construct(
+		    value_allocator,
+		    &pointer->m_value,
+		    std::move(value));
+
+		return pointer;
+	}
+
+	/**
+	 * @brief Destroys the value of the node and deallocates its
+	 * storage. This function does not recursively destroy nodes.
+	 */
+	static void destroy_node(Allocator allocator, Pointer node)
+	{
+		Value_Allocator value_allocator(allocator);
+		Value_Alloc_Traits::destroy(value_allocator, &node->m_value);
+		Alloc_Traits::deallocate(allocator, node, 1);
+	}
+
+ public:
+	Node() = default;
+
+	Value   m_value = Value();
+	Pointer m_next  = nullptr;
+};
+
+} // namespace list::detail
 
 // ToDo: Use iterators to make insertion/ deletion constant time
 
@@ -21,19 +77,22 @@ namespace dsa
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
-template<
-    typename Value_t,
-    template<typename> typename Pointer_Base   = Weak_Pointer,
-    template<typename> typename Allocator_Base = std::allocator>
+template<typename Value_t, template<typename> typename Allocator_Base = Default_Allocator>
 class List
 {
-	class Node;
-	using Allocator = Allocator_Base<Node>;
-	using Pointer   = Pointer_Base<Node>;
+ private:
+	using Alloc_Traits       = Allocator_Traits<Allocator_Base<Value_t>>;
+	using Node               = list::detail::Node<Value_t, Allocator_Base>;
+	using Node_Allocator     = typename Node::Allocator;
+	using Node_Pointer       = typename Node::Pointer;
+	using Node_Const_Pointer = typename Node::Const_Pointer;
 
  public:
-	using Value = Value_t;
+	using Allocator = typename Alloc_Traits::Allocator;
+	using Value     = typename Alloc_Traits::Value;
+	using Pointer   = typename Alloc_Traits::Pointer;
 
+ public:
 	/**
 	 * @brief Constructs an empty list
 	 */
@@ -50,15 +109,13 @@ class List
 	    const Allocator               &allocator = Allocator())
 	    : m_allocator(allocator)
 	{
-		Pointer *next = &m_head;
+		Node_Pointer *next = &m_head;
 		for (auto value : values)
 		{
-			Pointer &to = *next;
-			to          = m_allocator.allocate(1);
-			to->value   = value;
-			to->next    = nullptr;
+			Node_Pointer &to = *next;
+			to = Node::create_node(m_allocator, value);
 
-			next = &to->next;
+			next = &to->m_next;
 		}
 	}
 
@@ -69,24 +126,23 @@ class List
 
 	List(List const &list) : m_allocator(list.m_allocator)
 	{
-		Pointer  from = list.m_head;
-		Pointer *next = &m_head;
+		Node_Pointer  from = list.m_head;
+		Node_Pointer *next = &m_head;
 		while (from != nullptr)
 		{
-			Pointer &to = *next;
-			to          = m_allocator.allocate(1);
-			to->value   = from->value;
-			to->next    = nullptr;
+			Node_Pointer &to = *next;
+			to = Node::create_node(m_allocator, from->m_value);
 
-			next = &to->next;
-			from = from->next;
+			next = &to->m_next;
+			from = from->m_next;
 		}
 	}
 
-	void swap(List &lhs, List &rhs)
+	friend void swap(List &lhs, List &rhs)
 	{
-		std::swap(lhs.m_allocator, rhs.m_allocator);
-		std::swap(lhs.m_head, rhs.m_head);
+		using std::swap;
+		swap(lhs.m_allocator, rhs.m_allocator);
+		swap(lhs.m_head, rhs.m_head);
 	}
 
 	List(List &&list) noexcept : m_allocator(list.m_allocator)
@@ -102,12 +158,12 @@ class List
 
 	[[nodiscard]] Value &operator[](std::size_t index)
 	{
-		return at(index)->value;
+		return at(index)->m_value;
 	}
 
 	[[nodiscard]] const Value &operator[](std::size_t index) const
 	{
-		return at(index)->value;
+		return at(index)->m_value;
 	}
 
 	/**
@@ -116,11 +172,11 @@ class List
 	 */
 	[[nodiscard]] std::size_t size() const
 	{
-		std::size_t list_size = 0;
-		Pointer     node      = m_head;
+		std::size_t  list_size = 0;
+		Node_Pointer node      = m_head;
 		while (node != nullptr)
 		{
-			node = node->next;
+			node = node->m_next;
 			list_size++;
 		}
 		return list_size;
@@ -132,7 +188,7 @@ class List
 	 */
 	[[nodiscard]] Value &front()
 	{
-		return m_head->value;
+		return m_head->m_value;
 	}
 
 	/**
@@ -141,7 +197,7 @@ class List
 	 */
 	[[nodiscard]] const Value &front() const
 	{
-		return m_head->value;
+		return m_head->m_value;
 	}
 
 	/**
@@ -157,11 +213,11 @@ class List
 	 */
 	void clear()
 	{
-		Pointer node = m_head;
+		Node_Pointer node = m_head;
 		while (node != nullptr)
 		{
-			Pointer next = node->next;
-			destroy_node(node);
+			Node_Pointer next = node->m_next;
+			Node::destroy_node(m_allocator, node);
 			node = next;
 		}
 		m_head = nullptr;
@@ -181,19 +237,19 @@ class List
 	 */
 	void insert(std::size_t index, Value value)
 	{
-		Pointer node = m_allocator.allocate(1);
-		node->value  = value;
+		Node_Pointer node =
+		    Node::create_node(m_allocator, std::move(value));
 
 		if (index == 0)
 		{
-			node->next = m_head;
-			m_head     = node;
+			node->m_next = m_head;
+			m_head       = node;
 			return;
 		}
 
-		Pointer previous = at(index - 1);
-		node->next       = previous->next;
-		previous->next   = node;
+		Node_Pointer previous = at(index - 1);
+		node->m_next          = previous->m_next;
+		previous->m_next      = node;
 	}
 
 	/**
@@ -213,31 +269,31 @@ class List
 	{
 		if (index == 0)
 		{
-			Pointer remove = m_head;
-			m_head         = m_head->next;
-			destroy_node(remove);
+			Node_Pointer remove = m_head;
+			m_head              = m_head->m_next;
+			Node::destroy_node(m_allocator, remove);
 			return;
 		}
 
-		Pointer previous = at(index - 1);
-		Pointer remove   = previous->next;
-		previous->next   = remove->next;
-		destroy_node(remove);
+		Node_Pointer previous = at(index - 1);
+		Node_Pointer remove   = previous->m_next;
+		previous->m_next      = remove->m_next;
+		Node::destroy_node(m_allocator, remove);
 	}
 
 	friend bool operator==(List const &lhs, List const &rhs) noexcept
 	{
-		Pointer lhs_node = lhs.m_head;
-		Pointer rhs_node = rhs.m_head;
+		Node_Pointer lhs_node = lhs.m_head;
+		Node_Pointer rhs_node = rhs.m_head;
 		while (lhs_node != nullptr && rhs_node != nullptr)
 		{
-			if (lhs_node->value != rhs_node->value)
+			if (lhs_node->m_value != rhs_node->m_value)
 			{
 				return false;
 			}
 
-			lhs_node = lhs_node->next;
-			rhs_node = rhs_node->next;
+			lhs_node = lhs_node->m_next;
+			rhs_node = rhs_node->m_next;
 		}
 
 		return lhs_node == nullptr && rhs_node == nullptr;
@@ -249,27 +305,20 @@ class List
 	}
 
  private:
-	class Node
-	{
-	 public:
-		Value   value;
-		Pointer next;
-	};
+	Node_Allocator m_allocator;
 
-	Allocator m_allocator;
-
-	Pointer m_head;
+	Node_Pointer m_head = nullptr;
 
 	/**
 	 * @brief Gets the node at the given index. The behaviour is undefined
 	 * if the index is outside of the list range
 	 */
-	Pointer at(std::size_t index)
+	Node_Pointer at(std::size_t index)
 	{
-		Pointer node = m_head;
+		Node_Pointer node = m_head;
 		for (std::size_t i = 0; i < index; ++i)
 		{
-			node = node->next;
+			node = node->m_next;
 		}
 		return node;
 	}
@@ -278,23 +327,14 @@ class List
 	 * @brief Gets the node at the given index. The behaviour is undefined
 	 * if the index is outside of the list range
 	 */
-	Pointer at(std::size_t index) const
+	Node_Const_Pointer at(std::size_t index) const
 	{
-		Pointer node = m_head;
+		Node_Const_Pointer node = m_head;
 		for (std::size_t i = 0; i < index; ++i)
 		{
-			node = node->next;
+			node = node->m_next;
 		}
 		return node;
-	}
-
-	void destroy_node(Pointer node)
-	{
-		std::allocator<Value> allocator;
-		std::allocator_traits<std::allocator<Value>>::destroy(
-		    allocator,
-		    &node->value);
-		m_allocator.deallocate(node.get(), 1);
 	}
 };
 

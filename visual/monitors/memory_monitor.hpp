@@ -29,6 +29,14 @@ class Memory_Monitor
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
  public:
+
+	Memory_Monitor() = default;
+
+	template<typename T>
+	explicit Memory_Monitor(Memory_Monitor<T> const& /* monitor */)
+	{
+	}
+
 	[[nodiscard]] Pointer allocate(std::size_t size) const
 	{
 		Allocator allocator;
