@@ -11,6 +11,13 @@ class Default_Allocator
 	using Value         = Value_t;
 	using Pointer       = Value *;
 	using Const_Pointer = Value const *;
+
+	Default_Allocator() = default;
+
+	template<typename T>
+	explicit Default_Allocator(Default_Allocator<T> const & /* allocator */)
+	{
+	}
 };
 
 } // namespace dsa
