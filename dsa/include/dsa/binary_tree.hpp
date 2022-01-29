@@ -1,13 +1,71 @@
 #ifndef DSA_BINARY_TREE_HPP
 #define DSA_BINARY_TREE_HPP
 
-#include "dsa/weak_pointer.hpp"
+#include <dsa/allocator_traits.hpp>
+#include <dsa/default_allocator.hpp>
 
 #include <cassert>
 #include <memory>
 
 namespace dsa
 {
+
+namespace binary_tree::detail
+{
+
+template<typename Value_t, template<typename> typename Allocator_Base>
+class Node
+{
+ private:
+	using Value_Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
+	using Value              = typename Value_Alloc_Traits::Value;
+	using Value_Allocator    = typename Value_Alloc_Traits::Allocator;
+
+	using Alloc_Traits = Allocator_Traits<Allocator_Base<Node>>;
+
+ public:
+	using Allocator     = typename Alloc_Traits::Allocator;
+	using Pointer       = typename Alloc_Traits::Pointer;
+	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
+
+	/**
+	 * @brief Allocates a node and constructs the held value.
+	 */
+	[[nodiscard]] static Pointer create_node(Allocator allocator, Value value)
+	{
+		Pointer pointer  = Alloc_Traits::allocate(allocator, 1);
+		pointer->m_left  = nullptr;
+		pointer->m_right = nullptr;
+
+		Value_Allocator value_allocator(allocator);
+		Value_Alloc_Traits::construct(
+		    value_allocator,
+		    &pointer->m_value,
+		    std::move(value));
+
+		return pointer;
+	}
+
+	/**
+	 * @brief Destroys the value of the node and deallocates its
+	 * storage. This function does not recursively destroy nodes.
+	 */
+	static void destroy_node(Allocator allocator, Pointer node)
+	{
+		Value_Allocator value_allocator(allocator);
+		Value_Alloc_Traits::destroy(value_allocator, &node->m_value);
+		Alloc_Traits::deallocate(allocator, node, 1);
+	}
+
+ public:
+	Node() = default;
+
+	Value   m_value = Value();
+	Pointer m_left  = nullptr;
+	Pointer m_right = nullptr;
+};
+
+} // namespace binary_tree::detail
 
 // ToDo: Use concepts to check that Value is sortable
 
@@ -21,19 +79,21 @@ namespace dsa
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
-template<
-    typename Value_t,
-    template<typename> typename Pointer_Base   = Weak_Pointer,
-    template<typename> typename Allocator_Base = std::allocator>
+template<typename Value_t, template<typename> typename Allocator_Base = Default_Allocator>
 class Binary_Tree
 {
-	class Node;
-	using Node_Allocator = Allocator_Base<Node>;
-	using Node_Pointer   = Pointer_Base<Node>;
+ private:
+	using Node = binary_tree::detail::Node<Value_t, Allocator_Base>;
+	using Node_Allocator     = typename Node::Allocator;
+	using Node_Pointer       = typename Node::Pointer;
+	using Node_Const_Pointer = typename Node::Const_Pointer;
+
+	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
 
  public:
-	using Allocator = Allocator_Base<Value_t>;
-	using Value     = Value_t;
+	using Allocator = typename Alloc_Traits::Allocator;
+	using Value     = typename Alloc_Traits::Value;
+	using Pointer   = typename Alloc_Traits::Pointer;
 
 	/**
 	 * @brief Constructs an empty binary tree
@@ -75,10 +135,11 @@ class Binary_Tree
 		binary_tree.m_head = nullptr;
 	}
 
-	void swap(Binary_Tree &lhs, Binary_Tree &rhs)
+	friend void swap(Binary_Tree &lhs, Binary_Tree &rhs)
 	{
-		std::swap(lhs.m_allocator, rhs.m_allocator);
-		std::swap(lhs.m_head, rhs.m_head);
+		using std::swap;
+		swap(lhs.m_allocator, rhs.m_allocator);
+		swap(lhs.m_head, rhs.m_head);
 	}
 
 	Binary_Tree &operator=(Binary_Tree binary_tree) noexcept
@@ -118,7 +179,7 @@ class Binary_Tree
 	 */
 	[[nodiscard]] bool contains(const Value &value) const
 	{
-		Node_Pointer node = m_head;
+		Node_Const_Pointer node = m_head;
 		while (node != nullptr)
 		{
 			if (node->m_value == value)
@@ -136,7 +197,8 @@ class Binary_Tree
 	 */
 	void insert(Value value)
 	{
-		Node_Pointer insert = construct_node(std::move(value));
+		Node_Pointer insert =
+		    Node::create_node(m_allocator, std::move(value));
 
 		Node_Pointer *node_ptr = &m_head;
 		while (*node_ptr != nullptr)
@@ -208,19 +270,11 @@ class Binary_Tree
 	}
 
  private:
-	class Node
-	{
-	 public:
-		Value        m_value;
-		Node_Pointer m_left;
-		Node_Pointer m_right;
-	};
-
 	Node_Allocator m_allocator;
 
-	Node_Pointer m_head;
+	Node_Pointer m_head = nullptr;
 
-	std::size_t count_nodes(Node_Pointer node) const
+	std::size_t count_nodes(Node_Const_Pointer node) const
 	{
 		if (node == nullptr)
 		{
@@ -255,9 +309,10 @@ class Binary_Tree
 			return nullptr;
 		}
 
-		Node_Pointer root = construct_node(subtree->m_value);
-		root->m_left      = copy_subtree(subtree->m_left);
-		root->m_right     = copy_subtree(subtree->m_right);
+		Node_Pointer root =
+		    Node::create_node(m_allocator, subtree->m_value);
+		root->m_left  = copy_subtree(subtree->m_left);
+		root->m_right = copy_subtree(subtree->m_right);
 		return root;
 	}
 
@@ -271,35 +326,10 @@ class Binary_Tree
 		delete_node(node->m_left);
 		delete_node(node->m_right);
 
-		destroy_node(node);
+		Node::destroy_node(m_allocator, node);
 	}
 
-	[[nodiscard]] Node_Pointer construct_node(Value value)
-	{
-		Node_Pointer node = m_allocator.allocate(1);
-		node->m_left      = nullptr;
-		node->m_right     = nullptr;
-
-		std::allocator<Value> allocator;
-		std::allocator_traits<std::allocator<Value>>::construct(
-		    allocator,
-		    &(node->m_value),
-		    std::move(value));
-
-		return node;
-	}
-
-	void destroy_node(Node_Pointer node)
-	{
-		std::allocator<Value> allocator;
-		std::allocator_traits<std::allocator<Value>>::destroy(
-		    allocator,
-		    &node->m_value);
-
-		m_allocator.deallocate(node.get(), 1);
-	}
-
-	Node_Pointer extract_previous_node(Node_Pointer node) const
+	Node_Pointer extract_previous_node(Node_Pointer node)
 	{
 		assert(node->m_left != nullptr && "");
 		if (node->m_left->m_right == nullptr)
