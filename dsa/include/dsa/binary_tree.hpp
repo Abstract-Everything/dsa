@@ -121,11 +121,12 @@ class Binary_Tree
 		Node_Pointer node = m_head;
 		while (node != nullptr)
 		{
-			if (node->value == value)
+			if (node->m_value == value)
 			{
 				return true;
 			}
-			node = value < node->value ? node->left : node->right;
+			node = value < node->m_value ? node->m_left
+						     : node->m_right;
 		}
 		return false;
 	}
@@ -141,8 +142,9 @@ class Binary_Tree
 		while (*node_ptr != nullptr)
 		{
 			Node_Pointer &node = *node_ptr;
-			node_ptr = insert->value < node->value ? &node->left
-							       : &node->right;
+			node_ptr           = insert->m_value < node->m_value
+						 ? &node->m_left
+						 : &node->m_right;
 		}
 
 		*node_ptr = insert;
@@ -155,26 +157,26 @@ class Binary_Tree
 	void erase(Value value)
 	{
 		Node_Pointer *pointer = &m_head;
-		while (*pointer != nullptr && (*pointer)->value != value)
+		while (*pointer != nullptr && (*pointer)->m_value != value)
 		{
 			Node_Pointer node = *pointer;
-			pointer =
-			    value < node->value ? &node->left : &node->right;
+			pointer = value < node->m_value ? &node->m_left
+							: &node->m_right;
 		}
 
 		Node_Pointer node = *pointer;
-		if (node->left != nullptr)
+		if (node->m_left != nullptr)
 		{
 			using std::swap;
 			Node_Pointer previous = extract_previous_node(node);
-			swap(node->value, previous->value);
+			swap(node->m_value, previous->m_value);
 			delete_node(previous);
 		}
-		else if (node->right != nullptr)
+		else if (node->m_right != nullptr)
 		{
-			*pointer = node->right;
+			*pointer = node->m_right;
 
-			node->right = nullptr;
+			node->m_right = nullptr;
 			delete_node(node);
 		}
 		else
@@ -209,9 +211,9 @@ class Binary_Tree
 	class Node
 	{
 	 public:
-		Value        value;
-		Node_Pointer left;
-		Node_Pointer right;
+		Value        m_value;
+		Node_Pointer m_left;
+		Node_Pointer m_right;
 	};
 
 	Node_Allocator m_allocator;
@@ -224,7 +226,7 @@ class Binary_Tree
 		{
 			return 0;
 		}
-		return 1 + count_nodes(node->left) + count_nodes(node->right);
+		return 1 + count_nodes(node->m_left) + count_nodes(node->m_right);
 	}
 
 	[[nodiscard]] static bool is_subset(
@@ -232,18 +234,18 @@ class Binary_Tree
 	    Binary_Tree const &binary_tree)
 	{
 		return (node == nullptr)
-		       || (binary_tree.contains(node->value)
-			   && is_subset(node->left, binary_tree)
-			   && is_subset(node->right, binary_tree));
+		       || (binary_tree.contains(node->m_value)
+			   && is_subset(node->m_left, binary_tree)
+			   && is_subset(node->m_right, binary_tree));
 	}
 
 	[[nodiscard]] static bool compare_structure(Node_Pointer lhs, Node_Pointer rhs)
 	{
 		return (lhs == rhs)
 		       || (lhs != nullptr && rhs != nullptr
-			   && lhs->value == rhs->value
-			   && compare_structure(lhs->left, rhs->left)
-			   && compare_structure(lhs->right, rhs->right));
+			   && lhs->m_value == rhs->m_value
+			   && compare_structure(lhs->m_left, rhs->m_left)
+			   && compare_structure(lhs->m_right, rhs->m_right));
 	}
 
 	[[nodiscard]] Node_Pointer copy_subtree(Node_Pointer subtree)
@@ -253,9 +255,9 @@ class Binary_Tree
 			return nullptr;
 		}
 
-		Node_Pointer root = construct_node(subtree->value);
-		root->left        = copy_subtree(subtree->left);
-		root->right       = copy_subtree(subtree->right);
+		Node_Pointer root = construct_node(subtree->m_value);
+		root->m_left      = copy_subtree(subtree->m_left);
+		root->m_right     = copy_subtree(subtree->m_right);
 		return root;
 	}
 
@@ -266,8 +268,8 @@ class Binary_Tree
 			return;
 		}
 
-		delete_node(node->left);
-		delete_node(node->right);
+		delete_node(node->m_left);
+		delete_node(node->m_right);
 
 		destroy_node(node);
 	}
@@ -275,13 +277,13 @@ class Binary_Tree
 	[[nodiscard]] Node_Pointer construct_node(Value value)
 	{
 		Node_Pointer node = m_allocator.allocate(1);
-		node->left        = nullptr;
-		node->right       = nullptr;
+		node->m_left      = nullptr;
+		node->m_right     = nullptr;
 
 		std::allocator<Value> allocator;
 		std::allocator_traits<std::allocator<Value>>::construct(
 		    allocator,
-		    &(node->value),
+		    &(node->m_value),
 		    std::move(value));
 
 		return node;
@@ -292,31 +294,31 @@ class Binary_Tree
 		std::allocator<Value> allocator;
 		std::allocator_traits<std::allocator<Value>>::destroy(
 		    allocator,
-		    &node->value);
+		    &node->m_value);
 
 		m_allocator.deallocate(node.get(), 1);
 	}
 
 	Node_Pointer extract_previous_node(Node_Pointer node) const
 	{
-		assert(node->left != nullptr && "");
-		if (node->left->right == nullptr)
+		assert(node->m_left != nullptr && "");
+		if (node->m_left->m_right == nullptr)
 		{
-			Node_Pointer result = node->left;
-			node->left          = result->left;
-			result->left        = nullptr;
+			Node_Pointer result = node->m_left;
+			node->m_left        = result->m_left;
+			result->m_left      = nullptr;
 			return result;
 		}
 
-		Node_Pointer parent = node->left;
-		while (parent->right->right != nullptr)
+		Node_Pointer parent = node->m_left;
+		while (parent->m_right->m_right != nullptr)
 		{
-			parent = parent->right;
+			parent = parent->m_right;
 		}
 
-		Node_Pointer result = parent->right;
-		parent->right       = result->left;
-		result->left        = nullptr;
+		Node_Pointer result = parent->m_right;
+		parent->m_right     = result->m_left;
+		result->m_left      = nullptr;
 		return result;
 	}
 };
