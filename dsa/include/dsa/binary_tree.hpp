@@ -28,11 +28,12 @@ template<
 class Binary_Tree
 {
 	class Node;
-	using Allocator = Allocator_Base<Node>;
-	using Pointer   = Pointer_Base<Node>;
+	using Node_Allocator = Allocator_Base<Node>;
+	using Pointer        = Pointer_Base<Node>;
 
  public:
-	using Value = Value_t;
+	using Allocator = Allocator_Base<Value_t>;
+	using Value     = Value_t;
 
 	/**
 	 * @brief Constructs an empty binary tree
@@ -213,7 +214,7 @@ class Binary_Tree
 		Pointer right;
 	};
 
-	Allocator m_allocator;
+	Node_Allocator m_allocator;
 
 	Pointer m_head;
 
