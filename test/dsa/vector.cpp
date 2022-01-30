@@ -300,3 +300,17 @@ TEST(vector, iterate_validate_values)
 	}
 	ASSERT_EQ(index, 3ULL);
 }
+
+TEST(vector, iterate_capacity_larger_than_size)
+{
+	dsa::Vector vector(sample);
+	vector.reserve(sample.size() * 2);
+
+	std::size_t index = 0;
+	for ([[maybe_unused]] int value : vector)
+	{
+		index++;
+	}
+	ASSERT_NE(vector.size(), vector.capacity());
+	ASSERT_EQ(index, 3ULL);
+}

@@ -181,12 +181,12 @@ class Vector
 
 	[[nodiscard]] Pointer end()
 	{
-		return m_storage.end();
+		return m_storage.begin() + m_end;
 	}
 
 	[[nodiscard]] Const_Pointer end() const
 	{
-		return m_storage.end();
+		return m_storage.begin() + m_end;
 	}
 
 	[[nodiscard]] Value &operator[](std::size_t index)
