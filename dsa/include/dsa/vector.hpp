@@ -169,6 +169,26 @@ class Vector
 		return m_storage.size();
 	}
 
+	[[nodiscard]] Pointer begin()
+	{
+		return nullptr;
+	}
+
+	[[nodiscard]] Const_Pointer begin() const
+	{
+		return nullptr;
+	}
+
+	[[nodiscard]] Pointer end()
+	{
+		return nullptr;
+	}
+
+	[[nodiscard]] Const_Pointer end() const
+	{
+		return nullptr;
+	}
+
 	[[nodiscard]] Value &operator[](std::size_t index)
 	{
 		return m_storage[index];

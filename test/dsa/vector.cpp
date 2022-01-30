@@ -2,7 +2,14 @@
 
 #include <gtest/gtest.h>
 
-static_assert(std::is_same_v<dsa::Vector<int>::Value, int>);
+using Int_Vector = dsa::Vector<int>;
+
+static_assert(std::is_same_v<Int_Vector::Value, int>);
+
+static_assert(std::is_same_v<decltype(std::declval<Int_Vector>().begin()), int *>);
+static_assert(std::is_same_v<decltype(std::declval<const Int_Vector>().begin()), const int *>);
+static_assert(std::is_same_v<decltype(std::declval<Int_Vector>().end()), int *>);
+static_assert(std::is_same_v<decltype(std::declval<const Int_Vector>().end()), const int *>);
 
 namespace
 {
@@ -271,4 +278,15 @@ TEST(vector, resize_to_larger_size)
 
 	vector.resize(expectation.size());
 	ASSERT_EQ(vector, expectation);
+}
+
+TEST(vector, iterate_empty_array)
+{
+	dsa::Vector<int> empty;
+	for ([[maybe_unused]] int value : empty)
+	{
+		FAIL() << "Expected the body of this loop to not be executed";
+	}
+
+	SUCCEED();
 }
