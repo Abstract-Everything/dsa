@@ -290,3 +290,13 @@ TEST(vector, iterate_empty_array)
 
 	SUCCEED();
 }
+
+TEST(vector, iterate_validate_values)
+{
+	std::size_t index = 0;
+	for (int value : sample)
+	{
+		ASSERT_EQ(value, sample[index++]);
+	}
+	ASSERT_EQ(index, 3ULL);
+}
