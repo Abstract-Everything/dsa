@@ -57,7 +57,8 @@ class Weak_Pointer_Monitor
 
 	friend void swap(Weak_Pointer_Monitor &lhs, Weak_Pointer_Monitor &rhs)
 	{
-		std::swap(lhs.m_pointer, rhs.m_pointer);
+		using std::swap;
+		swap(lhs.m_pointer, rhs.m_pointer);
 	}
 
 	Weak_Pointer_Monitor &operator=(const Weak_Pointer_Monitor &pointer)

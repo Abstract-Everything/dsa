@@ -230,7 +230,7 @@ class Vector
 			    &m_storage[index],
 			    &m_storage[m_end],
 			    &storage[index + 1]);
-			std::swap(m_storage, storage);
+			swap(m_storage, storage);
 		}
 		else
 		{
@@ -259,7 +259,7 @@ class Vector
 			    &m_storage[index + 1],
 			    &m_storage[m_end],
 			    &storage[index]);
-			std::swap(m_storage, storage);
+			swap(m_storage, storage);
 		}
 		else
 		{
