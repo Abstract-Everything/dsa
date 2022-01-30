@@ -19,15 +19,14 @@ namespace visual
 class User_Interface
 {
 	using Value = Element_Monitor<int>;
-	template<typename T>
-	using Pointer = Weak_Pointer_Monitor<T>;
+
 	template<typename T>
 	using Allocator = Memory_Monitor<T>;
 
 	using Array       = dsa::Dynamic_Array<Value, Allocator>;
 	using Vector      = dsa::Vector<Value, Allocator>;
 	using List        = dsa::List<Value, Allocator>;
-	using Binary_Tree = dsa::Binary_Tree<Value, Pointer, Allocator>;
+	using Binary_Tree = dsa::Binary_Tree<Value, Allocator>;
 
  public:
 	void draw();

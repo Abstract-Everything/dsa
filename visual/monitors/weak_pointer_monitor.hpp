@@ -13,6 +13,15 @@ namespace visual
 template<typename Value>
 class Weak_Pointer_Monitor
 {
+	// MSVC version 19.29 gives an error if this is inlined.
+	template<typename T>
+	static constexpr bool Enable_Conversion_To_Const_V =
+	    std::is_const_v<Value> && !std::is_const_v<T>;
+
+	template<typename T>
+	using Enable_Conversion_To_Const =
+	    typename std::enable_if_t<Enable_Conversion_To_Const_V<T>, bool>;
+
  public:
 	using iterator_category = std::random_access_iterator_tag;
 	using difference_type   = std::ptrdiff_t;
@@ -23,6 +32,12 @@ class Weak_Pointer_Monitor
 	Weak_Pointer_Monitor() = default;
 
 	Weak_Pointer_Monitor(Value *pointer) : m_pointer(pointer)
+	{
+	}
+
+	template<typename Value_t, Enable_Conversion_To_Const<Value_t> = true>
+	Weak_Pointer_Monitor(Weak_Pointer_Monitor<Value_t> const &pointer)
+	    : m_pointer(pointer.get())
 	{
 	}
 
@@ -62,6 +77,15 @@ class Weak_Pointer_Monitor
 	Weak_Pointer_Monitor &operator=(Value *pointer) noexcept
 	{
 		m_pointer = pointer;
+		dispatch_copy();
+		return *this;
+	}
+
+	template<typename Value_t, Enable_Conversion_To_Const<Value_t> = true>
+	Weak_Pointer_Monitor &operator=(
+	    Weak_Pointer_Monitor<Value_t> const &pointer) noexcept
+	{
+		m_pointer = pointer.get();
 		dispatch_copy();
 		return *this;
 	}
