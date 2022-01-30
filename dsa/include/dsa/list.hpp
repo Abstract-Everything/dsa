@@ -3,6 +3,7 @@
 
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
+#include <dsa/node.hpp>
 
 #include <cstddef>
 #include <memory>
@@ -10,60 +11,35 @@
 namespace dsa
 {
 
-namespace list::detail
+namespace detail
 {
 
-template<typename Value_t, template<typename> typename Allocator_Base>
-class Node
+template<typename Satellite_t, template<typename> typename Allocator_Base>
+class List_Node
 {
  private:
-	using Value_Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
-	using Value              = typename Value_Alloc_Traits::Value;
-	using Value_Allocator    = typename Value_Alloc_Traits::Allocator;
+	friend class Node_Traits<List_Node>;
 
-	using Alloc_Traits = Allocator_Traits<Allocator_Base<Node>>;
-
- public:
+	using Alloc_Traits  = Allocator_Traits<Allocator_Base<List_Node>>;
 	using Allocator     = typename Alloc_Traits::Allocator;
 	using Pointer       = typename Alloc_Traits::Pointer;
 	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
-	/**
-	 * @brief Allocates a node and constructs the held value.
-	 */
-	[[nodiscard]] static Pointer create_node(Allocator allocator, Value value)
-	{
-		Pointer pointer = Alloc_Traits::allocate(allocator, 1);
-		pointer->m_next = nullptr;
-
-		Value_Allocator value_allocator(allocator);
-		Value_Alloc_Traits::construct(
-		    value_allocator,
-		    &pointer->m_value,
-		    std::move(value));
-
-		return pointer;
-	}
-
-	/**
-	 * @brief Destroys the value of the node and deallocates its
-	 * storage. This function does not recursively destroy nodes.
-	 */
-	static void destroy_node(Allocator allocator, Pointer node)
-	{
-		Value_Allocator value_allocator(allocator);
-		Value_Alloc_Traits::destroy(value_allocator, &node->m_value);
-		Alloc_Traits::deallocate(allocator, node, 1);
-	}
+	using Satellite_Alloc_Traits =
+	    Allocator_Traits<Allocator_Base<Satellite_t>>;
+	using Satellite = typename Satellite_Alloc_Traits::Value;
 
  public:
-	Node() = default;
+	Satellite m_satellite;
+	Pointer   m_next;
 
-	Value   m_value = Value();
-	Pointer m_next  = nullptr;
+	void initialise()
+	{
+		m_next = nullptr;
+	}
 };
 
-} // namespace list::detail
+} // namespace detail
 
 // ToDo: Use iterators to make insertion/ deletion constant time
 
@@ -81,12 +57,13 @@ template<typename Value_t, template<typename> typename Allocator_Base = Default_
 class List
 {
  private:
-	using Alloc_Traits       = Allocator_Traits<Allocator_Base<Value_t>>;
-	using Node               = list::detail::Node<Value_t, Allocator_Base>;
-	using Node_Allocator     = typename Node::Allocator;
-	using Node_Pointer       = typename Node::Pointer;
-	using Node_Const_Pointer = typename Node::Const_Pointer;
+	using Node               = detail::List_Node<Value_t, Allocator_Base>;
+	using Node_Traits        = detail::Node_Traits<Node>;
+	using Node_Allocator     = typename Node_Traits::Allocator;
+	using Node_Pointer       = typename Node_Traits::Pointer;
+	using Node_Const_Pointer = typename Node_Traits::Const_Pointer;
 
+	using Alloc_Traits       = Allocator_Traits<Allocator_Base<Value_t>>;
  public:
 	using Allocator = typename Alloc_Traits::Allocator;
 	using Value     = typename Alloc_Traits::Value;
@@ -113,7 +90,7 @@ class List
 		for (auto value : values)
 		{
 			Node_Pointer &to = *next;
-			to = Node::create_node(m_allocator, value);
+			to = Node_Traits::create_node(m_allocator, value);
 
 			next = &to->m_next;
 		}
@@ -131,7 +108,7 @@ class List
 		while (from != nullptr)
 		{
 			Node_Pointer &to = *next;
-			to = Node::create_node(m_allocator, from->m_value);
+			to = Node_Traits::create_node(m_allocator, from->m_satellite);
 
 			next = &to->m_next;
 			from = from->m_next;
@@ -158,12 +135,12 @@ class List
 
 	[[nodiscard]] Value &operator[](std::size_t index)
 	{
-		return at(index)->m_value;
+		return at(index)->m_satellite;
 	}
 
 	[[nodiscard]] const Value &operator[](std::size_t index) const
 	{
-		return at(index)->m_value;
+		return at(index)->m_satellite;
 	}
 
 	/**
@@ -188,7 +165,7 @@ class List
 	 */
 	[[nodiscard]] Value &front()
 	{
-		return m_head->m_value;
+		return m_head->m_satellite;
 	}
 
 	/**
@@ -197,7 +174,7 @@ class List
 	 */
 	[[nodiscard]] const Value &front() const
 	{
-		return m_head->m_value;
+		return m_head->m_satellite;
 	}
 
 	/**
@@ -217,7 +194,7 @@ class List
 		while (node != nullptr)
 		{
 			Node_Pointer next = node->m_next;
-			Node::destroy_node(m_allocator, node);
+			Node_Traits::destroy_node(m_allocator, node);
 			node = next;
 		}
 		m_head = nullptr;
@@ -238,7 +215,7 @@ class List
 	void insert(std::size_t index, Value value)
 	{
 		Node_Pointer node =
-		    Node::create_node(m_allocator, std::move(value));
+		    Node_Traits::create_node(m_allocator, std::move(value));
 
 		if (index == 0)
 		{
@@ -271,14 +248,14 @@ class List
 		{
 			Node_Pointer remove = m_head;
 			m_head              = m_head->m_next;
-			Node::destroy_node(m_allocator, remove);
+			Node_Traits::destroy_node(m_allocator, remove);
 			return;
 		}
 
 		Node_Pointer previous = at(index - 1);
 		Node_Pointer remove   = previous->m_next;
 		previous->m_next      = remove->m_next;
-		Node::destroy_node(m_allocator, remove);
+		Node_Traits::destroy_node(m_allocator, remove);
 	}
 
 	friend bool operator==(List const &lhs, List const &rhs) noexcept
@@ -287,7 +264,7 @@ class List
 		Node_Pointer rhs_node = rhs.m_head;
 		while (lhs_node != nullptr && rhs_node != nullptr)
 		{
-			if (lhs_node->m_value != rhs_node->m_value)
+			if (lhs_node->m_satellite != rhs_node->m_satellite)
 			{
 				return false;
 			}
