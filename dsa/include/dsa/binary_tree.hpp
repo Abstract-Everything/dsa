@@ -3,6 +3,7 @@
 
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
+#include <dsa/node.hpp>
 
 #include <cassert>
 #include <memory>
@@ -10,62 +11,37 @@
 namespace dsa
 {
 
-namespace binary_tree::detail
+namespace detail
 {
 
-template<typename Value_t, template<typename> typename Allocator_Base>
-class Node
+template<typename Satellite_t, template<typename> typename Allocator_Base>
+class Binary_Tree_Node
 {
  private:
-	using Value_Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
-	using Value              = typename Value_Alloc_Traits::Value;
-	using Value_Allocator    = typename Value_Alloc_Traits::Allocator;
+	friend class Node_Traits<Binary_Tree_Node>;
 
-	using Alloc_Traits = Allocator_Traits<Allocator_Base<Node>>;
-
- public:
-	using Allocator     = typename Alloc_Traits::Allocator;
-	using Pointer       = typename Alloc_Traits::Pointer;
+	using Alloc_Traits = Allocator_Traits<Allocator_Base<Binary_Tree_Node>>;
+	using Allocator    = typename Alloc_Traits::Allocator;
+	using Pointer      = typename Alloc_Traits::Pointer;
 	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
-	/**
-	 * @brief Allocates a node and constructs the held value.
-	 */
-	[[nodiscard]] static Pointer create_node(Allocator allocator, Value value)
-	{
-		Pointer pointer  = Alloc_Traits::allocate(allocator, 1);
-		pointer->m_left  = nullptr;
-		pointer->m_right = nullptr;
-
-		Value_Allocator value_allocator(allocator);
-		Value_Alloc_Traits::construct(
-		    value_allocator,
-		    &pointer->m_value,
-		    std::move(value));
-
-		return pointer;
-	}
-
-	/**
-	 * @brief Destroys the value of the node and deallocates its
-	 * storage. This function does not recursively destroy nodes.
-	 */
-	static void destroy_node(Allocator allocator, Pointer node)
-	{
-		Value_Allocator value_allocator(allocator);
-		Value_Alloc_Traits::destroy(value_allocator, &node->m_value);
-		Alloc_Traits::deallocate(allocator, node, 1);
-	}
+	using Satellite_Alloc_Traits =
+	    Allocator_Traits<Allocator_Base<Satellite_t>>;
+	using Satellite = typename Satellite_Alloc_Traits::Value;
 
  public:
-	Node() = default;
+	Satellite m_satellite;
+	Pointer   m_left;
+	Pointer   m_right;
 
-	Value   m_value = Value();
-	Pointer m_left  = nullptr;
-	Pointer m_right = nullptr;
+	void initialise()
+	{
+		m_left  = nullptr;
+		m_right = nullptr;
+	}
 };
 
-} // namespace binary_tree::detail
+} // namespace detail
 
 // ToDo: Use concepts to check that Value is sortable
 
@@ -83,10 +59,11 @@ template<typename Value_t, template<typename> typename Allocator_Base = Default_
 class Binary_Tree
 {
  private:
-	using Node = binary_tree::detail::Node<Value_t, Allocator_Base>;
-	using Node_Allocator     = typename Node::Allocator;
-	using Node_Pointer       = typename Node::Pointer;
-	using Node_Const_Pointer = typename Node::Const_Pointer;
+	using Node        = detail::Binary_Tree_Node<Value_t, Allocator_Base>;
+	using Node_Traits = detail::Node_Traits<Node>;
+	using Node_Allocator     = typename Node_Traits::Allocator;
+	using Node_Pointer       = typename Node_Traits::Pointer;
+	using Node_Const_Pointer = typename Node_Traits::Const_Pointer;
 
 	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
 
@@ -182,12 +159,12 @@ class Binary_Tree
 		Node_Const_Pointer node = m_head;
 		while (node != nullptr)
 		{
-			if (node->m_value == value)
+			if (node->m_satellite == value)
 			{
 				return true;
 			}
-			node = value < node->m_value ? node->m_left
-						     : node->m_right;
+			node = value < node->m_satellite ? node->m_left
+							 : node->m_right;
 		}
 		return false;
 	}
@@ -198,15 +175,15 @@ class Binary_Tree
 	void insert(Value value)
 	{
 		Node_Pointer insert =
-		    Node::create_node(m_allocator, std::move(value));
+		    Node_Traits::create_node(m_allocator, std::move(value));
 
 		Node_Pointer *node_ptr = &m_head;
 		while (*node_ptr != nullptr)
 		{
 			Node_Pointer &node = *node_ptr;
-			node_ptr           = insert->m_value < node->m_value
-						 ? &node->m_left
-						 : &node->m_right;
+			node_ptr = insert->m_satellite < node->m_satellite
+				       ? &node->m_left
+				       : &node->m_right;
 		}
 
 		*node_ptr = insert;
@@ -219,11 +196,11 @@ class Binary_Tree
 	void erase(Value value)
 	{
 		Node_Pointer *pointer = &m_head;
-		while (*pointer != nullptr && (*pointer)->m_value != value)
+		while (*pointer != nullptr && (*pointer)->m_satellite != value)
 		{
 			Node_Pointer node = *pointer;
-			pointer = value < node->m_value ? &node->m_left
-							: &node->m_right;
+			pointer = value < node->m_satellite ? &node->m_left
+							    : &node->m_right;
 		}
 
 		Node_Pointer node = *pointer;
@@ -231,7 +208,7 @@ class Binary_Tree
 		{
 			using std::swap;
 			Node_Pointer previous = extract_previous_node(node);
-			swap(node->m_value, previous->m_value);
+			swap(node->m_satellite, previous->m_satellite);
 			delete_node(previous);
 		}
 		else if (node->m_right != nullptr)
@@ -288,7 +265,7 @@ class Binary_Tree
 	    Binary_Tree const &binary_tree)
 	{
 		return (node == nullptr)
-		       || (binary_tree.contains(node->m_value)
+		       || (binary_tree.contains(node->m_satellite)
 			   && is_subset(node->m_left, binary_tree)
 			   && is_subset(node->m_right, binary_tree));
 	}
@@ -297,7 +274,7 @@ class Binary_Tree
 	{
 		return (lhs == rhs)
 		       || (lhs != nullptr && rhs != nullptr
-			   && lhs->m_value == rhs->m_value
+			   && lhs->m_satellite == rhs->m_satellite
 			   && compare_structure(lhs->m_left, rhs->m_left)
 			   && compare_structure(lhs->m_right, rhs->m_right));
 	}
@@ -310,7 +287,7 @@ class Binary_Tree
 		}
 
 		Node_Pointer root =
-		    Node::create_node(m_allocator, subtree->m_value);
+		    Node_Traits::create_node(m_allocator, subtree->m_satellite);
 		root->m_left  = copy_subtree(subtree->m_left);
 		root->m_right = copy_subtree(subtree->m_right);
 		return root;
@@ -326,7 +303,7 @@ class Binary_Tree
 		delete_node(node->m_left);
 		delete_node(node->m_right);
 
-		Node::destroy_node(m_allocator, node);
+		Node_Traits::destroy_node(m_allocator, node);
 	}
 
 	Node_Pointer extract_previous_node(Node_Pointer node)
