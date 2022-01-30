@@ -44,8 +44,9 @@ class Element_Monitor
 
 	friend void swap(Element_Monitor &lhs, Element_Monitor &rhs)
 	{
-		std::swap(lhs.m_initialised, rhs.m_initialised);
-		std::swap(lhs.m_value, rhs.m_value);
+		using std::swap;
+		swap(lhs.m_initialised, rhs.m_initialised);
+		swap(lhs.m_value, rhs.m_value);
 	}
 
 	Element_Monitor &operator=(const Element_Monitor &element)

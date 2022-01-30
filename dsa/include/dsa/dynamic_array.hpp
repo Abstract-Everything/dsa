@@ -115,8 +115,9 @@ class Dynamic_Array
 
 	friend void swap(Dynamic_Array &lhs, Dynamic_Array &rhs)
 	{
-		std::swap(lhs.m_size, rhs.m_size);
-		std::swap(lhs.m_array, rhs.m_array);
+		using std::swap;
+		swap(lhs.m_size, rhs.m_size);
+		swap(lhs.m_array, rhs.m_array);
 	}
 
 	Dynamic_Array &operator=(Dynamic_Array darray) noexcept
