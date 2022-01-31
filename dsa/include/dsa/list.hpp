@@ -63,13 +63,14 @@ class List
 	using Node_Pointer       = typename Node_Traits::Pointer;
 	using Node_Const_Pointer = typename Node_Traits::Const_Pointer;
 
-	using Alloc_Traits       = Allocator_Traits<Allocator_Base<Value_t>>;
- public:
-	using Allocator = typename Alloc_Traits::Allocator;
-	using Value     = typename Alloc_Traits::Value;
-	using Pointer   = typename Alloc_Traits::Pointer;
+	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
 
  public:
+	using Allocator     = typename Alloc_Traits::Allocator;
+	using Value         = typename Alloc_Traits::Value;
+	using Pointer       = typename Alloc_Traits::Pointer;
+	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
+
 	/**
 	 * @brief Constructs an empty list
 	 */
@@ -131,6 +132,26 @@ class List
 	{
 		swap(*this, list);
 		return *this;
+	}
+
+	[[nodiscard]] Pointer begin()
+	{
+		return nullptr;
+	}
+
+	[[nodiscard]] Const_Pointer begin() const
+	{
+		return nullptr;
+	}
+
+	[[nodiscard]] Pointer end()
+	{
+		return nullptr;
+	}
+
+	[[nodiscard]] Const_Pointer end() const
+	{
+		return nullptr;
 	}
 
 	[[nodiscard]] Value &operator[](std::size_t index)
