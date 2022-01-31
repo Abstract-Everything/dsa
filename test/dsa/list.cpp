@@ -257,3 +257,13 @@ TEST(list, iterate_empty_list)
 
 	SUCCEED();
 }
+
+TEST(list, iterate_validate_values)
+{
+	std::size_t index = 0;
+	for (int value : sample)
+	{
+		ASSERT_EQ(value, sample[index++]);
+	}
+	ASSERT_EQ(index, 3ULL);
+}

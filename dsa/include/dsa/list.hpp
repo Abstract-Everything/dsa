@@ -20,16 +20,77 @@ class List_Node
  private:
 	friend class Node_Traits<List_Node>;
 
-	using Alloc_Traits  = Allocator_Traits<Allocator_Base<List_Node>>;
-	using Allocator     = typename Alloc_Traits::Allocator;
-	using Pointer       = typename Alloc_Traits::Pointer;
-	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
+	using Alloc_Traits    = Allocator_Traits<Allocator_Base<List_Node>>;
+	using Allocator       = typename Alloc_Traits::Allocator;
+	using Pointer         = typename Alloc_Traits::Pointer;
+	using Const_Pointer   = typename Alloc_Traits::Const_Pointer;
 
-	using Satellite_Alloc_Traits =
-	    Allocator_Traits<Allocator_Base<Satellite_t>>;
-	using Satellite = typename Satellite_Alloc_Traits::Value;
+	using Satellite_Alloc_Traits    = Allocator_Traits<Allocator_Base<Satellite_t>>;
+	using Satellite                 = typename Satellite_Alloc_Traits::Value;
+	using Satellite_Pointer         = typename Satellite_Alloc_Traits::Reference;
+	using Satellite_Const_Pointer   = typename Satellite_Alloc_Traits::Const_Reference;
+	using Satellite_Reference       = typename Satellite_Alloc_Traits::Reference;
+	using Satellite_Const_Reference = typename Satellite_Alloc_Traits::Const_Reference;
+
+	template<bool Is_Const>
+	class Iterator_Detail
+	{
+	 private:
+		using Node_Pointer = std::conditional_t<
+		    Is_Const,
+		    typename List_Node::Const_Pointer,
+		    typename List_Node::Pointer>;
+
+		using Pointer = std::conditional_t<
+		    Is_Const,
+		    typename List_Node::Satellite_Const_Pointer,
+		    typename List_Node::Satellite_Pointer>;
+
+		using Reference = std::conditional_t<
+		    Is_Const,
+		    typename List_Node::Satellite_Const_Reference,
+		    typename List_Node::Satellite_Reference>;
+
+	 public:
+		explicit Iterator_Detail(Node_Pointer node) : m_node(node)
+		{
+		}
+
+		Iterator_Detail operator++()
+		{
+			m_node = m_node->m_next;
+			Iterator_Detail iterator(m_node);
+			return iterator;
+		}
+
+		bool operator==(Iterator_Detail const &iterator) const
+		{
+			return m_node == iterator.m_node;
+		}
+
+		bool operator!=(Iterator_Detail const &iterator) const
+		{
+			return !this->operator==(iterator);
+		}
+
+		Reference operator*() const
+		{
+			return m_node->m_satellite;
+		}
+
+		Pointer operator->() const
+		{
+			return m_node->m_satellite;
+		}
+
+	 private:
+		Node_Pointer m_node;
+	};
 
  public:
+	using Iterator       = Iterator_Detail<false>;
+	using Const_Iterator = Iterator_Detail<true>;
+
 	Satellite m_satellite;
 	Pointer   m_next;
 
@@ -66,10 +127,12 @@ class List
 	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
 
  public:
-	using Allocator     = typename Alloc_Traits::Allocator;
-	using Value         = typename Alloc_Traits::Value;
-	using Pointer       = typename Alloc_Traits::Pointer;
-	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
+	using Allocator      = typename Alloc_Traits::Allocator;
+	using Value          = typename Alloc_Traits::Value;
+	using Pointer        = typename Alloc_Traits::Pointer;
+	using Const_Pointer  = typename Alloc_Traits::Const_Pointer;
+	using Iterator       = typename Node::Iterator;
+	using Const_Iterator = typename Node::Const_Iterator;
 
 	/**
 	 * @brief Constructs an empty list
@@ -134,24 +197,24 @@ class List
 		return *this;
 	}
 
-	[[nodiscard]] Pointer begin()
+	[[nodiscard]] Iterator begin()
 	{
-		return nullptr;
+		return Iterator(m_head);
 	}
 
-	[[nodiscard]] Const_Pointer begin() const
+	[[nodiscard]] Const_Iterator begin() const
 	{
-		return nullptr;
+		return Const_Iterator(m_head);
 	}
 
-	[[nodiscard]] Pointer end()
+	[[nodiscard]] Iterator end()
 	{
-		return nullptr;
+		return Iterator(nullptr);
 	}
 
-	[[nodiscard]] Const_Pointer end() const
+	[[nodiscard]] Const_Iterator end() const
 	{
-		return nullptr;
+		return Const_Iterator(nullptr);
 	}
 
 	[[nodiscard]] Value &operator[](std::size_t index)

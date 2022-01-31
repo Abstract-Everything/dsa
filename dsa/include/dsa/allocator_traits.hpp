@@ -14,10 +14,12 @@ template<typename Allocator_t>
 class Allocator_Traits
 {
  public:
-	using Allocator     = Allocator_t;
-	using Value         = typename Allocator::Value;
-	using Pointer       = typename Allocator::Pointer;
-	using Const_Pointer = typename Allocator::Const_Pointer;
+	using Allocator       = Allocator_t;
+	using Value           = typename Allocator::Value;
+	using Reference       = typename Allocator::Reference;
+	using Const_Reference = typename Allocator::Const_Reference;
+	using Pointer         = typename Allocator::Pointer;
+	using Const_Pointer   = typename Allocator::Const_Pointer;
 
  private:
 	using Std_Allocator        = std::allocator<Value>;
