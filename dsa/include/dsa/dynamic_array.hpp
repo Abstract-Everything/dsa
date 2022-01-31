@@ -126,6 +126,26 @@ class Dynamic_Array
 		return *this;
 	}
 
+	[[nodiscard]] Pointer begin()
+	{
+		return &m_array[0];
+	}
+
+	[[nodiscard]] Const_Pointer begin() const
+	{
+		return &m_array[0];
+	}
+
+	[[nodiscard]] Pointer end()
+	{
+		return &m_array[m_size];
+	}
+
+	[[nodiscard]] Const_Pointer end() const
+	{
+		return &m_array[m_size];
+	}
+
 	[[nodiscard]] Value &operator[](std::size_t index)
 	{
 		return m_array[index];
