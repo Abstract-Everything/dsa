@@ -278,3 +278,12 @@ TEST(binary_tree, iterate_empty_list)
 	SUCCEED();
 }
 
+TEST(binary_tree, iterate_validate_values)
+{
+	std::size_t index = 0;
+	for (int value : long_sample)
+	{
+		ASSERT_EQ(value, index++);
+	}
+	ASSERT_EQ(index, 7ULL);
+}

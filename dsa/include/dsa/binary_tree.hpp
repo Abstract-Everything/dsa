@@ -58,6 +58,7 @@ class Binary_Tree_Node
 
 		Iterator_Detail operator++()
 		{
+			m_node = next(m_node);
 			Iterator_Detail iterator(m_node);
 			return iterator;
 		}
@@ -84,6 +85,35 @@ class Binary_Tree_Node
 
 	 private:
 		Node_Pointer m_node;
+
+		Node_Pointer next(Node_Pointer node)
+		{
+			if (node == nullptr)
+			{
+				return nullptr;
+			}
+
+			if (node->m_right != nullptr)
+			{
+				node = node->m_right;
+				while (node->m_left != nullptr)
+				{
+					node = node->m_left;
+				}
+				return node;
+			}
+
+			if (node->m_parent->m_left == node)
+			{
+				return node->m_parent;
+			}
+
+			while (node->m_parent != nullptr && node->m_parent->m_right == node)
+			{
+				node = node->m_parent;
+			}
+			return node->m_parent;
+		}
 	};
 
  public:
@@ -199,12 +229,22 @@ class Binary_Tree
 
 	[[nodiscard]] Iterator begin()
 	{
-		return Iterator(m_head);
+		Node_Pointer node = m_head;
+		while (node != nullptr && node->m_left != nullptr)
+		{
+			node = node->m_left;
+		}
+		return Iterator(node);
 	}
 
 	[[nodiscard]] Const_Iterator begin() const
 	{
-		return Const_Iterator(m_head);
+		Node_Pointer node = m_head;
+		while (node != nullptr && node->m_left != nullptr)
+		{
+			node = node->m_left;
+		}
+		return Const_Iterator(node);
 	}
 
 	[[nodiscard]] Iterator end()
