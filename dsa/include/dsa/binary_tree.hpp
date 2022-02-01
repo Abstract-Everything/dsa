@@ -31,13 +31,15 @@ class Binary_Tree_Node
 
  public:
 	Satellite m_satellite;
+	Pointer   m_parent;
 	Pointer   m_left;
 	Pointer   m_right;
 
 	void initialise()
 	{
-		m_left  = nullptr;
-		m_right = nullptr;
+		m_parent = nullptr;
+		m_left   = nullptr;
+		m_right  = nullptr;
 	}
 };
 
@@ -101,7 +103,7 @@ class Binary_Tree
 
 	Binary_Tree(Binary_Tree const &binary_tree)
 	    : m_allocator(binary_tree.m_allocator)
-	    , m_head(copy_subtree(binary_tree.m_head))
+	    , m_head(copy_subtree(nullptr, binary_tree.m_head))
 	{
 	}
 
@@ -177,16 +179,19 @@ class Binary_Tree
 		Node_Pointer insert =
 		    Node_Traits::create_node(m_allocator, std::move(value));
 
+		Node_Pointer  parent   = nullptr;
 		Node_Pointer *node_ptr = &m_head;
 		while (*node_ptr != nullptr)
 		{
+			parent             = *node_ptr;
 			Node_Pointer &node = *node_ptr;
 			node_ptr = insert->m_satellite < node->m_satellite
 				       ? &node->m_left
 				       : &node->m_right;
 		}
 
-		*node_ptr = insert;
+		*node_ptr       = insert;
+		insert->m_parent = parent;
 	}
 
 	/**
@@ -279,7 +284,7 @@ class Binary_Tree
 			   && compare_structure(lhs->m_right, rhs->m_right));
 	}
 
-	[[nodiscard]] Node_Pointer copy_subtree(Node_Pointer subtree)
+	[[nodiscard]] Node_Pointer copy_subtree(Node_Pointer parent, Node_Pointer subtree)
 	{
 		if (subtree == nullptr)
 		{
@@ -288,8 +293,9 @@ class Binary_Tree
 
 		Node_Pointer root =
 		    Node_Traits::create_node(m_allocator, subtree->m_satellite);
-		root->m_left  = copy_subtree(subtree->m_left);
-		root->m_right = copy_subtree(subtree->m_right);
+		root->m_parent = parent;
+		root->m_left  = copy_subtree(root, subtree->m_left);
+		root->m_right = copy_subtree(root, subtree->m_right);
 		return root;
 	}
 
