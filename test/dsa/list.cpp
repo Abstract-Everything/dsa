@@ -155,8 +155,8 @@ TEST(list, detatch_front)
 
 TEST(list, erase_front)
 {
-	dsa::List     list(sample);
-	dsa::List     expected{sample[1], sample[2]};
+	dsa::List list(sample);
+	dsa::List expected{sample[1], sample[2]};
 
 	list.erase(0);
 
@@ -165,8 +165,8 @@ TEST(list, erase_front)
 
 TEST(list, erase_middle)
 {
-	dsa::List     list(sample);
-	dsa::List     expected{sample[0], sample[2]};
+	dsa::List list(sample);
+	dsa::List expected{sample[0], sample[2]};
 
 	list.erase(1);
 
@@ -175,8 +175,8 @@ TEST(list, erase_middle)
 
 TEST(list, erase_back)
 {
-	dsa::List     list(sample);
-	dsa::List     expected{sample[0], sample[1]};
+	dsa::List list(sample);
+	dsa::List expected{sample[0], sample[1]};
 
 	list.erase(2);
 

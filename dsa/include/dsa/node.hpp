@@ -16,8 +16,8 @@ class Node_Traits
 	using Satellite_Allocator = typename Satellite_Alloc_Traits::Allocator;
 
  public:
-	using Allocator    = typename Alloc_Traits::Allocator;
-	using Pointer      = typename Alloc_Traits::Pointer;
+	using Allocator     = typename Alloc_Traits::Allocator;
+	using Pointer       = typename Alloc_Traits::Pointer;
 	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
 	/**
