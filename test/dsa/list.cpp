@@ -2,7 +2,14 @@
 
 #include <gtest/gtest.h>
 
-static_assert(std::is_same_v<dsa::List<int>::Value, int>);
+using Int_List = dsa::List<int>;
+
+static_assert(std::is_same_v<Int_List::Value, int>);
+
+static_assert(std::is_same_v<decltype(*std::declval<Int_List>().begin()), int &>);
+static_assert(std::is_same_v<decltype(*std::declval<const Int_List>().begin()), const int &>);
+static_assert(std::is_same_v<decltype(*std::declval<Int_List>().end()), int &>);
+static_assert(std::is_same_v<decltype(*std::declval<const Int_List>().end()), const int &>);
 
 namespace
 {
@@ -10,7 +17,7 @@ namespace
 const dsa::List<int> sample{0, 1, 2};
 const dsa::List<int> long_sample{0, 1, 2, 3, 4};
 
-}
+} // namespace
 
 TEST(list, default_initialisation)
 {
@@ -238,4 +245,25 @@ TEST(list, destroy_elements)
 	}
 
 	ASSERT_EQ(counter.use_count(), 1);
+}
+
+TEST(list, iterate_empty_list)
+{
+	dsa::List<int> empty;
+	for ([[maybe_unused]] int value : empty)
+	{
+		FAIL() << "Expected the body of this loop to not be executed";
+	}
+
+	SUCCEED();
+}
+
+TEST(list, iterate_validate_values)
+{
+	std::size_t index = 0;
+	for (int value : sample)
+	{
+		ASSERT_EQ(value, sample[index++]);
+	}
+	ASSERT_EQ(index, 3ULL);
 }
