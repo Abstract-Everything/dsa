@@ -79,8 +79,8 @@ class Allocator_Traits_Base
 	}
 
 	template<typename Allocator, typename Pointer>
-	using Has_Destroy_Operator =
-	    decltype(std::declval<Allocator>().construct(Pointer()));
+	using Has_Destroy_Operator = decltype(std::declval<Allocator>().destroy(
+	    std::declval<Pointer &&>()));
 
 	template<typename Allocator, typename Pointer>
 	static constexpr bool has_destroy()
@@ -175,19 +175,22 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 		}
 	}
 
-	static void destroy(
+	template<typename Pointer_t>
+	static constexpr void destroy(
 	    // MSVC gives unused error if both branches are not used
-	    [[maybe_unused]] Allocator allocator,
-	    Pointer                    pointer)
+	    [[maybe_unused]] Allocator &allocator,
+	    Pointer_t                 &&pointer)
 	{
 		if constexpr (has_destroy<Allocator, Pointer>())
 		{
-			allocator.destroy(pointer);
+			allocator.destroy(std::forward<Pointer_t>(pointer));
 		}
 		else
 		{
 			Std_Allocator std_allocator;
-			Std_Allocator_Traits::destroy(std_allocator, pointer);
+			Std_Allocator_Traits::destroy(
+			    std_allocator,
+			    std::forward<Pointer_t>(pointer));
 		}
 	}
 };

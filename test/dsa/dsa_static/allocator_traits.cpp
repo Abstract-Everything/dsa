@@ -53,11 +53,18 @@ struct Dummy_Allocator
 		deallocated       = pointer.id();
 	}
 
+	constexpr void destroy(Pointer pointer)
+	{
+		destroyed = pointer.id();
+	}
+
 	std::size_t allocated_count = 0ULL;
 	Id          constructed;
 
 	std::size_t deallocated_count = 0ULL;
 	Id          deallocated;
+
+	Id destroyed;
 };
 
 using Traits = dsa::Allocator_Traits<Dummy_Allocator>;
@@ -79,6 +86,13 @@ constexpr Dummy_Allocator deallocate(Id id, std::size_t count)
 {
 	Dummy_Allocator allocator;
 	Traits::deallocate(allocator, Dummy_Pointer(id), count);
+	return allocator;
+}
+
+constexpr Dummy_Allocator destroy(Id id)
+{
+	Dummy_Allocator allocator;
+	Traits::destroy(allocator, Dummy_Pointer(id));
 	return allocator;
 }
 
@@ -142,5 +156,21 @@ TEST_CASE(
 
 		REQUIRE(allocator.deallocated_count == count);
 		REQUIRE(allocator.deallocated == id);
+	}
+
+	SECTION("Custom destroy is called in a static context")
+	{
+		constexpr Id              static_id = Id(9);
+		constexpr Dummy_Allocator allocator = destroy(static_id);
+
+		STATIC_REQUIRE(allocator.destroyed == static_id);
+	}
+
+	SECTION("Custom destroy is called with the forwarded arguments")
+	{
+		const Id        id(GENERATE(0ULL, max_limit_size_t()));
+		Dummy_Allocator allocator = destroy(id);
+
+		REQUIRE(allocator.destroyed == id);
 	}
 }
