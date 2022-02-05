@@ -14,6 +14,7 @@ class Node_Traits
 
 	using Satellite_Alloc_Traits = typename Node_t::Satellite_Alloc_Traits;
 	using Satellite_Allocator = typename Satellite_Alloc_Traits::Allocator;
+	using Satellite_Pointer   = typename Satellite_Alloc_Traits::Pointer;
 
  public:
 	using Allocator     = typename Alloc_Traits::Allocator;
@@ -34,7 +35,7 @@ class Node_Traits
 		Satellite_Allocator satellite_allocator(allocator);
 		Satellite_Alloc_Traits::construct(
 		    satellite_allocator,
-		    &pointer->m_satellite,
+		    Satellite_Pointer(&pointer->m_satellite),
 		    std::forward<Arguments>(arguments)...);
 
 		return pointer;

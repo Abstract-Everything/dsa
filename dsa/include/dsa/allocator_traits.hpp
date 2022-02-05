@@ -56,9 +56,9 @@ class Allocator_Traits_Base
 
 	template<typename Allocator, typename Pointer, typename... Arguments>
 	using Has_Construct_Operator =
-	    decltype(std::declval<Allocator>().construct(
-		Pointer(),
-		std::declval<Arguments>()...));
+	    decltype(std::declval<Allocator &&>().construct(
+		std::declval<Pointer &&>(),
+		std::declval<Arguments &&>()...));
 
 	template<typename Allocator, typename Pointer, typename... Arguments>
 	static constexpr bool has_construct()
@@ -118,17 +118,22 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 		}
 	}
 
-	template<typename... Arguments>
-	static void construct(
+	template<typename Pointer_t, typename... Arguments>
+	static constexpr void construct(
 	    // MSVC gives unused error if both branches are not used
-	    [[maybe_unused]] Allocator allocator,
-	    Pointer                    pointer,
+	    [[maybe_unused]] Allocator &allocator,
+	    Pointer_t                 &&pointer,
 	    Arguments &&...arguments)
 	{
+		static_assert(
+		    std::is_same_v<Pointer, std::remove_cvref_t<Pointer_t>>,
+		    "These traits should not be passed a different pointer "
+		    "type");
+
 		if constexpr (has_construct<Allocator, Pointer, Arguments...>())
 		{
 			allocator.construct(
-			    pointer,
+			    std::forward<Pointer_t>(pointer),
 			    std::forward<Arguments>(arguments)...);
 		}
 		else
@@ -136,7 +141,7 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 			Std_Allocator std_allocator;
 			Std_Allocator_Traits::construct(
 			    std_allocator,
-			    pointer,
+			    std::forward<Pointer_t>(pointer),
 			    std::forward<Arguments>(arguments)...);
 		}
 	}

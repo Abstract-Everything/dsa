@@ -6,6 +6,10 @@
 class Id
 {
  public:
+	explicit constexpr Id() : m_id(0ULL)
+	{
+	}
+
 	explicit constexpr Id(std::size_t id) : m_id(id)
 	{
 	}

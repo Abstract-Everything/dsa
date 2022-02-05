@@ -1,9 +1,10 @@
-#include <dsa/allocator_traits.hpp>
-#include <dsa/default_allocator.hpp>
-
+#include "dummy_pointer.hpp"
+#include "dummy_value.hpp"
 #include "empty_value.hpp"
 #include "id.hpp"
-#include "dummy_pointer.hpp"
+
+#include <dsa/allocator_traits.hpp>
+#include <dsa/default_allocator.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -30,7 +31,7 @@ std::size_t max_limit_size_t()
 
 struct Dummy_Allocator
 {
-	using Value   = int;
+	using Value   = Dummy_Value;
 	using Pointer = Dummy_Pointer;
 
 	constexpr Pointer allocate(std::size_t count)
@@ -39,7 +40,15 @@ struct Dummy_Allocator
 		return Dummy_Pointer(Id(count));
 	}
 
+	constexpr void construct(
+	    Pointer pointer,
+	    Dummy_Value_Construct_Tag /* tag */)
+	{
+		constructed = pointer.id();
+	}
+
 	std::size_t allocated_count = 0ULL;
+	Id          constructed;
 };
 
 using Traits = dsa::Allocator_Traits<Dummy_Allocator>;
@@ -48,6 +57,13 @@ constexpr std::pair<Dummy_Allocator, Dummy_Pointer> allocate(std::size_t count)
 {
 	Dummy_Allocator allocator;
 	return {allocator, Traits::allocate(allocator, count)};
+}
+
+constexpr Dummy_Allocator construct(Id id)
+{
+	Dummy_Allocator allocator;
+	Traits::construct(allocator, Dummy_Pointer(id), Dummy_Value_Construct_Tag());
+	return allocator;
 }
 
 } // namespace
@@ -71,5 +87,21 @@ TEST_CASE(
 		auto [allocator, pointer] = allocate(count);
 		REQUIRE(allocator.allocated_count == count);
 		REQUIRE(pointer.id().value() == count);
+	}
+
+	SECTION("Custom construct is called in a static context")
+	{
+		constexpr Id              id        = Id(7);
+		constexpr Dummy_Allocator allocator = construct(id);
+
+		STATIC_REQUIRE(allocator.constructed == id);
+	}
+
+	SECTION("Custom construct is called with the forwarded arguments")
+	{
+		const Id        id(GENERATE(0ULL, max_limit_size_t()));
+		Dummy_Allocator allocator = construct(id);
+
+		REQUIRE(allocator.constructed == id);
 	}
 }
