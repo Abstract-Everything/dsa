@@ -93,7 +93,7 @@ jobs:
         cmake -S $GITHUB_WORKSPACE                       \
               -B "${{ runner.workspace }}/build"         \
               -DCMAKE_BUILD_TYPE="${{ env.build_type }}" \
-              -DCPP_TMPL_TESTING="gtest"
+              -DDSA_RUNTIME_TESTS=ON
 
     - name: Build
       working-directory: ${{ runner.workspace }}/build
