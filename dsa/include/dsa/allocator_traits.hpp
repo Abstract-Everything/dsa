@@ -68,7 +68,9 @@ class Allocator_Traits_Base
 
 	template<typename Allocator, typename Pointer>
 	using Has_Deallocate_Operator =
-	    decltype(std::declval<Allocator>().deallocate(Pointer(), std::size_t()));
+	    decltype(std::declval<Allocator &&>().deallocate(
+		std::declval<Pointer &&>(),
+		std::size_t()));
 
 	template<typename Allocator, typename Pointer>
 	static constexpr bool has_deallocate()
@@ -146,18 +148,29 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 		}
 	}
 
-	static void deallocate(Allocator allocator, Pointer pointer, std::size_t count)
+	template<typename Pointer_t>
+	static constexpr void deallocate(
+	    Allocator  &allocator,
+	    Pointer_t &&pointer,
+	    std::size_t count)
 	{
+		static_assert(
+		    std::is_same_v<Pointer, std::remove_cvref_t<Pointer_t>>,
+		    "These traits should not be passed a different pointer "
+		    "type");
+
 		if constexpr (has_deallocate<Allocator, Pointer>())
 		{
-			allocator.deallocate(pointer, count);
+			allocator.deallocate(
+			    std::forward<Pointer_t>(pointer),
+			    count);
 		}
 		else
 		{
 			Std_Allocator std_allocator;
 			Std_Allocator_Traits::deallocate(
 			    std_allocator,
-			    pointer,
+			    std::forward<Pointer_t>(pointer),
 			    count);
 		}
 	}
