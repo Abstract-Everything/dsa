@@ -1,12 +1,11 @@
 # Setup options for the supported test frameworks
+set(CPP_PROJECT_TEMPLATE_USING_GTEST FALSE)
+
 macro(ENABLE_TESTS)
-	set(CPP_TMPL_TESTING
-	    "off"
-	    CACHE STRING "Testing framework to use")
+	option(DSA_RUNTIME_TESTS "Compile dsa runtime tests" FALSE)
+	set(CPP_PROJECT_TEMPLATE_USING_GTEST ${DSA_RUNTIME_TESTS})
 
-	set_property(CACHE CPP_TMPL_TESTING PROPERTY STRINGS "off" "gtest")
-
-	if(NOT ${CPP_TMPL_TESTING} STREQUAL "off")
+	if(${CPP_PROJECT_TEMPLATE_USING_GTEST})
 		enable_testing()
 	endif()
 endmacro()
