@@ -47,8 +47,17 @@ struct Dummy_Allocator
 		constructed = pointer.id();
 	}
 
+	constexpr void deallocate(Pointer pointer, std::size_t count)
+	{
+		deallocated_count = count;
+		deallocated       = pointer.id();
+	}
+
 	std::size_t allocated_count = 0ULL;
 	Id          constructed;
+
+	std::size_t deallocated_count = 0ULL;
+	Id          deallocated;
 };
 
 using Traits = dsa::Allocator_Traits<Dummy_Allocator>;
@@ -63,6 +72,13 @@ constexpr Dummy_Allocator construct(Id id)
 {
 	Dummy_Allocator allocator;
 	Traits::construct(allocator, Dummy_Pointer(id), Dummy_Value_Construct_Tag());
+	return allocator;
+}
+
+constexpr Dummy_Allocator deallocate(Id id, std::size_t count)
+{
+	Dummy_Allocator allocator;
+	Traits::deallocate(allocator, Dummy_Pointer(id), count);
 	return allocator;
 }
 
@@ -103,5 +119,28 @@ TEST_CASE(
 		Dummy_Allocator allocator = construct(id);
 
 		REQUIRE(allocator.constructed == id);
+	}
+
+	SECTION("Custom deallocate is called in a static context")
+	{
+		constexpr std::size_t count = 3;
+		constexpr Id          id    = Id(9);
+
+		constexpr Dummy_Allocator allocator =
+		    deallocate(id, count);
+
+		STATIC_REQUIRE(allocator.deallocated_count == count);
+		STATIC_REQUIRE(allocator.deallocated == id);
+	}
+
+	SECTION("Custom deallocate is called with the forwarded arguments")
+	{
+		const std::size_t count = GENERATE(0ULL, max_limit_size_t());
+		const Id          id(GENERATE(0ULL, max_limit_size_t()));
+
+		auto allocator = deallocate(id, count);
+
+		REQUIRE(allocator.deallocated_count == count);
+		REQUIRE(allocator.deallocated == id);
 	}
 }
