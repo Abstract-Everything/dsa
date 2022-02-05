@@ -105,7 +105,7 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 	using Std_Allocator_Traits = std::allocator_traits<Std_Allocator>;
 
  public:
-	static Pointer allocate(Allocator allocator, std::size_t count)
+	static constexpr Pointer allocate(Allocator &allocator, std::size_t count)
 	{
 		if constexpr (has_allocate<Allocator>())
 		{
