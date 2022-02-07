@@ -2,7 +2,15 @@
 
 #include <gtest/gtest.h>
 
-static_assert(std::is_same_v<dsa::Binary_Tree<int>::Value, int>);
+using Int_Binary_Tree = dsa::Binary_Tree<int>;
+
+static_assert(std::is_same_v<Int_Binary_Tree::Value, int>);
+
+static_assert(std::is_same_v<decltype(*std::declval<Int_Binary_Tree>().begin()), int &>);
+static_assert(std::is_same_v<decltype(*std::declval<const Int_Binary_Tree>().begin()), const int &>);
+static_assert(std::is_same_v<decltype(*std::declval<Int_Binary_Tree>().end()), int &>);
+static_assert(std::is_same_v<decltype(*std::declval<const Int_Binary_Tree>().end()), const int &>);
+
 
 namespace
 {
@@ -257,4 +265,25 @@ TEST(binary_tree, destroy_elements)
 	}
 
 	ASSERT_EQ(counter.use_count(), 1);
+}
+
+TEST(binary_tree, iterate_empty_list)
+{
+	dsa::Binary_Tree<int> empty;
+	for ([[maybe_unused]] int value : empty)
+	{
+		FAIL() << "Expected the body of this loop to not be executed";
+	}
+
+	SUCCEED();
+}
+
+TEST(binary_tree, iterate_validate_values)
+{
+	std::size_t index = 0;
+	for (int value : long_sample)
+	{
+		ASSERT_EQ(value, index++);
+	}
+	ASSERT_EQ(index, 7ULL);
 }
