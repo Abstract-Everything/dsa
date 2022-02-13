@@ -59,6 +59,15 @@ jobs:
       shell: bash
       run: cmake -E make_directory "${{ runner.workspace }}/build"
 
+    - name: Update environment
+      shell: bash
+      run: |
+        if [ "${{ matrix.config.name }}" == "ubuntu-gcc" ]; then
+          sudo apt update -y
+          sudo apt install -y gcc-10 g++-10 cpp-10
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+        fi
+
     - name: Install conan
       shell: bash
       run: |
