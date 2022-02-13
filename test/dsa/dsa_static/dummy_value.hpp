@@ -8,7 +8,9 @@ struct Dummy_Value_Construct_Tag
 class Dummy_Value
 {
  public:
-	explicit Dummy_Value(Dummy_Value_Construct_Tag tag);
+	constexpr explicit Dummy_Value(Dummy_Value_Construct_Tag /* tag */)
+	{
+	}
 
 	~Dummy_Value()                   = default;
 	Dummy_Value(Dummy_Value const &) = delete;

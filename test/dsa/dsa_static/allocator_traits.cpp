@@ -21,7 +21,36 @@ TEST_CASE("Created test file", "[allocator_traits]")
 	STATIC_REQUIRE(std::is_same_v<Traits::Const_Pointer, Empty_Value const *>);
 }
 
-namespace
+namespace standard
+{
+
+struct Dummy_Value_Allocator
+{
+	using Value = Dummy_Value;
+};
+
+using Traits = dsa::Allocator_Traits<Dummy_Value_Allocator>;
+
+constexpr bool call_overloads()
+{
+	Dummy_Value_Allocator allocator;
+	Dummy_Value          *pointer = Traits::allocate(allocator, 1U);
+	Traits::construct(allocator, pointer, Dummy_Value_Construct_Tag());
+	Traits::destroy(allocator, pointer);
+	Traits::deallocate(allocator, pointer, 1U);
+	return true;
+}
+
+} // namespace standard
+
+TEST_CASE(
+    "Allocator_Traits calls default allocator operations in a static context",
+    "[allocator_traits]")
+{
+	STATIC_REQUIRE(standard::call_overloads());
+}
+
+namespace custom
 {
 
 std::size_t max_limit_size_t()
@@ -96,12 +125,13 @@ constexpr Dummy_Allocator destroy(Id id)
 	return allocator;
 }
 
-} // namespace
+} // namespace custom
 
 TEST_CASE(
     "Allocator_Traits calls custom allocator operation overloads if present",
     "[allocator_traits]")
 {
+	using namespace custom;
 	SECTION("Custom allocate is called in a static context")
 	{
 		constexpr std::size_t count = 5;
@@ -160,10 +190,10 @@ TEST_CASE(
 
 	SECTION("Custom destroy is called in a static context")
 	{
-		constexpr Id              static_id = Id(9);
-		constexpr Dummy_Allocator allocator = destroy(static_id);
+		constexpr Id              id = Id(9);
+		constexpr Dummy_Allocator allocator = destroy(id);
 
-		STATIC_REQUIRE(allocator.destroyed == static_id);
+		STATIC_REQUIRE(allocator.destroyed == id);
 	}
 
 	SECTION("Custom destroy is called with the forwarded arguments")
