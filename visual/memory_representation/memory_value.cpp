@@ -43,7 +43,7 @@ Address Memory_Value::pointee_address() const
 		return std::get<Address>(m_value);
 	}
 
-	assert(!"Tried retreiving a value as a pointer");
+	assert(false && "Tried retreiving a value as a pointer");
 	return 0U;
 }
 
