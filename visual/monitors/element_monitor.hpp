@@ -121,7 +121,8 @@ class Element_Monitor
 	{
 		visual::Dispatch(Copy_Assignment_Event{
 		    to_raw_address(this),
-		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
+		    Memory_Value{sizeof(*this), m_initialised, to_string()}
+                });
 	}
 
 	void dispatch_move(const Element_Monitor &element)
@@ -129,7 +130,8 @@ class Element_Monitor
 		visual::Dispatch(Move_Assignment_Event{
 		    to_raw_address(this),
 		    to_raw_address(&element),
-		    Memory_Value{sizeof(*this), m_initialised, to_string()}});
+		    Memory_Value{sizeof(*this), m_initialised, to_string()}
+                });
 	}
 };
 

@@ -20,10 +20,10 @@ class List_Node
  private:
 	friend class Node_Traits<List_Node>;
 
-	using Alloc_Traits    = Allocator_Traits<Allocator_Base<List_Node>>;
-	using Allocator       = typename Alloc_Traits::Allocator;
-	using Pointer         = typename Alloc_Traits::Pointer;
-	using Const_Pointer   = typename Alloc_Traits::Const_Pointer;
+	using Alloc_Traits  = Allocator_Traits<Allocator_Base<List_Node>>;
+	using Allocator     = typename Alloc_Traits::Allocator;
+	using Pointer       = typename Alloc_Traits::Pointer;
+	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
 	using Satellite_Alloc_Traits    = Allocator_Traits<Allocator_Base<Satellite_t>>;
 	using Satellite                 = typename Satellite_Alloc_Traits::Value;
@@ -172,7 +172,9 @@ class List
 		while (from != nullptr)
 		{
 			Node_Pointer &to = *next;
-			to = Node_Traits::create_node(m_allocator, from->m_satellite);
+			to               = Node_Traits::create_node(
+                            m_allocator,
+                            from->m_satellite);
 
 			next = &to->m_next;
 			from = from->m_next;

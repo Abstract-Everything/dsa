@@ -1,5 +1,5 @@
 Language: Cpp
-Standard: Auto
+Standard: c++20
 
 # Whitespace options
 ColumnLimit: 80
@@ -15,7 +15,7 @@ ConstructorInitializerIndentWidth: 4
 CompactNamespaces: false
 
 # Indentation
-# IndentAccessModifiers: false # clang-format 13
+IndentAccessModifiers: false
 IndentCaseBlocks: false
 IndentCaseLabels: false
 IndentExternBlock: NoIndent
@@ -23,7 +23,7 @@ IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
 IndentRequires: true
 IndentWrappedFunctionNames: false
-# LambdaBodyIndentation: Signature # clang-format 13
+LambdaBodyIndentation: Signature
 NamespaceIndentation: None
 
 # Single Spaces
@@ -54,7 +54,7 @@ SpacesInSquareBrackets: false
 
 # Alignment
 AlignAfterOpenBracket: AlwaysBreak
-# AlignArraysOfStructures: Right # clang-format 13
+AlignArrayOfStructures: Right
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveBitFields: Consecutive
 AlignConsecutiveDeclarations: Consecutive
@@ -150,6 +150,7 @@ PenaltyReturnTypeOnItsOwnLine: 999
 # Miscellaneous
 DerivePointerAlignment: false
 PointerAlignment: Right
+# ReferenceAlignment: Pointer # clang-format 14
 # QualifierAlignment: Right # clang-format 14
 # QualifierOrder: ['inline', 'static', 'constexpr', 'type', 'const', 'volatile'] # clang-format 14
 
@@ -167,7 +168,3 @@ RawStringFormats:
   - Language: Cpp
     Delimiters:
       - 'CPP'
-#  - Language: Json # clang-format 13
-#    Delimiters:
-#      - 'JSON'
-# ReferenceAlignment: Pointer # clang-format 14

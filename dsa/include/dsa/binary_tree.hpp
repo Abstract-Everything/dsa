@@ -108,7 +108,8 @@ class Binary_Tree_Node
 				return node->m_parent;
 			}
 
-			while (node->m_parent != nullptr && node->m_parent->m_right == node)
+			while (node->m_parent != nullptr
+			       && node->m_parent->m_right == node)
 			{
 				node = node->m_parent;
 			}
@@ -312,7 +313,7 @@ class Binary_Tree
 				       : &node->m_right;
 		}
 
-		*node_ptr       = insert;
+		*node_ptr        = insert;
 		insert->m_parent = parent;
 	}
 
@@ -416,8 +417,8 @@ class Binary_Tree
 		Node_Pointer root =
 		    Node_Traits::create_node(m_allocator, subtree->m_satellite);
 		root->m_parent = parent;
-		root->m_left  = copy_subtree(root, subtree->m_left);
-		root->m_right = copy_subtree(root, subtree->m_right);
+		root->m_left   = copy_subtree(root, subtree->m_left);
+		root->m_right  = copy_subtree(root, subtree->m_right);
 		return root;
 	}
 

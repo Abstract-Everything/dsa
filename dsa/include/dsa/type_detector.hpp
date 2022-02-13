@@ -33,7 +33,8 @@ template<template<typename...> typename Operator, typename... Arguments>
 using Detect_T = typename detail::Detector<void, Operator, Arguments...>::Type;
 
 template<template<typename...> typename Operator, typename... Arguments>
-constexpr bool Detect_V = detail::Detector<void, Operator, Arguments...>::Value_t::value;
+constexpr bool Detect_V =
+    detail::Detector<void, Operator, Arguments...>::Value_t::value;
 
 } // namespace dsa
 
