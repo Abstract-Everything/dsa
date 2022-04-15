@@ -48,7 +48,7 @@ constexpr bool is_detected_v = is_detected<Op, Args...>::value;
                                                                 \
 	template<typename T, typename Param>                    \
 	constexpr bool has_member_operator_access_v =           \
-	    tmpl::detail::is_detected_v<member_function_operator_access_t, T, Param>; // Intentionally ommitted ';'
+	    tmpl::detail::is_detected_v<member_function_operator_access_t, T, Param> // Intentionally ommitted ';'
 
 template<typename Variant_Type, std::size_t variant_index = 0>
 constexpr void construct_variant_by_index(Variant_Type &variant, std::size_t index)

@@ -60,7 +60,7 @@ function(set_project_warnings project)
 	    $<$<BOOL:${CPP_TMPL_COMPILE_WARN_AS_ERR}>:-Werror>)
 
 	set(warnings_gcc
-	    ${CLANG_WARNINGS}
+	    ${warnings_clang}
 	    -Wmisleading-indentation
 	    -Wduplicated-cond
 	    -Wduplicated-branches
