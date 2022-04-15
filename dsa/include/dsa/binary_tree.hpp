@@ -324,7 +324,7 @@ class Binary_Tree
 	void erase(Value value)
 	{
 		Node_Pointer *pointer = &m_head;
-		while (*pointer != nullptr && (*pointer)->m_satellite != value)
+		while ((*pointer)->m_satellite != value)
 		{
 			Node_Pointer node = *pointer;
 			pointer = value < node->m_satellite ? &node->m_left
