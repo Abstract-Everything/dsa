@@ -1,14 +1,7 @@
-find_package(GTest REQUIRED)
-include(GoogleTest)
+if (${DSA_RUNTIME_TESTS})
+	add_subdirectory(dsa_runtime)
+endif()
 
-add_executable(dsa_test dynamic_array.cpp vector.cpp list.cpp binary_tree.cpp)
-
-target_link_libraries(
-	dsa_test
-	PRIVATE project_options
-		project_warnings
-		dsa
-		GTest::gtest
-		GTest::gtest_main)
-
-gtest_discover_tests(dsa_test)
+if (${DSA_STATIC_TESTS} OR ${DSA_STATIC_DEBUG_TESTS})
+	add_subdirectory(dsa_static)
+endif()

@@ -43,7 +43,4 @@ enable_tests()
 add_subdirectory(dependencies)
 add_subdirectory(dsa)
 add_subdirectory(visual)
-
-if(${CPP_TMPL_TESTING} STREQUAL "gtest")
-	add_subdirectory(test)
-endif()
+add_subdirectory(test)

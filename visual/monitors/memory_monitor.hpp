@@ -20,11 +20,9 @@ template<typename Value_t>
 class Memory_Monitor
 {
  public:
-	using Value           = Value_t;
-	using Reference       = Value &;
-	using Const_Reference = Value const &;
-	using Pointer         = Weak_Pointer_Monitor<Value>;
-	using Const_Pointer   = Weak_Pointer_Monitor<Value const>;
+	using Value         = Value_t;
+	using Pointer       = Weak_Pointer_Monitor<Value>;
+	using Const_Pointer = Weak_Pointer_Monitor<Value const>;
 
  private:
 	using Allocator    = dsa::Default_Allocator<Value>;

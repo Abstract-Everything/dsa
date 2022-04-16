@@ -8,11 +8,7 @@ template<typename Value_t>
 class Default_Allocator
 {
  public:
-	using Value           = Value_t;
-	using Reference       = Value &;
-	using Const_Reference = Value const &;
-	using Pointer         = Value *;
-	using Const_Pointer   = Value const *;
+	using Value = Value_t;
 
 	Default_Allocator() = default;
 
