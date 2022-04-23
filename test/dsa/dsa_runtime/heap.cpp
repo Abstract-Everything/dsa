@@ -157,3 +157,62 @@ TEST(heap, push_value_propogated_to_root)
 	ASSERT_EQ(heap.top(), 0);
 	ASSERT_THAT(heap, is_heap());
 }
+
+TEST(heap, pop_single_value)
+{
+	dsa::Heap heap{0};
+	heap.pop();
+
+	ASSERT_EQ(heap.size(), 0ULL);
+	ASSERT_THAT(heap, is_heap());
+}
+
+TEST(heap, pop_value_replaced)
+{
+	dsa::Heap heap{0, 1};
+	heap.pop();
+
+	ASSERT_EQ(heap.size(), 1ULL);
+	ASSERT_EQ(heap.top(), 1);
+	ASSERT_THAT(heap, is_heap());
+}
+
+TEST(heap, pop_value_replaced_by_left_child)
+{
+	dsa::Heap heap{0, 1, 2, 3};
+	heap.pop();
+
+	ASSERT_EQ(heap.size(), 3ULL);
+	ASSERT_EQ(heap.top(), 1);
+	ASSERT_THAT(heap, is_heap());
+}
+
+TEST(heap, pop_value_replaced_by_right_child)
+{
+	dsa::Heap heap{0, 2, 1, 3};
+	heap.pop();
+
+	ASSERT_EQ(heap.size(), 3ULL);
+	ASSERT_EQ(heap.top(), 1);
+	ASSERT_THAT(heap, is_heap());
+}
+
+TEST(heap, pop_handle_node_single_child)
+{
+	dsa::Heap heap{0, 2, 1, 3, 5, 7, 9};
+	heap.pop();
+
+	ASSERT_EQ(heap.size(), 6ULL);
+	ASSERT_EQ(heap.top(), 1);
+	ASSERT_THAT(heap, is_heap());
+}
+
+TEST(heap, pop_exchanged_element_smaller_than_deepest_nodes)
+{
+	dsa::Heap heap{0, 1, 2, 6, 4, 5, 3};
+	heap.pop();
+
+	ASSERT_EQ(heap.size(), 6ULL);
+	ASSERT_EQ(heap.top(), 1);
+	ASSERT_THAT(heap, is_heap());
+}

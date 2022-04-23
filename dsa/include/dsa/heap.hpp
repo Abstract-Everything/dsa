@@ -124,6 +124,48 @@ class Heap
 		}
 	}
 
+	/**
+	 * @brief Removes the top element of the heap and does the work
+	 * necessary to maintain the heap property. This is undefined behaviour
+	 * if the heap is empty
+	 */
+	void pop()
+	{
+		using std::swap;
+
+		const std::size_t last = m_storage.size() - 1;
+		swap(m_storage[0], m_storage[last]);
+		m_storage.erase(last);
+
+		std::size_t parent = 0;
+		for (std::size_t left = 1;
+		     left < m_storage.size();
+		     left = child_index(parent))
+		{
+			const std::size_t right = left + 1;
+
+			std::size_t smallest = parent;
+			if (m_comparator(m_storage[left], m_storage[parent]))
+			{
+				smallest = left;
+			}
+
+			if (right < m_storage.size()
+			    && m_comparator(m_storage[right], m_storage[smallest]))
+			{
+				smallest = right;
+			}
+
+			if (smallest == parent)
+			{
+				break;
+			}
+
+			swap(m_storage[parent], m_storage[smallest]);
+			parent = smallest;
+		}
+	}
+
  private:
 	Storage    m_storage;
 	Comparator m_comparator;
@@ -135,6 +177,15 @@ class Heap
 	[[nodiscard]] std::size_t parent_index(std::size_t index) const
 	{
 		return (index - 1) / 2;
+	}
+
+	/**
+	 * @brief Returns the index of the first child given an index of the
+	 * parent
+	 */
+	[[nodiscard]] std::size_t child_index(std::size_t index) const
+	{
+		return (index * 2) + 1;
 	}
 };
 
