@@ -69,6 +69,24 @@ class Heap
 	}
 
 	/**
+	 * @brief Returns a reference to the top element of the heap. This is
+	 * undefined behaviour if the heap is empty
+	 */
+	Value &top()
+	{
+		return m_storage[0];
+	}
+
+	/**
+	 * @brief Returns a const reference to the top element of the heap. This
+	 * is undefined behaviour if the heap is empty
+	 */
+	const Value &top() const
+	{
+		return m_storage[0];
+	}
+
+	/**
 	 * @brief Adds an element to the heap and does the work necessary to
 	 * maintain the heap property
 	 */

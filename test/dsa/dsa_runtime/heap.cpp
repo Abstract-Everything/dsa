@@ -37,6 +37,7 @@ TEST(heap, push_single_value)
 	heap.push(0);
 
 	ASSERT_EQ(heap.size(), 1ULL);
+	ASSERT_EQ(heap.top(), 0);
 	ASSERT_THAT(heap, is_heap());
 }
 
@@ -49,6 +50,7 @@ TEST(heap, push_value_is_in_order)
 	heap.push(7);
 
 	ASSERT_EQ(heap.size(), 4ULL);
+	ASSERT_EQ(heap.top(), 1);
 	ASSERT_THAT(heap, is_heap());
 }
 
@@ -61,6 +63,7 @@ TEST(heap, push_value_swaps_parent)
 	heap.push(2);
 
 	ASSERT_EQ(heap.size(), 4ULL);
+	ASSERT_EQ(heap.top(), 1);
 	ASSERT_THAT(heap, is_heap());
 }
 
@@ -76,5 +79,6 @@ TEST(heap, push_value_propogated_to_root)
 	heap.push(0);
 
 	ASSERT_EQ(heap.size(), 7ULL);
+	ASSERT_EQ(heap.top(), 0);
 	ASSERT_THAT(heap, is_heap());
 }
