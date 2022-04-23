@@ -50,6 +50,16 @@ TEST(heap, copy_initialisation)
 	ASSERT_EQ(heap.top(), 0);
 }
 
+TEST(heap, move_initialisation)
+{
+	dsa::Heap from(sample);
+	dsa::Heap to(std::move(from));
+
+	ASSERT_EQ(to.size(), 3ULL);
+	ASSERT_EQ(to.top(), 0);
+	ASSERT_THAT(to, is_heap());
+}
+
 TEST(heap, push_single_value)
 {
 	dsa::Heap<int> heap;
