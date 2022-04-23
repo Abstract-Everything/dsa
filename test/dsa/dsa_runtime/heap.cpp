@@ -19,6 +19,8 @@ MATCHER(is_heap, fmt::format("to {}be a min heap", negation ? "not " : ""))
 	return dsa::is_heap(arg.storage().begin(), arg.storage().end(), std::less{});
 }
 
+const dsa::Heap<int> sample{0, 1, 2};
+
 } // namespace
 
 static_assert(std::is_same_v<dsa::Heap<int>::Value, int>);
@@ -38,6 +40,14 @@ TEST(heap, list_initialisation)
 	ASSERT_EQ(heap.size(), 3ULL);
 	ASSERT_EQ(heap.top(), 0);
 	ASSERT_THAT(heap, is_heap());
+}
+
+TEST(heap, copy_initialisation)
+{
+	dsa::Heap heap(sample);
+
+	ASSERT_EQ(heap.size(), 3ULL);
+	ASSERT_EQ(heap.top(), 0);
 }
 
 TEST(heap, push_single_value)
