@@ -30,7 +30,7 @@ TEST(heap, default_initialisation)
 {
 	dsa::Heap<int> heap;
 
-	ASSERT_EQ(heap.size(), 0ULL);
+	ASSERT_TRUE(heap.empty());
 	ASSERT_THAT(heap, is_heap());
 }
 
@@ -111,6 +111,7 @@ TEST(heap, push_single_value)
 	dsa::Heap<int> heap;
 	heap.push(0);
 
+	ASSERT_FALSE(heap.empty());
 	ASSERT_EQ(heap.size(), 1ULL);
 	ASSERT_EQ(heap.top(), 0);
 	ASSERT_THAT(heap, is_heap());
@@ -163,7 +164,7 @@ TEST(heap, pop_single_value)
 	dsa::Heap heap{0};
 	heap.pop();
 
-	ASSERT_EQ(heap.size(), 0ULL);
+	ASSERT_TRUE(heap.empty());
 	ASSERT_THAT(heap, is_heap());
 }
 

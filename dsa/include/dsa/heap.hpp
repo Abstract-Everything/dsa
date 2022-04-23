@@ -68,6 +68,14 @@ class Heap
 	}
 
 	/**
+	 * @brief Returns true if the heap contains no elements.
+	 */
+	[[nodiscard]] bool empty() const
+	{
+		return size() == 0ULL;
+	}
+
+	/**
 	 * @brief Returns a reference to the underlying container storing the
 	 * heap
 	 */
