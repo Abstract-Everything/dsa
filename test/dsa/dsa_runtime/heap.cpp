@@ -48,6 +48,7 @@ TEST(heap, copy_initialisation)
 
 	ASSERT_EQ(heap.size(), 3ULL);
 	ASSERT_EQ(heap.top(), 0);
+	ASSERT_THAT(heap, is_heap());
 }
 
 TEST(heap, move_initialisation)
@@ -58,6 +59,16 @@ TEST(heap, move_initialisation)
 	ASSERT_EQ(to.size(), 3ULL);
 	ASSERT_EQ(to.top(), 0);
 	ASSERT_THAT(to, is_heap());
+}
+
+TEST(heap, copy_assignment)
+{
+	dsa::Heap<int> heap;
+	heap = sample;
+
+	ASSERT_EQ(heap.size(), 3ULL);
+	ASSERT_EQ(heap.top(), 0);
+	ASSERT_THAT(heap, is_heap());
 }
 
 TEST(heap, push_single_value)
