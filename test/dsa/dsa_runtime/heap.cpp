@@ -20,6 +20,7 @@ MATCHER(is_heap, fmt::format("to {}be a min heap", negation ? "not " : ""))
 }
 
 const dsa::Heap<int> sample{0, 1, 2};
+const dsa::Heap<int> sample_long{10, 11, 12, 13, 14, 15};
 
 } // namespace
 
@@ -80,6 +81,29 @@ TEST(heap, move_assignment)
 	ASSERT_EQ(to.size(), 3ULL);
 	ASSERT_EQ(to.top(), 0);
 	ASSERT_THAT(to, is_heap());
+}
+
+TEST(heap, swap)
+{
+	dsa::Heap heap1(sample);
+	dsa::Heap heap2(sample_long);
+
+	ASSERT_EQ(heap1.size(), 3ULL);
+	ASSERT_EQ(heap1.top(), 0);
+
+	ASSERT_EQ(heap2.size(), 6ULL);
+	ASSERT_EQ(heap2.top(), 10);
+
+	swap(heap1, heap2);
+
+	ASSERT_EQ(heap1.size(), 6ULL);
+	ASSERT_EQ(heap1.top(), 10);
+
+	ASSERT_EQ(heap2.size(), 3ULL);
+	ASSERT_EQ(heap2.top(), 0);
+
+	ASSERT_THAT(heap1, is_heap());
+	ASSERT_THAT(heap2, is_heap());
 }
 
 TEST(heap, push_single_value)

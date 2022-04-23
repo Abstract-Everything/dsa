@@ -52,6 +52,13 @@ class Heap
 		}
 	}
 
+	friend void swap(Heap &lhs, Heap &rhs)
+	{
+		using std::swap;
+		swap(lhs.m_storage, rhs.m_storage);
+		swap(lhs.m_comparator, rhs.m_comparator);
+	}
+
 	/**
 	 * @brief Returns the current number of elements in the heap
 	 */
