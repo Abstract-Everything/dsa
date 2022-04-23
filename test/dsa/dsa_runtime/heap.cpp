@@ -71,6 +71,17 @@ TEST(heap, copy_assignment)
 	ASSERT_THAT(heap, is_heap());
 }
 
+TEST(heap, move_assignment)
+{
+	dsa::Heap      from(sample);
+	dsa::Heap<int> to;
+	to = std::move(from);
+
+	ASSERT_EQ(to.size(), 3ULL);
+	ASSERT_EQ(to.top(), 0);
+	ASSERT_THAT(to, is_heap());
+}
+
 TEST(heap, push_single_value)
 {
 	dsa::Heap<int> heap;
