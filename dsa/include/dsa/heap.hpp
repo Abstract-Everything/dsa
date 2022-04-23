@@ -37,9 +37,19 @@ class Heap
 
 	using Storage = dsa::Vector<Value, Allocator_Base>;
 
-	explicit Heap(Comparator comparator = std::less_equal{})
+	/**
+	 * @brief Constructs a heap made up of the given elements
+	 */
+	Heap(
+	    std::initializer_list<Value_t> list,
+	    Comparator                     comparator = std::less{})
 	    : m_comparator(std::move(comparator))
 	{
+		m_storage.reserve(list.size());
+		for (auto &value : list)
+		{
+			push(value);
+		}
 	}
 
 	/**

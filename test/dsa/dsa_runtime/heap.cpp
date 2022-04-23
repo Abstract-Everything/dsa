@@ -31,6 +31,15 @@ TEST(heap, default_initialisation)
 	ASSERT_THAT(heap, is_heap());
 }
 
+TEST(heap, list_initialisation)
+{
+	dsa::Heap heap{0, 1, 2};
+
+	ASSERT_EQ(heap.size(), 3ULL);
+	ASSERT_EQ(heap.top(), 0);
+	ASSERT_THAT(heap, is_heap());
+}
+
 TEST(heap, push_single_value)
 {
 	dsa::Heap<int> heap;
