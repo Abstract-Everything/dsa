@@ -255,10 +255,7 @@ bool Viewport::process(const Deallocated_Array_Event &event)
 
 bool Viewport::process(const Copy_Assignment_Event &event)
 {
-	return update_value(
-	    "Received an assignment event for an address outside any range",
-	    event.address(),
-	    event.value());
+	return update_value(event.address(), event.value());
 }
 
 bool Viewport::process(const Move_Assignment_Event &event)
@@ -271,10 +268,7 @@ bool Viewport::process(const Move_Assignment_Event &event)
 
 bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 {
-	return update_value(
-	    "Received a move assignment event for an address outside any range",
-	    event.to_address(),
-	    event.value());
+	return update_value(event.to_address(), event.value());
 }
 
 bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
@@ -286,15 +280,12 @@ bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
 		: Memory_Value(event.value().size(), false, ""));
 }
 
-bool Viewport::update_value(
-    std::string_view    log_message,
-    Address             address,
-    const Memory_Value &value)
+bool Viewport::update_value(Address address, const Memory_Value &value)
 {
 	bool success = update_element(address, value);
 	if (!success)
 	{
-		spdlog::warn(log_message);
+		spdlog::warn("Received an assignment event for an address outside the registered ranges");
 	}
 	return success;
 }

@@ -40,11 +40,7 @@ class Viewport
 	[[nodiscard]] bool updated_moved_from_element(
 	    const Move_Assignment_Event &event);
 
-	[[nodiscard]] bool update_value(
-	    std::string_view    log_message,
-	    Address             address,
-	    const Memory_Value &value);
-
+	[[nodiscard]] bool update_value(Address address, const Memory_Value &value);
 	[[nodiscard]] bool update_element(Address address, const Memory_Value &value);
 };
 
