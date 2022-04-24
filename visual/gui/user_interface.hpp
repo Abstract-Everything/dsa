@@ -10,6 +10,7 @@
 #include <dsa/dynamic_array.hpp>
 #include <dsa/list.hpp>
 #include <dsa/vector.hpp>
+#include <dsa/heap.hpp>
 
 #include <variant>
 
@@ -27,19 +28,22 @@ class User_Interface
 	using Vector      = dsa::Vector<Value, Allocator>;
 	using List        = dsa::List<Value, Allocator>;
 	using Binary_Tree = dsa::Binary_Tree<Value, Allocator>;
+	using Heap        = dsa::Heap<Value, decltype(std::less{}), Allocator>;
+
+	using Structures_Actions = std::variant<
+	    std::monostate,
+	    Actions_UI<Array>,
+	    Actions_UI<Vector>,
+	    Actions_UI<List>,
+	    Actions_UI<Binary_Tree>,
+	    Actions_UI<Heap>>;
 
  public:
 	void draw();
 
  private:
-	int m_selected_structure;
-	std::variant<
-	    std::monostate,
-	    Actions_UI<Array>,
-	    Actions_UI<Vector>,
-	    Actions_UI<List>,
-	    Actions_UI<Binary_Tree>>
-	    m_actions;
+	int                m_selected_structure;
+	Structures_Actions m_actions;
 };
 
 } // namespace visual
