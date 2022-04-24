@@ -33,6 +33,7 @@ class Viewport
 	[[nodiscard]] bool process(const Deallocated_Array_Event &event);
 	[[nodiscard]] bool process(const Copy_Assignment_Event &event);
 	[[nodiscard]] bool process(const Move_Assignment_Event &event);
+	[[nodiscard]] bool process(const Swap_Event &event);
 
 	[[nodiscard]] bool updated_moved_to_element(
 	    const Move_Assignment_Event &event);
@@ -40,11 +41,7 @@ class Viewport
 	[[nodiscard]] bool updated_moved_from_element(
 	    const Move_Assignment_Event &event);
 
-	[[nodiscard]] bool update_value(
-	    std::string_view    log_message,
-	    Address             address,
-	    const Memory_Value &value);
-
+	[[nodiscard]] bool update_value(Address address, const Memory_Value &value);
 	[[nodiscard]] bool update_element(Address address, const Memory_Value &value);
 };
 

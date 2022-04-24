@@ -5,6 +5,7 @@
 #include "copy_assignment_event.hpp"
 #include "event.hpp"
 #include "move_assignment_event.hpp"
+#include "swap_event.hpp"
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -47,6 +48,8 @@ class Element_Monitor
 		using std::swap;
 		swap(lhs.m_initialised, rhs.m_initialised);
 		swap(lhs.m_value, rhs.m_value);
+
+		dispatch_swap(lhs, rhs);
 	}
 
 	Element_Monitor &operator=(const Element_Monitor &element)
@@ -116,6 +119,15 @@ class Element_Monitor
  private:
 	bool  m_initialised = false;
 	Value m_value{};
+
+	static void dispatch_swap(const Element_Monitor &lhs, const Element_Monitor &rhs)
+	{
+		visual::Dispatch(Swap_Event(
+		    to_raw_address(&lhs),
+		    Memory_Value(sizeof(lhs), lhs.m_initialised, lhs.to_string()),
+		    to_raw_address(&rhs),
+		    Memory_Value(sizeof(rhs), rhs.m_initialised, rhs.to_string())));
+	}
 
 	void dispatch_copy()
 	{
