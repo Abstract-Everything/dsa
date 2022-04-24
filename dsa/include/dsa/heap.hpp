@@ -38,6 +38,13 @@ class Heap
 	using Storage = dsa::Vector<Value, Allocator_Base>;
 
 	/**
+	 * @brief Constructs an empty heap
+	 */
+	Heap() : Heap({})
+	{
+	}
+
+	/**
 	 * @brief Constructs a heap made up of the given elements
 	 */
 	Heap(
