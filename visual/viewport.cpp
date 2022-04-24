@@ -266,6 +266,17 @@ bool Viewport::process(const Move_Assignment_Event &event)
 	return moved_to || moved_from;
 }
 
+bool Viewport::process(const Swap_Event &event)
+{
+	const bool copied_lhs =
+	    update_value(event.lhs_address(), event.lhs_value());
+
+	const bool copied_rhs =
+	    update_value(event.rhs_address(), event.rhs_value());
+
+	return copied_lhs && copied_rhs;
+}
+
 bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
 {
 	return update_value(event.to_address(), event.value());

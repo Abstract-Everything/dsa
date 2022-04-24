@@ -33,6 +33,7 @@ class Viewport
 	[[nodiscard]] bool process(const Deallocated_Array_Event &event);
 	[[nodiscard]] bool process(const Copy_Assignment_Event &event);
 	[[nodiscard]] bool process(const Move_Assignment_Event &event);
+	[[nodiscard]] bool process(const Swap_Event &event);
 
 	[[nodiscard]] bool updated_moved_to_element(
 	    const Move_Assignment_Event &event);
