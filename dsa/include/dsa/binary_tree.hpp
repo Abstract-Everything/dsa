@@ -342,6 +342,7 @@ class Binary_Tree
 		else if (node->m_right != nullptr)
 		{
 			*pointer = node->m_right;
+			(*pointer)->m_parent = node->m_parent;
 
 			node->m_right = nullptr;
 			delete_node(node);
