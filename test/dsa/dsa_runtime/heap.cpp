@@ -16,6 +16,7 @@ namespace
 
 MATCHER(is_heap, fmt::format("to {}be a min heap", negation ? "not " : ""))
 {
+	[[maybe_unused]] auto *silence_unused_warning = &result_listener;
 	return dsa::is_heap(arg.storage().begin(), arg.storage().end(), std::less{});
 }
 
