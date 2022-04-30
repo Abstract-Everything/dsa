@@ -5,12 +5,13 @@
 namespace
 {
 
-constexpr std::array<const char *, 5> structures{
+constexpr std::array<const char *, 6> structures{
     "Empty",
     "Array",
     "Vector",
     "List",
-    "Binary Tree"};
+    "Binary Tree",
+    "Heap"};
 
 } // namespace
 
@@ -19,6 +20,8 @@ namespace visual
 
 void User_Interface::draw()
 {
+	static_assert(structures.size() == std::variant_size_v<Structures_Actions>);
+
 	if (!ImGui::CollapsingHeader(
 		"Data structure operations",
 		ImGuiTreeNodeFlags_DefaultOpen))

@@ -16,12 +16,15 @@ DEFINE_HAS_MEMBER(size);
 DEFINE_HAS_MEMBER(capacity);
 DEFINE_HAS_MEMBER(front);
 DEFINE_HAS_MEMBER(back);
+DEFINE_HAS_MEMBER(top);
 DEFINE_HAS_MEMBER(resize);
 DEFINE_HAS_MEMBER(clear);
 DEFINE_HAS_MEMBER(shrink_to_fit);
 DEFINE_HAS_MEMBER(append);
 DEFINE_HAS_MEMBER(insert);
+DEFINE_HAS_MEMBER(push);
 DEFINE_HAS_MEMBER(erase);
+DEFINE_HAS_MEMBER(pop);
 DEFINE_HAS_OPERATOR_ACCESS();
 
 template<typename Container>
@@ -67,6 +70,7 @@ class Actions_UI
 	static constexpr bool has_capacity        = has_member_capacity_v<Container>;
 	static constexpr bool has_front           = has_member_front_v<Container>;
 	static constexpr bool has_back            = has_member_back_v<Container>;
+	static constexpr bool has_top             = has_member_top_v<Container>;
 	static constexpr bool has_operator_access = has_member_operator_access_v<Container, std::size_t>;
 	static constexpr bool has_clear           = has_member_clear_v<Container>;
 	static constexpr bool has_shrink_to_fit   = has_member_shrink_to_fit_v<Container>;
@@ -74,8 +78,10 @@ class Actions_UI
 	static constexpr bool has_append          = has_member_append_v<Container, Value>;
 	static constexpr bool has_indexed_insert  = has_member_insert_v<Container, std::size_t, Value>;
 	static constexpr bool has_insert          = has_member_insert_v<Container, Value>;
+	static constexpr bool has_push            = has_member_push_v<Container, Value>;
 	static constexpr bool has_indexed_erase   = has_member_erase_v<Container, std::size_t>;
 	static constexpr bool has_erase           = has_member_erase_v<Container, Value>;
+	static constexpr bool has_pop             = has_member_pop_v<Container>;
 };
 
 template<typename Container>
@@ -125,6 +131,15 @@ void Actions_UI<Container>::accessors()
 		    "%s",
 		    m_container.empty() ? "Container is empty"
 					: m_container.back().to_string().c_str());
+	}
+
+	if constexpr (has_top)
+	{
+		ImGui::LabelText(
+		    "Top element",
+		    "%s",
+		    m_container.empty() ? "Container is empty"
+					: m_container.top().to_string().c_str());
 	}
 
 	if constexpr (has_operator_access)
@@ -221,6 +236,17 @@ void Actions_UI<Container>::modifiers()
 		}
 	}
 
+	if constexpr (has_push)
+	{
+		ImGui::Separator();
+		ImGui::InputInt("Push Value", &m_insert_value);
+
+		if (ImGui::Button("Push"))
+		{
+			m_container.push(Value{m_insert_value});
+		}
+	}
+
 	if constexpr (has_indexed_erase)
 	{
 		ImGui::Separator();
@@ -246,6 +272,17 @@ void Actions_UI<Container>::modifiers()
 			m_container.erase(erase_value);
 		}
 	}
+
+	if constexpr (has_pop)
+	{
+		ImGui::Text("Remove the top element from the container");
+		ImGui::SameLine();
+		if (ImGui::Button("Pop"))
+		{
+			m_container.pop();
+		}
+	}
+
 }
 
 template<typename Container>

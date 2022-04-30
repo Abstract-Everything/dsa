@@ -96,9 +96,19 @@ class Element_Monitor
 		return m_value < element.m_value;
 	}
 
+	bool operator<=(const Element_Monitor<Value> element) const
+	{
+		return m_value <= element.m_value;
+	}
+
 	bool operator>(const Element_Monitor<Value> element) const
 	{
 		return m_value > element.m_value;
+	}
+
+	bool operator>=(const Element_Monitor<Value> element) const
+	{
+		return m_value >= element.m_value;
 	}
 
 	bool operator==(const Element_Monitor<Value> element) const
