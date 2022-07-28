@@ -7,11 +7,10 @@
 #include "event.hpp"
 #include "templates.hpp"
 #include "weak_pointer_monitor.hpp"
+#include "uninitialised_tag.hpp"
 
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
-
-DEFINE_HAS_MEMBER(uninitialise);
 
 namespace visual
 {
@@ -48,14 +47,13 @@ class Memory_Monitor
 
 		for (std::size_t i = 0; i < size; ++i)
 		{
-			Alloc_Traits::construct(
-			    allocator,
-			    (pointer + i).get(),
-			    Value());
-
-			if constexpr (has_member_uninitialise_v<Value>)
+			if constexpr (std::is_constructible_v<Value, uninitialised_tag>)
 			{
-				pointer[i].uninitialise();
+				Alloc_Traits::construct(allocator, (pointer + i).get(), uninitialised_tag{});
+			}
+			else
+			{
+				Alloc_Traits::construct(allocator, (pointer + i).get(), Value());
 			}
 		}
 
