@@ -1,0 +1,72 @@
+Development:
+	Features:
+		DSA:
+			Make the structures constexpr
+			Exception safety
+			Add Data Structures:
+				Queue
+				Stack
+				Double ended queue
+				Red-Black Tree
+				B-Tree
+				AVL Trees
+				Hash tables
+				Fibonacci Tree
+			Algorithms:
+				Traverse
+				Sort
+					Heap
+					Quick
+					Merge
+					Insertion
+					Linear time
+				Minimum element
+				Maximum element
+				Maximum subarray
+				Search
+				Dynamic Programming
+			Multithreading
+
+	Improvements:
+		DSA:
+			Create a buffer class to encapsulate Alloc_Traits calls and dealing with uninitialised values.
+			Create a class for a pointer base (Creates a pointer looking class given .get and .set functions for Value*)
+
+		Visual:
+			Nodes should automatically place themselves not require the user to drag them manually
+			Memory view (Vertical bars of sets of bytes + memory addresses)
+			Animate move and copy assignments
+
+			Process one command at a time and show what it is
+
+	Issues:
+		DSA:
+			Binary_Tree does not account for duplicates
+
+		Visual:
+			Container queries run per frame so non constant operations dirty the log with duplicated events
+			User interface shows the current read value instead of what the visualisation shows (It pulls from the actual vector rather than the visual representation of it)
+			Simplify memory representation classes
+			Viewport should not have rendering code + rename the class
+			Use the size to determine if a pointer is pointing to the buffer or to a particular value
+
+
+	Research:
+		Research about allocator best practices
+		Web assembly to run in browser
+		C++20 features:
+			C++ Modules
+			Start using C++ concepts
+			Use three way comparison operator
+
+Documentation:
+	Write reason the file exits at the top
+	Write descriptions for classes
+	Write descriptions for functions
+	Create a document in folders to explain the design of the components
+
+Testing:
+	Tests do not account for allocators, construction and destruction of objects
+
+	DSA:
+		Create a struct for testing destructor. shared_ptr does not work because calling a single destructor multiple times (undefined behaviour yes but double frees do happen) It is better to check that each element was individually destroyed with a custom allocator.
