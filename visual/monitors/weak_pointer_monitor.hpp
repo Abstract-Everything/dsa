@@ -143,7 +143,7 @@ class Weak_Pointer_Monitor
 	}
 
 	template<typename T>
-	friend difference_type operator-(Weak_Pointer_Monitor const &weak_pointer, T offset)
+	friend Weak_Pointer_Monitor operator-(Weak_Pointer_Monitor const &weak_pointer, T offset)
 	{
 		return weak_pointer.m_pointer - offset;
 	}
