@@ -6,6 +6,7 @@
 #include "event.hpp"
 #include "move_assignment_event.hpp"
 #include "swap_event.hpp"
+#include "uninitialised_tag.hpp"
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -17,6 +18,10 @@ template<typename Value>
 class Element_Monitor
 {
  public:
+	Element_Monitor(uninitialised_tag) : m_initialised(false)
+	{
+	}
+
 	Element_Monitor() : Element_Monitor{0}
 	{
 	}
@@ -119,11 +124,6 @@ class Element_Monitor
 	bool operator!=(const Element_Monitor<Value> element) const
 	{
 		return m_value != element.m_value;
-	}
-
-	void uninitialise()
-	{
-		m_initialised = false;
 	}
 
  private:
