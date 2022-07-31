@@ -238,7 +238,7 @@ class Dynamic_Array
 	// Allocator::deallocate cannot be called with nullptr, thus creating an
 	// allocation of 0 elements allows us to call deallocate without
 	// explicitly checking for nullptr when resizing
-	Pointer m_array = m_allocator.allocate(0);
+	Pointer m_array = Alloc_Traits::allocate(m_allocator, 0);
 };
 
 } // namespace dsa
