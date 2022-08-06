@@ -111,6 +111,20 @@ class Weak_Pointer_Monitor
 		return weak_pointer;
 	}
 
+	Weak_Pointer_Monitor operator--()
+	{
+		m_pointer--;
+		Weak_Pointer_Monitor weak_pointer(m_pointer);
+		return weak_pointer;
+	}
+
+	const Weak_Pointer_Monitor operator--(int)
+	{
+		Weak_Pointer_Monitor weak_pointer(m_pointer);
+		m_pointer--;
+		return weak_pointer;
+	}
+
 	// ToDo: Use concepts to filter T
 	template<typename T>
 	friend Weak_Pointer_Monitor operator+(
@@ -129,7 +143,7 @@ class Weak_Pointer_Monitor
 	}
 
 	template<typename T>
-	friend difference_type operator-(Weak_Pointer_Monitor const &weak_pointer, T offset)
+	friend Weak_Pointer_Monitor operator-(Weak_Pointer_Monitor const &weak_pointer, T offset)
 	{
 		return weak_pointer.m_pointer - offset;
 	}

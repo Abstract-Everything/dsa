@@ -253,7 +253,6 @@ TEST(vector, clear)
 
 	vector.clear();
 	ASSERT_TRUE(vector.empty());
-	ASSERT_EQ(vector.capacity(), 0ULL);
 }
 
 TEST(vector, resize_to_smaller_size)
