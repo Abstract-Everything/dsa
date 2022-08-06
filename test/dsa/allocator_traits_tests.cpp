@@ -8,7 +8,9 @@
 
 #include <catch2/catch_all.hpp>
 
-TEST_CASE("Created test file", "[allocator_traits]")
+TEST_CASE(
+    "Allocator_Traits exposes value, pointer and reference types",
+    "[allocator_traits]")
 {
 	using Allocator = dsa::Default_Allocator<Empty_Value>;
 	using Traits    = dsa::Allocator_Traits<Allocator>;
