@@ -107,6 +107,16 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 	using Std_Allocator_Traits = std::allocator_traits<Std_Allocator>;
 
  public:
+	static constexpr Allocator propogate_or_create_instance(
+	    Allocator const &allocator)
+	{
+		if constexpr (std::is_copy_constructible_v<Allocator>)
+		{
+			return Allocator(allocator);
+		}
+		return Allocator();
+	}
+
 	static constexpr Pointer allocate(Allocator &allocator, std::size_t count)
 	{
 		if constexpr (has_allocate<Allocator>())

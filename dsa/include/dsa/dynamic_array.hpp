@@ -4,6 +4,7 @@
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
 
+#include <type_traits>
 #include <cstddef>
 #include <memory>
 
@@ -42,8 +43,8 @@ class Dynamic_Array
 	/**
 	 * @brief Constructs an empty array
 	 */
-	explicit Dynamic_Array(const Allocator &allocator = Allocator{})
-	    : Dynamic_Array(0, allocator)
+	explicit Dynamic_Array(Allocator allocator = Allocator{})
+	    : Dynamic_Array(0, std::move(allocator))
 	{
 	}
 
@@ -51,8 +52,8 @@ class Dynamic_Array
 	 * @brief Constructs an array of the given size whose values are
 	 * default initialised
 	 */
-	explicit Dynamic_Array(std::size_t size, const Allocator &allocator)
-	    : Dynamic_Array(size, Value{}, allocator)
+	explicit Dynamic_Array(std::size_t size, Allocator allocator)
+	    : Dynamic_Array(size, Value{}, std::move(allocator))
 	{
 	}
 
@@ -61,10 +62,10 @@ class Dynamic_Array
 	 * initialised to the given value
 	 */
 	explicit Dynamic_Array(
-	    std::size_t      size,
-	    const Value_t   &value     = {},
-	    const Allocator &allocator = {})
-	    : m_allocator(allocator)
+	    std::size_t    size,
+	    const Value_t &value     = Value{},
+	    Allocator      allocator = Allocator{})
+	    : m_allocator(std::move(allocator))
 	    , m_size(size)
 	    , m_array(Alloc_Traits::allocate(m_allocator, size))
 	{
@@ -79,8 +80,8 @@ class Dynamic_Array
 	 */
 	Dynamic_Array(
 	    std::initializer_list<Value_t> values,
-	    const Allocator               &allocator = Allocator{})
-	    : Dynamic_Array(values.size(), allocator)
+	    Allocator                      allocator = Allocator{})
+	    : Dynamic_Array(values.size(), std::move(allocator))
 	{
 		std::size_t index = 0;
 		for (auto value : values)
@@ -103,14 +104,15 @@ class Dynamic_Array
 	}
 
 	Dynamic_Array(const Dynamic_Array &darray)
-	    : Dynamic_Array(darray.m_size, darray.allocator())
+	    : Dynamic_Array(
+		darray.m_size,
+		Alloc_Traits::propogate_or_create_instance(darray.allocator()))
 	{
 		std::copy(darray.m_array, darray.m_array + darray.size(), m_array);
 	}
 
 	Dynamic_Array(Dynamic_Array &&darray) noexcept
-	    : m_allocator{darray.m_allocator}
-	    , m_array(nullptr)
+	    : m_array(nullptr)
 	{
 		swap(*this, darray);
 	}
@@ -118,6 +120,8 @@ class Dynamic_Array
 	friend void swap(Dynamic_Array &lhs, Dynamic_Array &rhs)
 	{
 		using std::swap;
+
+		swap(lhs.m_allocator, rhs.m_allocator);
 		swap(lhs.m_size, rhs.m_size);
 		swap(lhs.m_array, rhs.m_array);
 	}
@@ -187,12 +191,17 @@ class Dynamic_Array
 	 * elements are moved from the previous memory, the rest are initialised
 	 * to the given value
 	 */
-	void resize(std::size_t new_size, Value const &value = {})
+	void resize(std::size_t new_size, Value const &value = Value{})
 	{
 		Pointer array = Alloc_Traits::allocate(m_allocator, new_size);
 
 		const std::size_t count = std::min(m_size, new_size);
 		std::uninitialized_move(m_array, m_array + count, array);
+
+		for (std::size_t i = new_size; i < m_size; ++i)
+		{
+			Alloc_Traits::destroy(m_allocator, m_array + i);
+		}
 
 		for (std::size_t i = m_size; i < new_size; ++i)
 		{
