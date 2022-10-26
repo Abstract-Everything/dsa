@@ -38,4 +38,11 @@ auto EqualsRange(const Range &range) -> EqualsRangeMatcher<Range>
 	return EqualsRangeMatcher<Range>{range};
 }
 
+template<typename T>
+auto EqualsRange(std::initializer_list<T> const &range)
+    -> EqualsRangeMatcher<std::initializer_list<T>>
+{
+	return EqualsRangeMatcher<std::initializer_list<T>>{range};
+}
+
 } // namespace test
