@@ -121,7 +121,6 @@ TEST(dynamic_array, move_assignment)
 	dsa::Dynamic_Array<int> to;
 	to = std::move(from);
 
-	ASSERT_EQ(from.data(), nullptr);
 	ASSERT_EQ(to, sample);
 }
 
