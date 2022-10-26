@@ -4,6 +4,7 @@
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
 
+#include <concepts>
 #include <type_traits>
 #include <cstddef>
 #include <memory>
@@ -35,7 +36,7 @@ class Dynamic_Array
 	using Pointer         = typename Alloc_Traits::Pointer;
 	using Const_Pointer   = typename Alloc_Traits::Const_Pointer;
 
-	[[nodiscard]] const Allocator &allocator() const
+	[[nodiscard]] constexpr const Allocator &allocator() const
 	{
 		return m_allocator;
 	}
@@ -43,7 +44,7 @@ class Dynamic_Array
 	/**
 	 * @brief Constructs an empty array
 	 */
-	explicit Dynamic_Array(Allocator allocator = Allocator{})
+	constexpr explicit Dynamic_Array(Allocator allocator = Allocator{})
 	    : Dynamic_Array(0, std::move(allocator))
 	{
 	}
@@ -52,7 +53,7 @@ class Dynamic_Array
 	 * @brief Constructs an array of the given size whose values are
 	 * default initialised
 	 */
-	explicit Dynamic_Array(std::size_t size, Allocator allocator)
+	constexpr explicit Dynamic_Array(std::size_t size, Allocator allocator)
 	    : Dynamic_Array(size, Value{}, std::move(allocator))
 	{
 	}
@@ -61,127 +62,147 @@ class Dynamic_Array
 	 * @brief Constructs an array of the given size whose values are
 	 * initialised to the given value
 	 */
-	explicit Dynamic_Array(
+	constexpr explicit Dynamic_Array(
 	    std::size_t    size,
 	    const Value_t &value     = Value{},
 	    Allocator      allocator = Allocator{})
 	    : m_allocator(std::move(allocator))
 	    , m_size(size)
-	    , m_array(Alloc_Traits::allocate(m_allocator, size))
+	    , m_storage(Alloc_Traits::allocate(m_allocator, size))
 	{
-		for (std::size_t i = 0; i < size; ++i)
-		{
-			Alloc_Traits::construct(m_allocator, m_array + i, value);
-		}
+		std::uninitialized_fill(begin(), end(), value);
 	}
 
 	/**
 	 * @brief Constructs an array filled with the given values
 	 */
-	Dynamic_Array(
+	constexpr Dynamic_Array(
 	    std::initializer_list<Value_t> values,
 	    Allocator                      allocator = Allocator{})
-	    : Dynamic_Array(values.size(), std::move(allocator))
+	    : m_allocator(std::move(allocator))
+	    , m_size(values.size())
+	    , m_storage(Alloc_Traits::allocate(m_allocator, m_size))
 	{
-		std::size_t index = 0;
-		for (auto value : values)
+		std::uninitialized_copy(
+		    std::begin(values),
+		    std::end(values),
+		    m_storage);
+	}
+
+	constexpr ~Dynamic_Array()
+	{
+		if (data() == nullptr)
 		{
-			this->operator[](index++) = value;
+			return;
 		}
+
+		std::destroy(begin(), end());
+		Alloc_Traits::deallocate(m_allocator, m_storage, m_size);
 	}
 
-	~Dynamic_Array()
+	constexpr Dynamic_Array(const Dynamic_Array &darray)
+	    : m_allocator(Alloc_Traits::propogate_or_create_instance(darray.allocator()))
+	    , m_size(darray.size())
+	    , m_storage(Alloc_Traits::allocate(m_allocator, m_size))
 	{
-		// This can be set to nullptr after a move
-		if (m_array != nullptr)
-		{
-			for (std::size_t i = 0; i < m_size; ++i)
-			{
-				Alloc_Traits::destroy(m_allocator, m_array + i);
-			}
-			Alloc_Traits::deallocate(m_allocator, m_array, m_size);
-		}
+		std::uninitialized_copy(darray.begin(), darray.end(), begin());
 	}
 
-	Dynamic_Array(const Dynamic_Array &darray)
-	    : Dynamic_Array(
-		darray.m_size,
-		Alloc_Traits::propogate_or_create_instance(darray.allocator()))
+	constexpr Dynamic_Array &operator=(Dynamic_Array const &darray) noexcept
 	{
-		std::copy(darray.m_array, darray.m_array + darray.size(), m_array);
+		using std::swap;
+
+		Dynamic_Array copy(darray);
+		swap(*this, copy);
+		return *this;
 	}
 
-	Dynamic_Array(Dynamic_Array &&darray) noexcept
-	    : m_array(nullptr)
+	constexpr Dynamic_Array(Dynamic_Array &&darray) noexcept
+		: m_allocator(std::move(darray.m_allocator))
+		, m_size(darray.m_size)
+		, m_storage(darray.m_storage)
 	{
+		darray.m_storage = nullptr;
+	}
+
+	constexpr Dynamic_Array &operator=(Dynamic_Array &&darray) noexcept
+	{
+		using std::swap;
+
 		swap(*this, darray);
+		return *this;
 	}
 
-	friend void swap(Dynamic_Array &lhs, Dynamic_Array &rhs)
+	friend constexpr bool operator==(Dynamic_Array const &lhs, Dynamic_Array const &rhs) noexcept
+	{
+		return lhs.size() == rhs.size()
+		       && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+	}
+
+	friend constexpr bool operator!=(Dynamic_Array const &lhs, Dynamic_Array const &rhs) noexcept
+	{
+		return !(lhs == rhs);
+	}
+
+	friend constexpr void swap(Dynamic_Array &lhs, Dynamic_Array &rhs)
 	{
 		using std::swap;
 
 		swap(lhs.m_allocator, rhs.m_allocator);
 		swap(lhs.m_size, rhs.m_size);
-		swap(lhs.m_array, rhs.m_array);
+		swap(lhs.m_storage, rhs.m_storage);
 	}
 
-	Dynamic_Array &operator=(Dynamic_Array darray) noexcept
+	[[nodiscard]] constexpr Value &operator[](std::integral auto index)
 	{
-		swap(*this, darray);
-		return *this;
+		return m_storage[index];
 	}
 
-	[[nodiscard]] Pointer begin()
+	[[nodiscard]] constexpr const Value &operator[](std::integral auto index) const
 	{
-		return &m_array[0];
+		return m_storage[index];
 	}
 
-	[[nodiscard]] Const_Pointer begin() const
+	[[nodiscard]] constexpr Pointer begin()
 	{
-		return &m_array[0];
+		return m_storage;
 	}
 
-	[[nodiscard]] Pointer end()
+	[[nodiscard]] constexpr Const_Pointer begin() const
 	{
-		return &m_array[m_size];
+		return m_storage;
 	}
 
-	[[nodiscard]] Const_Pointer end() const
+	[[nodiscard]] constexpr Pointer end()
 	{
-		return &m_array[m_size];
+		return m_storage + m_size;
 	}
 
-	[[nodiscard]] Value &operator[](std::size_t index)
+	[[nodiscard]] constexpr Const_Pointer end() const
 	{
-		return m_array[index];
-	}
-
-	[[nodiscard]] const Value &operator[](std::size_t index) const
-	{
-		return m_array[index];
+		return m_storage + m_size;
 	}
 
 	/**
 	 * Returns a pointer to the allocated storage
 	 */
-	[[nodiscard]] Pointer data()
+	[[nodiscard]] constexpr Pointer data()
 	{
-		return m_array;
+		return m_storage;
 	}
 
 	/**
 	 * Returns a pointer to the allocated storage
 	 */
-	[[nodiscard]] Const_Pointer data() const
+	[[nodiscard]] constexpr Const_Pointer data() const
 	{
-		return Const_Pointer(m_array);
+		return m_storage;
 	}
 
 	/**
 	 * Returns the current number of elements that can be held
 	 */
-	[[nodiscard]] std::size_t size() const
+	[[nodiscard]] constexpr std::size_t size() const
 	{
 		return m_size;
 	}
@@ -191,65 +212,26 @@ class Dynamic_Array
 	 * elements are moved from the previous memory, the rest are initialised
 	 * to the given value
 	 */
-	void resize(std::size_t new_size, Value const &value = Value{})
+	constexpr void resize(std::size_t new_size, Value const &value = Value{})
 	{
-		Pointer array = Alloc_Traits::allocate(m_allocator, new_size);
+		using std::swap;
 
 		const std::size_t count = std::min(m_size, new_size);
-		std::uninitialized_move(m_array, m_array + count, array);
 
-		for (std::size_t i = new_size; i < m_size; ++i)
-		{
-			Alloc_Traits::destroy(m_allocator, m_array + i);
-		}
+		Pointer storage = Alloc_Traits::allocate(m_allocator, new_size);
+		std::uninitialized_fill(storage + count, storage + new_size, value);
+		std::uninitialized_move(begin(), begin() + count, storage);
+		std::destroy(begin() + count, end());
+		Alloc_Traits::deallocate(m_allocator, m_storage, m_size);
 
-		for (std::size_t i = m_size; i < new_size; ++i)
-		{
-			Alloc_Traits::construct(m_allocator, array + i, value);
-		}
-
-		Alloc_Traits::deallocate(m_allocator, m_array, m_size);
-
-		m_array = array;
-		m_size  = new_size;
-	}
-
-	friend bool operator==(Dynamic_Array const &lhs, Dynamic_Array const &rhs) noexcept
-	{
-		if (lhs.size() != rhs.size())
-		{
-			return false;
-		}
-
-		for (std::size_t i = 0; i < lhs.size(); ++i)
-		{
-			if (lhs[i] != rhs[i])
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	friend bool operator!=(Dynamic_Array const &lhs, Dynamic_Array const &rhs) noexcept
-	{
-		return !(lhs == rhs);
+		m_storage = storage;
+		m_size = new_size;
 	}
 
  private:
-	// ToDo: If allocator instances are the same this member is not needed
 	Allocator m_allocator;
-
-	std::size_t m_size = 0;
-
-	// We maintain the values in the array initialised, otherwise moving,
-	// destroying and writing new values to the elements becomes
-	// significantly more difficult to do well.
-	//
-	// Allocator::deallocate cannot be called with nullptr, thus creating an
-	// allocation of 0 elements allows us to call deallocate without
-	// explicitly checking for nullptr when resizing
-	Pointer m_array = Alloc_Traits::allocate(m_allocator, 0);
+	size_t    m_size    = 0;
+	Pointer   m_storage = nullptr;
 };
 
 } // namespace dsa
