@@ -38,11 +38,16 @@ class Vector
 	using Pointer         = typename Alloc_Traits::Pointer;
 	using Const_Pointer   = typename Alloc_Traits::Const_Pointer;
 
+	constexpr const Allocator &allocator() const
+	{
+		return m_allocator;
+	}
+
 	/**
 	 * @brief Constucts an empty vector
 	 */
-	explicit Vector(const Allocator &allocator = Allocator())
-	    : m_allocator(allocator)
+	explicit Vector(Allocator allocator = Allocator())
+	    : m_allocator(std::move(allocator))
 	{
 	}
 
@@ -50,8 +55,8 @@ class Vector
 	 * @brief Constructs a vector of the given size whose elements are
 	 * default initialised
 	 */
-	explicit Vector(std::size_t size, const Allocator &allocator = Allocator())
-	    : Vector(size, Value(), allocator)
+	explicit Vector(std::size_t size, Allocator allocator)
+	    : Vector(size, Value{}, std::move(allocator))
 	{
 	}
 
@@ -60,10 +65,10 @@ class Vector
 	 * initalised to the given value
 	 */
 	explicit Vector(
-	    std::size_t      size,
-	    const Value_t   &value,
-	    const Allocator &allocator = Allocator())
-	    : m_allocator(allocator)
+	    std::size_t    size,
+	    const Value_t &value     = Value(),
+	    Allocator      allocator = Allocator())
+	    : m_allocator(std::move(allocator))
 	    , m_storage(Alloc_Traits::allocate(m_allocator, size))
 	    , m_size(size)
 	    , m_capacity(size)
@@ -77,15 +82,14 @@ class Vector
 	/**
 	 * @brief Constructs an vector filled with the given values
 	 */
-	Vector(
-	    std::initializer_list<Value_t> values,
-	    const Allocator               &allocator = Allocator())
-	    : m_allocator(allocator)
+	Vector(std::initializer_list<Value_t> values, Allocator allocator = Allocator())
+	    : m_allocator(std::move(allocator))
 	    , m_storage(Alloc_Traits::allocate(m_allocator, values.size()))
 	    , m_size(values.size())
 	    , m_capacity(values.size())
 	{
-		for (auto [value, it] = std::make_pair(std::as_const(values).begin(), begin());
+		for (auto [value, it] =
+			 std::make_pair(std::as_const(values).begin(), begin());
 		     value != values.end();
 		     ++value, ++it)
 		{
@@ -95,6 +99,11 @@ class Vector
 
 	~Vector()
 	{
+		if (m_storage == nullptr)
+		{
+			return;
+		}
+
 		for (Reference value : *this)
 		{
 			Alloc_Traits::destroy(m_allocator, &value);
@@ -103,7 +112,7 @@ class Vector
 	}
 
 	Vector(const Vector &vector)
-	    : m_allocator(vector.m_allocator)
+	    : m_allocator(Alloc_Traits::propogate_or_create_instance(vector.m_allocator))
 	    , m_storage(Alloc_Traits::allocate(m_allocator, vector.capacity()))
 	    , m_size(vector.size())
 	    , m_capacity(vector.capacity())
@@ -117,8 +126,7 @@ class Vector
 	    , m_size(std::move(vector.m_size))
 	    , m_capacity(std::move(vector.m_capacity))
 	{
-		vector.m_storage = Alloc_Traits::allocate(vector.m_allocator, 0);
-		vector.m_capacity = 0;
+		vector.m_storage = nullptr;
 	}
 
 	friend void swap(Vector &lhs, Vector &rhs)
@@ -312,7 +320,10 @@ class Vector
 	void append(Value value)
 	{
 		grow();
-		Alloc_Traits::construct(m_allocator, m_storage + m_size, value);
+		Alloc_Traits::construct(
+		    m_allocator,
+		    m_storage + m_size,
+		    std::move(value));
 		m_size++;
 	}
 
