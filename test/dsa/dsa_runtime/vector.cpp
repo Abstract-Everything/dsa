@@ -82,7 +82,6 @@ TEST(vector, move_initialisation)
 	dsa::Vector from(sample);
 	dsa::Vector to(std::move(from));
 
-	ASSERT_EQ(from.capacity(), 0ULL);
 	ASSERT_NE(to.data(), from.data());
 	ASSERT_EQ(to, sample);
 }
@@ -138,7 +137,6 @@ TEST(vector, move_assignment)
 	dsa::Vector<int> to;
 	to = std::move(from);
 
-	ASSERT_EQ(from.capacity(), 0ULL);
 	ASSERT_NE(to.data(), from.data());
 	ASSERT_EQ(to, sample);
 }
