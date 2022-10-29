@@ -1,5 +1,6 @@
 #include "memory.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 
 namespace visual
