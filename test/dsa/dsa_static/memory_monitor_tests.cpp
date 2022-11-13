@@ -1,5 +1,5 @@
 #include "empty_value.hpp"
-#include "memory_monitor_scope.hpp"
+#include "memory_monitor_handler_scope.hpp"
 #include "no_default_constructor_value.hpp"
 
 #include <dsa/allocator_traits.hpp>
@@ -240,76 +240,89 @@ auto create_destroy_event(T *destination) -> Events
 class Event_Handler
 {
  public:
-	template<typename T>
-	void on_allocate(T *address, size_t count)
+	static auto instance() -> std::unique_ptr<Event_Handler> &
 	{
-		m_events.emplace_back(create_allocate_event(address, count));
+		static std::unique_ptr<Event_Handler> instance = nullptr;
+		return instance;
 	}
 
 	template<typename T>
-	void on_construct(T *address)
+	static void on_allocate(T *address, size_t count)
 	{
-		m_events.emplace_back(create_construct_event(address));
+		instance()->m_events.emplace_back(
+		    create_allocate_event(address, count));
 	}
 
 	template<typename T>
-	void on_copy_construct(T *destination, T const *source)
+	static void on_construct(T *address)
 	{
-		m_events.emplace_back(
+		instance()->m_events.emplace_back(create_construct_event(address));
+	}
+
+	template<typename T>
+	static void on_copy_construct(T *destination, T const *source)
+	{
+		instance()->m_events.emplace_back(
 		    create_copy_construct_event(destination, source));
 	}
 
 	template<typename T>
-	void on_copy_assign(T *destination, T const *source)
+	static void on_copy_assign(T *destination, T const *source)
 	{
-		m_events.emplace_back(
+		instance()->m_events.emplace_back(
 		    create_copy_assign_event(destination, source));
 	}
 
 	template<typename T>
-	void on_underlying_value_copy_assign(T *destination)
+	static void on_underlying_value_copy_assign(T *destination)
 	{
-		m_events.emplace_back(
+		instance()->m_events.emplace_back(
 		    create_copy_assign_event<T>(destination, nullptr));
 	}
 
 	template<typename T>
-	void on_move_construct(T *destination, T const *source)
+	static void on_move_construct(T *destination, T const *source)
 	{
-		m_events.emplace_back(
+		instance()->m_events.emplace_back(
 		    create_move_construct_event(destination, source));
 	}
 
 	template<typename T>
-	void on_move_assign(T *destination, T const *source)
+	static void on_move_assign(T *destination, T const *source)
 	{
-		m_events.emplace_back(
+		instance()->m_events.emplace_back(
 		    create_move_assign_event(destination, source));
 	}
 
 	template<typename T>
-	void on_underlying_value_move_assign(T *destination)
+	static void on_underlying_value_move_assign(T *destination)
 	{
-		m_events.emplace_back(
+		instance()->m_events.emplace_back(
 		    create_move_assign_event<T>(destination, nullptr));
 	}
 
 	template<typename T>
-	void on_destroy(T *address)
+	static void on_destroy(T *address)
 	{
-		m_events.emplace_back(create_destroy_event(address));
+		instance()->m_events.emplace_back(create_destroy_event(address));
 	}
 
 	template<typename T>
-	auto before_deallocate(T * /* address */, size_t /* count */) -> bool
+	static auto before_deallocate(T * /* address */, size_t /* count */)
+	    -> bool
 	{
-		return m_allow_deallocate;
+		return instance()->m_allow_deallocate;
 	}
 
 	template<typename T>
-	void on_deallocate(T *address, size_t count)
+	static void on_deallocate(T *address, size_t count)
 	{
-		m_events.emplace_back(create_deallocate_event(address, count));
+		instance()->m_events.emplace_back(
+		    create_deallocate_event(address, count));
+	}
+
+	void cleanup()
+	{
 	}
 
 	void block_deallocate()
@@ -332,13 +345,13 @@ class Event_Handler
 	bool                m_allow_deallocate = true;
 };
 
+using Handler_Scope = Memory_Monitor_Handler_Scope<Event_Handler>;
+
 TEST_CASE("No event is received if no actions were performed", "[monitor]")
 {
-	using Allocator = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
-	Memory_Monitor_Scope<Allocator::Underlying_Value, Event_Handler> scope;
+	Handler_Scope scope;
 
-	Allocator monitor;
-	REQUIRE(Allocator::handler()->events().empty());
+	REQUIRE(Event_Handler::instance()->events().empty());
 }
 
 TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
@@ -346,7 +359,7 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 	using Allocator    = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
-	Memory_Monitor_Scope<Allocator::Underlying_Value, Event_Handler> scope;
+	Handler_Scope scope;
 
 	Allocator    monitor;
 	const size_t count      = 5;
@@ -354,9 +367,9 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 
 	SECTION("Monitor detects calls to allocate")
 	{
-		REQUIRE(Allocator::handler()->events().size() == 1);
+		REQUIRE(Event_Handler::instance()->events().size() == 1);
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_allocate_event(allocation, count));
 
 		Alloc_Traits::deallocate(monitor, allocation, count);
@@ -367,18 +380,18 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 		Alloc_Traits::deallocate(monitor, allocation, count);
 
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_deallocate_event(allocation, count));
 	}
 
 	SECTION("The handler can signal the Monitor to block a deallocate")
 	{
-		Allocator::handler()->block_deallocate();
+		Event_Handler::instance()->block_deallocate();
 		Alloc_Traits::deallocate(monitor, allocation, count);
 
-		REQUIRE(Allocator::handler()->events().size() == 1);
+		REQUIRE(Event_Handler::instance()->events().size() == 1);
 
-		Allocator::handler()->unblock_deallocate();
+		Event_Handler::instance()->unblock_deallocate();
 		Alloc_Traits::deallocate(monitor, allocation, count);
 	}
 }
@@ -388,7 +401,7 @@ TEST_CASE(
     "[monitor]")
 {
 	using Allocator = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
-	Memory_Monitor_Scope<Allocator::Underlying_Value, Event_Handler> scope;
+	Handler_Scope scope;
 
 	Allocator::Value *address = nullptr;
 	// Scope serves to call Value destructor
@@ -398,11 +411,11 @@ TEST_CASE(
 	}
 
 	REQUIRE(
-	    Allocator::handler()->events().front()
+	    Event_Handler::instance()->events().front()
 	    == create_construct_event(address));
 
 	REQUIRE(
-	    Allocator::handler()->events().back()
+	    Event_Handler::instance()->events().back()
 	    == create_destroy_event(address));
 }
 
@@ -411,8 +424,8 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 	using Allocator    = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
-	Memory_Monitor_Scope<Allocator::Underlying_Value, Event_Handler> scope;
-	Allocator monitor;
+	Handler_Scope scope;
+	Allocator     monitor;
 
 	size_t count      = 1;
 	auto  *allocation = Alloc_Traits::allocate(monitor, count);
@@ -425,7 +438,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		    Allocator::Underlying_Value{});
 
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_construct_event(allocation));
 	}
 
@@ -434,7 +447,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		std::uninitialized_default_construct_n(allocation, 1);
 
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_construct_event(allocation));
 	}
 
@@ -444,7 +457,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		std::uninitialized_fill_n(allocation, 1, value);
 
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_copy_construct_event(allocation, &value));
 	}
 
@@ -454,7 +467,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		std::uninitialized_move_n(&value, 1, allocation);
 
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_move_construct_event(allocation, &value));
 	}
 
@@ -470,7 +483,7 @@ TEST_CASE(
 	    dsa::Memory_Monitor<No_Default_Constructor_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
-	Memory_Monitor_Scope<Allocator::Underlying_Value, Event_Handler> scope;
+	Handler_Scope scope;
 
 	Allocator monitor;
 
@@ -482,7 +495,7 @@ TEST_CASE(
 	    No_Default_Constructor_Value_Construct_Tag());
 
 	REQUIRE(
-	    Allocator::handler()->events().back()
+	    Event_Handler::instance()->events().back()
 	    == create_construct_event(allocation));
 
 	Alloc_Traits::destroy(monitor, allocation);
@@ -496,7 +509,7 @@ TEST_CASE(
 	using Allocator    = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
-	Memory_Monitor_Scope<Allocator::Underlying_Value, Event_Handler> scope;
+	Handler_Scope scope;
 
 	Allocator monitor;
 
@@ -505,7 +518,7 @@ TEST_CASE(
 	Alloc_Traits::construct(monitor, allocation, Allocator::Underlying_Value());
 
 	REQUIRE(
-	    Allocator::handler()->events().back()
+	    Event_Handler::instance()->events().back()
 	    == create_construct_event(allocation));
 
 	Alloc_Traits::destroy(monitor, allocation);
@@ -517,7 +530,7 @@ TEST_CASE("Monitor notifies handler about object assignment", "[monitor]")
 	using Allocator    = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
-	Memory_Monitor_Scope<Allocator::Underlying_Value, Event_Handler> scope;
+	Handler_Scope scope;
 
 	Allocator        monitor;
 	Allocator::Value value;
@@ -532,7 +545,7 @@ TEST_CASE("Monitor notifies handler about object assignment", "[monitor]")
 		*allocation = value;
 
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_copy_assign_event(allocation, &value));
 	}
 
@@ -541,7 +554,7 @@ TEST_CASE("Monitor notifies handler about object assignment", "[monitor]")
 		*allocation = underlying_value;
 
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_copy_assign_event<Allocator::Value>(
 			allocation,
 			nullptr));
@@ -552,7 +565,7 @@ TEST_CASE("Monitor notifies handler about object assignment", "[monitor]")
 		*allocation = std::move(value);
 
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_move_assign_event(allocation, &value));
 	}
 
@@ -560,7 +573,7 @@ TEST_CASE("Monitor notifies handler about object assignment", "[monitor]")
 	{
 		*allocation = std::move(underlying_value);
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_move_assign_event<Allocator::Value>(
 			allocation,
 			nullptr));
@@ -575,7 +588,7 @@ TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
 	using Allocator    = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
-	Memory_Monitor_Scope<Allocator::Underlying_Value, Event_Handler> scope;
+	Handler_Scope scope;
 
 	Allocator monitor;
 
@@ -587,7 +600,7 @@ TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
 	{
 		Alloc_Traits::destroy(monitor, allocation);
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_destroy_event(allocation));
 	}
 
@@ -595,7 +608,7 @@ TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
 	{
 		std::destroy_n(allocation, 1);
 		REQUIRE(
-		    Allocator::handler()->events().back()
+		    Event_Handler::instance()->events().back()
 		    == create_destroy_event(allocation));
 	}
 

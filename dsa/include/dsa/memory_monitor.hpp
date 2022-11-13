@@ -78,24 +78,24 @@ class Element_Monitor_Base<Base, false>
 
 template<typename Handler, typename Type>
 concept Memory_Monitor_Event_Handler =
-    requires(Handler handler, Type *destination, Type const *source, size_t count)
+    requires(Type *destination, Type const *source, size_t count)
 {
-	{handler.on_allocate(destination, count)};
+	{Handler::on_allocate(destination, count)};
 
-	{handler.on_construct(destination)};
+	{Handler::on_construct(destination)};
 
-	{handler.on_copy_construct(destination, source)};
-	{handler.on_copy_assign(destination, source)};
-	{handler.on_underlying_value_copy_assign(destination)};
+	{Handler::on_copy_construct(destination, source)};
+	{Handler::on_copy_assign(destination, source)};
+	{Handler::on_underlying_value_copy_assign(destination)};
 
-	{handler.on_move_construct(destination, source)};
-	{handler.on_move_assign(destination, source)};
-	{handler.on_underlying_value_move_assign(destination)};
+	{Handler::on_move_construct(destination, source)};
+	{Handler::on_move_assign(destination, source)};
+	{Handler::on_underlying_value_move_assign(destination)};
 
-	{handler.on_destroy(destination)};
+	{Handler::on_destroy(destination)};
 
-	{handler.before_deallocate(destination, count)} -> std::same_as<bool>;
-	{handler.on_deallocate(destination, count)};
+	{Handler::before_deallocate(destination, count)} -> std::same_as<bool>;
+	{Handler::on_deallocate(destination, count)};
 };
 
 /// @brief Monitors the allocations and object lifetime within those allocations
@@ -122,19 +122,19 @@ class Memory_Monitor
 		    requires std::is_constructible_v<Base, Arguments...>
 		    : Base_Wrapper(std::forward<Arguments>(arguments)...)
 		{
-			handler()->on_construct(this);
+			Handler::on_construct(this);
 		}
 
 		~Element_Monitor()
 		{
-			handler()->on_destroy(this);
+			Handler::on_destroy(this);
 		}
 
 		Element_Monitor(Element_Monitor const &element)
 		    requires std::is_constructible_v<Base>
 		    : Base_Wrapper(element)
 		{
-			handler()->on_copy_construct(this, &element);
+			Handler::on_copy_construct(this, &element);
 		}
 
 		auto operator=(Element_Monitor const &element)
@@ -142,7 +142,7 @@ class Memory_Monitor
 		    requires std::is_assignable_v<Base&, Base>
 		{
 			Base_Wrapper::base() = element.base();
-			handler()->on_copy_assign(this, &element);
+			Handler::on_copy_assign(this, &element);
 			return *this;
 		}
 
@@ -151,7 +151,7 @@ class Memory_Monitor
 		    requires std::is_assignable_v<Base&, Base>
 		{
 			Base_Wrapper::base() = value;
-			handler()->on_underlying_value_copy_assign(this);
+			Handler::on_underlying_value_copy_assign(this);
 			return *this;
 		}
 
@@ -159,7 +159,7 @@ class Memory_Monitor
 		    requires std::is_move_constructible_v<Base>
 		    : Base_Wrapper(std::move(element))
 		{
-			handler()->on_move_construct(this, &element);
+			Handler::on_move_construct(this, &element);
 		}
 
 		auto operator=(Element_Monitor &&element) noexcept
@@ -167,7 +167,7 @@ class Memory_Monitor
 		    requires std::is_move_assignable_v<Base>
 		{
 			Base_Wrapper::base() = std::move(element.base());
-			handler()->on_move_assign(this, &element);
+			Handler::on_move_assign(this, &element);
 			return *this;
 		}
 
@@ -176,7 +176,7 @@ class Memory_Monitor
 		    requires std::is_move_assignable_v<Base>
 		{
 			Base_Wrapper::base() = value;
-			handler()->on_underlying_value_move_assign(this);
+			Handler::on_underlying_value_move_assign(this);
 			return *this;
 		}
 	};
@@ -185,36 +185,25 @@ class Memory_Monitor
 	using Value            = Element_Monitor;
 	using Pointer          = Value *;
 
-	explicit Memory_Monitor()
-	{
-		assert(
-	    handler() != nullptr
-	    && "Only one Monitor instance can be alive at any given time");
-	}
+	explicit Memory_Monitor() = default;
 
 	~Memory_Monitor() = default;
-
-	static auto handler() -> std::unique_ptr<Handler> &
-	{
-		static std::unique_ptr<Handler> handler;
-		return handler;
-	}
 
 	auto allocate(std::size_t count) -> Pointer
 	{
 		Allocator allocator;
 		Pointer   address = Alloc_Traits::allocate(allocator, count);
-		handler()->on_allocate(address, count);
+		Handler::on_allocate(address, count);
 		return address;
 	}
 
 	void deallocate(Pointer address, std::size_t count)
 	{
 		Allocator allocator;
-		if (handler()->before_deallocate(address, count))
+		if (Handler::before_deallocate(address, count))
 		{
 			Alloc_Traits::deallocate(allocator, address, count);
-			handler()->on_deallocate(address, count);
+			Handler::on_deallocate(address, count);
 		}
 	}
 
