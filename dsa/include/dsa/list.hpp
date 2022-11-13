@@ -52,6 +52,12 @@ class List_Node
 		    typename List_Node::Satellite_Reference>;
 
 	 public:
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type   = std::ptrdiff_t;
+		using value_type        = Satellite;
+		using reference         = Reference;
+		using pointer           = Pointer;
+
 		explicit Iterator_Detail(Node_Pointer node) : m_node(node)
 		{
 		}
@@ -291,7 +297,7 @@ class List
 	/**
 	 * @brief Inserts the given value at the front of the list
 	 */
-	void prepend(Value value)
+	void prepend(Value_t value)
 	{
 		insert(0, std::move(value));
 	}
@@ -300,7 +306,7 @@ class List
 	 * @brief Inserts the given value at the given index. The behaviour is
 	 * undefined if the index is outside of the range: [0, size()]
 	 */
-	void insert(std::size_t index, Value value)
+	void insert(std::size_t index, Value_t value)
 	{
 		Node_Pointer node =
 		    Node_Traits::create_node(m_allocator, std::move(value));
