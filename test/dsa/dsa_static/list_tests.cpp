@@ -144,21 +144,11 @@ TEST_CASE("Lists provides an interface to access its elements", "[list]")
 	std::initializer_list<int> values{1, 2, 3};
 	List                       list{values};
 
-	SECTION("Elements can be accessed through the subscript operator")
-	{
-		REQUIRE(list[0] == data(values)[0]);
-		REQUIRE(list[1] == data(values)[1]);
-		REQUIRE(list[2] == data(values)[2]);
-	}
+	REQUIRE(list.front() == data(values)[0]);
 
-	SECTION("The first element can be accessed through a function")
-	{
-		REQUIRE(list.front() == data(values)[0]);
+	list.detatch_front();
 
-		list.detatch_front();
-
-		REQUIRE(list.front() == data(values)[1]);
-	}
+	REQUIRE(list.front() == data(values)[1]);
 }
 
 TEST_CASE("Elements can be inserted into the list", "[list]")

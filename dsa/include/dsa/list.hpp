@@ -18,19 +18,17 @@ template<typename Satellite_t, template<typename> typename Allocator_Base>
 class List_Node
 {
  private:
-	friend class Node_Traits<List_Node>;
-
 	using Alloc_Traits  = Allocator_Traits<Allocator_Base<List_Node>>;
 	using Allocator     = typename Alloc_Traits::Allocator;
 	using Pointer       = typename Alloc_Traits::Pointer;
 	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
-	using Satellite_Alloc_Traits    = Allocator_Traits<Allocator_Base<Satellite_t>>;
-	using Satellite                 = typename Satellite_Alloc_Traits::Value;
-	using Satellite_Pointer         = typename Satellite_Alloc_Traits::Reference;
-	using Satellite_Const_Pointer   = typename Satellite_Alloc_Traits::Const_Reference;
-	using Satellite_Reference       = typename Satellite_Alloc_Traits::Reference;
-	using Satellite_Const_Reference = typename Satellite_Alloc_Traits::Const_Reference;
+	using Satellite_Traits = Allocator_Traits<Allocator_Base<Satellite_t>>;
+	using Satellite_Value           = typename Satellite_Traits::Value;
+	using Satellite_Reference       = typename Satellite_Traits::Reference;
+	using Satellite_Const_Reference = typename Satellite_Traits::Const_Reference;
+	using Satellite_Pointer         = typename Satellite_Traits::Pointer;
+	using Satellite_Const_Pointer   = typename Satellite_Traits::Const_Pointer;
 
 	template<bool Is_Const>
 	class Iterator_Detail
@@ -41,20 +39,16 @@ class List_Node
 		    typename List_Node::Const_Pointer,
 		    typename List_Node::Pointer>;
 
-		using Pointer = std::conditional_t<
-		    Is_Const,
-		    typename List_Node::Satellite_Const_Pointer,
-		    typename List_Node::Satellite_Pointer>;
+		using Pointer =
+		    std::conditional_t<Is_Const, Satellite_Const_Pointer, Satellite_Pointer>;
 
-		using Reference = std::conditional_t<
-		    Is_Const,
-		    typename List_Node::Satellite_Const_Reference,
-		    typename List_Node::Satellite_Reference>;
+		using Reference =
+		    std::conditional_t<Is_Const, Satellite_Const_Reference, Satellite_Reference>;
 
 	 public:
 		using iterator_category = std::forward_iterator_tag;
 		using difference_type   = std::ptrdiff_t;
-		using value_type        = Satellite;
+		using value_type        = Satellite_Value;
 		using reference         = Reference;
 		using pointer           = Pointer;
 
@@ -69,15 +63,8 @@ class List_Node
 			return iterator;
 		}
 
-		bool operator==(Iterator_Detail const &iterator) const
-		{
-			return m_node == iterator.m_node;
-		}
-
-		bool operator!=(Iterator_Detail const &iterator) const
-		{
-			return !this->operator==(iterator);
-		}
+		auto operator<=>(Iterator_Detail const &iterator) const
+		    -> bool = default;
 
 		Reference operator*() const
 		{
@@ -97,13 +84,15 @@ class List_Node
 	using Iterator       = Iterator_Detail<false>;
 	using Const_Iterator = Iterator_Detail<true>;
 
-	Satellite m_satellite;
-	Pointer   m_next;
-
-	void initialise()
+	template<typename... Arguments>
+	explicit List_Node(Arguments &&...arguments)
+	    : m_satellite(std::forward<Arguments>(arguments)...)
+	    , m_next(nullptr)
 	{
-		m_next = nullptr;
 	}
+
+	Satellite_Value m_satellite;
+	Pointer         m_next = nullptr;
 };
 
 } // namespace detail
@@ -125,7 +114,7 @@ class List
 {
  private:
 	using Node               = detail::List_Node<Value_t, Allocator_Base>;
-	using Node_Traits        = detail::Node_Traits<Node>;
+	using Node_Traits        = Allocator_Traits<Allocator_Base<Node>>;
 	using Node_Allocator     = typename Node_Traits::Allocator;
 	using Node_Pointer       = typename Node_Traits::Pointer;
 	using Node_Const_Pointer = typename Node_Traits::Const_Pointer;
@@ -158,13 +147,11 @@ class List
 	    const Allocator               &allocator = Allocator())
 	    : m_allocator(allocator)
 	{
-		Node_Pointer *next = &m_head;
-		for (auto value : values)
+		Node_Pointer *owner = &m_head;
+		for (auto const &value : values)
 		{
-			Node_Pointer &to = *next;
-			to = Node_Traits::create_node(m_allocator, value);
-
-			next = &to->m_next;
+			*owner = create_node(value);
+			owner  = &(*owner)->m_next;
 		}
 	}
 
@@ -175,17 +162,12 @@ class List
 
 	List(List const &list) : m_allocator(list.m_allocator)
 	{
-		Node_Pointer  from = list.m_head;
-		Node_Pointer *next = &m_head;
-		while (from != nullptr)
+		Node_Pointer *owner = &m_head;
+		for (auto const &iterator : list)
 		{
-			Node_Pointer &to = *next;
-			to               = Node_Traits::create_node(
-                            m_allocator,
-                            from->m_satellite);
-
-			next = &to->m_next;
-			from = from->m_next;
+			Node_Pointer node = create_node(iterator);
+			*owner            = node;
+			owner             = &node->m_next;
 		}
 	}
 
@@ -196,58 +178,48 @@ class List
 		swap(lhs.m_head, rhs.m_head);
 	}
 
-	List(List &&list) noexcept : m_allocator(list.m_allocator)
+	List(List &&list) noexcept
+	    : m_allocator(std::move(list.m_allocator))
+	    , m_head(std::move(list.m_head))
 	{
-		swap(*this, list);
+		list.m_head = nullptr;
 	}
 
-	List &operator=(List list) noexcept
+	auto operator=(List list) noexcept -> List &
 	{
 		swap(*this, list);
 		return *this;
 	}
 
-	[[nodiscard]] Iterator begin()
+	[[nodiscard]] auto begin() -> Iterator
 	{
 		return Iterator(m_head);
 	}
 
-	[[nodiscard]] Const_Iterator begin() const
+	[[nodiscard]] auto begin() const -> Const_Iterator
 	{
 		return Const_Iterator(m_head);
 	}
 
-	[[nodiscard]] Iterator end()
+	[[nodiscard]] auto end() -> Iterator
 	{
 		return Iterator(nullptr);
 	}
 
-	[[nodiscard]] Const_Iterator end() const
+	[[nodiscard]] auto end() const -> Const_Iterator
 	{
 		return Const_Iterator(nullptr);
-	}
-
-	[[nodiscard]] Value &operator[](std::size_t index)
-	{
-		return at(index)->m_satellite;
-	}
-
-	[[nodiscard]] const Value &operator[](std::size_t index) const
-	{
-		return at(index)->m_satellite;
 	}
 
 	/**
 	 * @brief Gets the number of elements currently in the list.
 	 * Note: This operation is not constant as the size is not cached
 	 */
-	[[nodiscard]] std::size_t size() const
+	[[nodiscard]] auto size() const -> std::size_t
 	{
-		std::size_t  list_size = 0;
-		Node_Pointer node      = m_head;
-		while (node != nullptr)
+		size_t list_size = 0;
+		for ([[maybe_unused]] auto const &iterator : *this)
 		{
-			node = node->m_next;
 			list_size++;
 		}
 		return list_size;
@@ -257,7 +229,7 @@ class List
 	 * @brief Gets the first element in the list. This is undefined
 	 * behaviour if the list is empty
 	 */
-	[[nodiscard]] Value &front()
+	[[nodiscard]] auto front() -> Reference
 	{
 		return m_head->m_satellite;
 	}
@@ -266,7 +238,7 @@ class List
 	 * @brief Gets the first element in the list. This is undefined
 	 * behaviour if the list is empty
 	 */
-	[[nodiscard]] const Value &front() const
+	[[nodiscard]] auto front() const -> Const_Reference
 	{
 		return m_head->m_satellite;
 	}
@@ -274,7 +246,7 @@ class List
 	/**
 	 * @brief Returns true if the list contains no elements
 	 */
-	[[nodiscard]] bool empty() const
+	[[nodiscard]] auto empty() const -> bool
 	{
 		return m_head == nullptr;
 	}
@@ -288,7 +260,7 @@ class List
 		while (node != nullptr)
 		{
 			Node_Pointer next = node->m_next;
-			Node_Traits::destroy_node(m_allocator, node);
+			destroy_node(node);
 			node = next;
 		}
 		m_head = nullptr;
@@ -308,19 +280,11 @@ class List
 	 */
 	void insert(std::size_t index, Value_t value)
 	{
-		Node_Pointer node =
-		    Node_Traits::create_node(m_allocator, std::move(value));
+		Node_Pointer node = create_node(std::move(value));
 
-		if (index == 0)
-		{
-			node->m_next = m_head;
-			m_head       = node;
-			return;
-		}
-
-		Node_Pointer previous = at(index - 1);
-		node->m_next          = previous->m_next;
-		previous->m_next      = node;
+		Node_Pointer *owner = at(index);
+		node->m_next        = *owner;
+		*owner              = node;
 	}
 
 	/**
@@ -338,36 +302,15 @@ class List
 	 */
 	void erase(std::size_t index)
 	{
-		if (index == 0)
-		{
-			Node_Pointer remove = m_head;
-			m_head              = m_head->m_next;
-			Node_Traits::destroy_node(m_allocator, remove);
-			return;
-		}
-
-		Node_Pointer previous = at(index - 1);
-		Node_Pointer remove   = previous->m_next;
-		previous->m_next      = remove->m_next;
-		Node_Traits::destroy_node(m_allocator, remove);
+		Node_Pointer *owner  = at(index);
+		Node_Pointer  remove = *owner;
+		*owner               = remove->m_next;
+		destroy_node(remove);
 	}
 
 	friend bool operator==(List const &lhs, List const &rhs) noexcept
 	{
-		Node_Pointer lhs_node = lhs.m_head;
-		Node_Pointer rhs_node = rhs.m_head;
-		while (lhs_node != nullptr && rhs_node != nullptr)
-		{
-			if (lhs_node->m_satellite != rhs_node->m_satellite)
-			{
-				return false;
-			}
-
-			lhs_node = lhs_node->m_next;
-			rhs_node = rhs_node->m_next;
-		}
-
-		return lhs_node == nullptr && rhs_node == nullptr;
+		return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 	}
 
 	friend bool operator!=(List const &lhs, List const &rhs) noexcept
@@ -377,33 +320,35 @@ class List
 
  private:
 	Node_Allocator m_allocator;
+	Node_Pointer   m_head = nullptr;
 
-	Node_Pointer m_head = nullptr;
-
-	/**
-	 * @brief Gets the node at the given index. The behaviour is undefined
-	 * if the index is outside of the list range
-	 */
-	Node_Pointer at(std::size_t index)
+	template<typename... Arguments>
+	auto create_node(Arguments &&...arguments) -> Node_Pointer
 	{
-		Node_Pointer node = m_head;
-		for (std::size_t i = 0; i < index; ++i)
-		{
-			node = node->m_next;
-		}
+		Node_Pointer node = Node_Traits::allocate(m_allocator, 1);
+		Node_Traits::construct(
+		    m_allocator,
+		    node,
+		    std::forward<Arguments>(arguments)...);
 		return node;
+	}
+
+	void destroy_node(Node_Pointer node)
+	{
+		Node_Traits::destroy(m_allocator, node);
+		Node_Traits::deallocate(m_allocator, node, 1);
 	}
 
 	/**
 	 * @brief Gets the node at the given index. The behaviour is undefined
 	 * if the index is outside of the list range
 	 */
-	Node_Const_Pointer at(std::size_t index) const
+	auto at(std::size_t index) -> Node_Pointer *
 	{
-		Node_Const_Pointer node = m_head;
+		Node_Pointer *node = &m_head;
 		for (std::size_t i = 0; i < index; ++i)
 		{
-			node = node->m_next;
+			node = &(*node)->m_next;
 		}
 		return node;
 	}
