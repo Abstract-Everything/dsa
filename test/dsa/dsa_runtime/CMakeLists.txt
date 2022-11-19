@@ -2,7 +2,7 @@ find_package(fmt REQUIRED)
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(dsa_runtime_test vector.cpp list.cpp binary_tree.cpp heap.cpp algorithms.cpp)
+add_executable(dsa_runtime_test list.cpp binary_tree.cpp heap.cpp algorithms.cpp)
 
 target_link_libraries(
 	dsa_runtime_test
