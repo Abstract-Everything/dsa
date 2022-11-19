@@ -255,6 +255,60 @@ class Object_Event
 		return m_source;
 	}
 
+	[[nodiscard]] auto constructing() const -> bool
+	{
+		switch (m_type)
+		{
+		case Object_Event_Type::Construct:
+		case Object_Event_Type::Copy_Construct:
+		case Object_Event_Type::Move_Construct:
+			return true;
+
+		case Object_Event_Type::Copy_Assign:
+		case Object_Event_Type::Underlying_Copy_Assign:
+		case Object_Event_Type::Move_Assign:
+		case Object_Event_Type::Underlying_Move_Assign:
+		case Object_Event_Type::Destroy:
+			return false;
+		};
+	}
+
+	[[nodiscard]] auto copying() const -> bool
+	{
+		switch (m_type)
+		{
+		case Object_Event_Type::Copy_Construct:
+		case Object_Event_Type::Copy_Assign:
+			return true;
+
+		case Object_Event_Type::Construct:
+		case Object_Event_Type::Underlying_Copy_Assign:
+		case Object_Event_Type::Move_Construct:
+		case Object_Event_Type::Move_Assign:
+		case Object_Event_Type::Underlying_Move_Assign:
+		case Object_Event_Type::Destroy:
+			return false;
+		};
+	}
+
+	[[nodiscard]] auto moving() const -> bool
+	{
+		switch (m_type)
+		{
+		case Object_Event_Type::Move_Construct:
+		case Object_Event_Type::Move_Assign:
+			return true;
+
+		case Object_Event_Type::Construct:
+		case Object_Event_Type::Copy_Construct:
+		case Object_Event_Type::Copy_Assign:
+		case Object_Event_Type::Underlying_Copy_Assign:
+		case Object_Event_Type::Underlying_Move_Assign:
+		case Object_Event_Type::Destroy:
+			return false;
+		};
+	}
+
  private:
 	Object_Event_Type m_type;
 	T		 *m_destination;

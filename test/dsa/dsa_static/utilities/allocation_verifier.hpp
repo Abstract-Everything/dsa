@@ -61,15 +61,93 @@ class Alloc_Traits_Misuse : public std::runtime_error
 	using std::runtime_error::runtime_error;
 };
 
+class Allocation_Element
+{
+ public:
+	Allocation_Element()
+	    : m_state(State::Uninitialised)
+	{
+	}
+
+	[[nodiscard]] auto initialised() const -> bool
+	{
+		return m_state == State::Initialised;
+	}
+
+	template<typename T>
+	auto process_source_event(dsa::Object_Event<T> event)
+	    -> std::optional<std::string>
+	{
+		if ((event.moving() || event.copying()) && !initialised())
+		{
+			return assign_from_uninitialized_memory;
+		}
+
+		if (event.moving())
+		{
+			m_state = State::Moved;
+		}
+
+		return {};
+	}
+
+	template<typename T>
+	auto process_destination_event(dsa::Object_Event<T> event)
+	    -> std::optional<std::string>
+	{
+		switch (event.type())
+		{
+		case dsa::Object_Event_Type::Construct:
+		case dsa::Object_Event_Type::Copy_Construct:
+		case dsa::Object_Event_Type::Move_Construct:
+			if (m_state == State::Initialised)
+			{
+				return object_leaked;
+			}
+			m_state = State::Initialised;
+			break;
+
+		case dsa::Object_Event_Type::Copy_Assign:
+		case dsa::Object_Event_Type::Underlying_Copy_Assign:
+		case dsa::Object_Event_Type::Move_Assign:
+		case dsa::Object_Event_Type::Underlying_Move_Assign:
+			if (m_state != State::Initialised)
+			{
+				return assign_uninitialized_memory;
+			}
+			break;
+
+		case dsa::Object_Event_Type::Destroy:
+			if (m_state == State::Uninitialised)
+			{
+				return destroying_nonconstructed_memory;
+			}
+			m_state = State::Uninitialised;
+			break;
+		}
+		return {};
+	}
+
+ private:
+	enum class State
+	{
+		Uninitialised,
+		Initialised,
+		Moved
+	};
+
+	State m_state;
+};
+
+enum class Allocation_Type
+{
+	Owned,
+	FromConstruct
+};
+
 class Allocation_Block
 {
  public:
-	enum class Allocation_Type
-	{
-		Owned,
-		FromConstruct
-	};
-
 	Allocation_Block()          = default;
 	virtual ~Allocation_Block() = default;
 
@@ -80,24 +158,36 @@ class Allocation_Block
 
 	[[nodiscard]] virtual auto contains(uintptr_t address) const -> bool = 0;
 
-	[[nodiscard]] virtual auto is_initialised(uintptr_t address) const
+	[[nodiscard]] virtual auto initialised(uintptr_t address) const
 	    -> bool = 0;
 
 	[[nodiscard]] virtual auto owns_allocation() const -> bool = 0;
 
-	virtual auto mark_constructed(uintptr_t address)
-	    -> std::optional<std::string> = 0;
+	template<typename T>
+	auto process_source_event(dsa::Object_Event<T> event)
+	    -> std::optional<std::string>
+	{
+		return element(numeric_address(event.source()))
+		    .process_source_event(event);
+	}
 
-	virtual auto mark_assigned(uintptr_t address)
-	    -> std::optional<std::string> = 0;
-
-	virtual void mark_moved(uintptr_t address) = 0;
-
-	virtual auto mark_destroyed(uintptr_t address)
-	    -> std::optional<std::string> = 0;
+	template<typename T>
+	auto process_destination_event(dsa::Object_Event<T> event)
+	    -> std::optional<std::string>
+	{
+		return element(numeric_address(event.destination()))
+		    .process_destination_event(event);
+	}
 
 	virtual auto cleanup() -> std::optional<std::string>    = 0;
 	virtual auto deallocate() -> std::optional<std::string> = 0;
+
+ private:
+	[[nodiscard]] virtual auto element(uintptr_t address)
+	    -> Allocation_Element & = 0;
+
+	[[nodiscard]] virtual auto element(uintptr_t address) const
+	    -> Allocation_Element const & = 0;
 };
 
 template<typename Type>
@@ -109,14 +199,14 @@ class Allocation_Block_Typed : public Allocation_Block
 	    , m_allocation_type(allocation_type)
 	    , m_address(address)
 	{
-		m_state.resize(count);
+		m_elements.resize(count);
 	}
 
 	~Allocation_Block_Typed() override = default;
 
 	[[nodiscard]] auto count() const -> size_t override
 	{
-		return m_state.size();
+		return m_elements.size();
 	}
 
 	[[nodiscard]] auto match_address(uintptr_t address) const -> bool override
@@ -130,53 +220,14 @@ class Allocation_Block_Typed : public Allocation_Block
 		       && address < numeric_address(m_address + count());
 	}
 
-	[[nodiscard]] auto is_initialised(uintptr_t address) const -> bool override
+	[[nodiscard]] auto initialised(uintptr_t address) const -> bool override
 	{
-		return element_state(address) == Element_State::Initialised;
+		return element(address).initialised();
 	}
 
 	[[nodiscard]] auto owns_allocation() const -> bool override
 	{
 		return m_allocation_type == Allocation_Type::Owned;
-	}
-
-	auto mark_constructed(uintptr_t address)
-	    -> std::optional<std::string> override
-	{
-		Element_State &state = element_state(address);
-		if (state == Element_State::Initialised)
-		{
-			return object_leaked;
-		}
-		state = Element_State::Initialised;
-		return {};
-	}
-
-	auto mark_assigned(uintptr_t address) -> std::optional<std::string> override
-	{
-		Element_State &state = element_state(address);
-		if (state != Element_State::Initialised)
-		{
-			return assign_uninitialized_memory;
-		}
-		return {};
-	}
-
-	void mark_moved(uintptr_t address) override
-	{
-		element_state(address) = Element_State::Moved;
-	}
-
-	auto mark_destroyed(uintptr_t address)
-	    -> std::optional<std::string> override
-	{
-		Element_State &state = element_state(address);
-		if (state == Element_State::Uninitialised)
-		{
-			return destroying_nonconstructed_memory;
-		}
-		state = Element_State::Uninitialised;
-		return {};
 	}
 
 	auto cleanup() -> std::optional<std::string> override
@@ -187,11 +238,10 @@ class Allocation_Block_Typed : public Allocation_Block
 		}
 
 		bool all_elements_destroyed = std::none_of(
-		    m_state.begin(),
-		    m_state.end(),
-		    [](Element_State const &state)
-		    { return state == Element_State::Initialised; });
-
+		    m_elements.begin(),
+		    m_elements.end(),
+		    [](Element const &element)
+		    { return element.initialised(); });
 		if (all_elements_destroyed)
 		{
 			return {};
@@ -200,7 +250,7 @@ class Allocation_Block_Typed : public Allocation_Block
 		Allocator allocator;
 		for (size_t i = 0; i < count(); ++i)
 		{
-			if (m_state[i] == Element_State::Initialised)
+			if (m_elements[i].initialised())
 			{
 				Alloc_Traits::destroy(allocator, m_address + i);
 			}
@@ -223,36 +273,33 @@ class Allocation_Block_Typed : public Allocation_Block
  private:
 	using Allocator    = dsa::Default_Allocator<Type>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
+	using Element      = Allocation_Element;
 
-	enum class Element_State
-	{
-		Uninitialised,
-		Initialised,
-		Moved
-	};
+	Allocation_Type      m_allocation_type;
+	Type		    *m_address;
+	std::vector<Element> m_elements;
 
-	Allocation_Type            m_allocation_type;
-	Type		           *m_address;
-	std::vector<Element_State> m_state;
-
-	auto element_state(uintptr_t address) -> Element_State &
+	auto element_index(uintptr_t address) const -> size_t
 	{
 		assert(
 		    contains(address)
 		    && "Expected the address to be inside of the allocation");
-		auto typed_address = reinterpret_cast<Type *>(address);
-		auto index = static_cast<size_t>(typed_address - m_address);
-		return m_state[index];
+
+		auto base_address = numeric_address(m_address);
+		auto relative_address = address - base_address;
+		return relative_address / sizeof(Type);
 	}
 
-	auto element_state(uintptr_t address) const -> Element_State const &
+	[[nodiscard]] auto element(uintptr_t address)
+	    -> Allocation_Element & override
 	{
-		assert(
-		    contains(address)
-		    && "Expected the address to be inside of the allocation");
-		auto typed_address = reinterpret_cast<Type *>(address);
-		auto index = static_cast<size_t>(typed_address - m_address);
-		return m_state[index];
+		return m_elements[element_index(address)];
+	}
+
+	[[nodiscard]] auto element(uintptr_t address) const
+	    -> Allocation_Element const & override
+	{
+		return m_elements[element_index(address)];
 	}
 };
 
@@ -329,7 +376,7 @@ class Allocation_Verifier
 		{
 		case dsa::Allocation_Event_Type::Allocate:
 			instance()->add_allocation(
-			    detail::Allocation_Block::Allocation_Type::Owned,
+			    detail::Allocation_Type::Owned,
 			    event.address(),
 			    event.count());
 			break;
@@ -343,46 +390,7 @@ class Allocation_Verifier
 	template<typename T>
 	static void process_object_event(dsa::Object_Event<T> event)
 	{
-		switch (event.type())
-		{
-		case dsa::Object_Event_Type::Construct:
-			instance()->on_construct(event.destination());
-			break;
-
-		case dsa::Object_Event_Type::Copy_Construct:
-			instance()->verify_constructed(event.source());
-			instance()->on_construct(event.destination());
-			break;
-
-		case dsa::Object_Event_Type::Copy_Assign:
-			instance()->verify_constructed(event.source());
-			instance()->on_assign(event.destination());
-			break;
-
-		case dsa::Object_Event_Type::Underlying_Copy_Assign:
-			instance()->on_assign(event.destination());
-			break;
-
-		case dsa::Object_Event_Type::Move_Construct:
-			instance()->verify_constructed(event.source());
-			instance()->on_construct(event.destination());
-			instance()->on_moved(event.source());
-			break;
-
-		case dsa::Object_Event_Type::Move_Assign:
-			instance()->verify_constructed(event.source());
-			instance()->on_assign(event.destination());
-			instance()->on_moved(event.source());
-			break;
-
-		case dsa::Object_Event_Type::Underlying_Move_Assign:
-			instance()->on_assign(event.destination());
-			break;
-
-		case dsa::Object_Event_Type::Destroy:
-			instance()->on_destroy(event.destination());
-			break;
-		}
+		instance()->process_object_event_impl(event);
 	}
 
  private:
@@ -403,10 +411,28 @@ class Allocation_Verifier
 	}
 
 	template<typename T>
-	void on_construct(T *address)
+	void process_object_event_impl(dsa::Object_Event<T> event)
 	{
-		auto allocation = find_containing_allocation(address);
-		if (allocation == m_allocations.end())
+		if (event.copying() || event.moving())
+		{
+			auto source_allocation =
+			    find_containing_allocation(event.source());
+			if (source_allocation == m_allocations.end())
+			{
+				m_errors.insert(assign_from_uninitialized_memory);
+			}
+			else
+			{
+				add_error_if_any(
+				    (*source_allocation)->process_source_event(event));
+			}
+		}
+
+		auto destination_allocation =
+		    find_containing_allocation(event.destination());
+
+		if (event.constructing()
+		    && destination_allocation == m_allocations.end())
 		{
 			// If we do not find an allocation with this address we
 			// assume that this is a stack variable. This is not
@@ -414,80 +440,18 @@ class Allocation_Verifier
 			// which we are not aware of. However, due to the way
 			// Memory_Monitor works it is the best we can do
 			add_allocation(
-			    detail::Allocation_Block::Allocation_Type::FromConstruct,
-			    address,
+			    detail::Allocation_Type::FromConstruct,
+			    event.destination(),
 			    1);
-			allocation = m_allocations.end() - 1;
+			destination_allocation = m_allocations.end() - 1;
 		}
 
 		add_error_if_any(
-		    (*allocation)->mark_constructed(detail::numeric_address(address)));
+		    (*destination_allocation)->process_destination_event(event));
 	}
 
 	template<typename T>
-	void verify_constructed(T const *address)
-	{
-		auto allocation = find_containing_allocation(address);
-		if (allocation == m_allocations.end()
-		    || !(*allocation)
-			    ->is_initialised(detail::numeric_address(address)))
-		{
-			m_errors.insert(assign_from_uninitialized_memory);
-			return;
-		}
-	}
-
-	template<typename T>
-	void on_assign(T const *address)
-	{
-		auto allocation = find_containing_allocation(address);
-		if (allocation == m_allocations.end())
-		{
-			m_errors.insert(assign_uninitialized_memory);
-			return;
-		}
-
-		add_error_if_any(
-		    (*allocation)->mark_assigned(detail::numeric_address(address)));
-	}
-
-	template<typename T>
-	void on_moved(T const *address)
-	{
-		auto allocation = find_containing_allocation(address);
-		if (allocation == m_allocations.end())
-		{
-			return;
-		}
-		(*allocation)->mark_moved(detail::numeric_address(address));
-	}
-
-	template<typename T>
-	void on_destroy(T const *address)
-	{
-		auto allocation = find_containing_allocation(address);
-		if (allocation == m_allocations.end())
-		{
-			m_errors.insert(destroying_nonconstructed_memory);
-			return;
-		}
-
-		add_error_if_any(
-		    (*allocation)->mark_destroyed(detail::numeric_address(address)));
-
-		// For stack values we treat destroy as a deallocate
-		// aswell. Stack values will never get a cal to
-		// deallocate and the same address can be used as soon
-		// as destroy is called. For example in a loop that
-		// calls a function each iteration
-		if (!(*allocation)->owns_allocation())
-		{
-			m_allocations.erase(allocation);
-		}
-	}
-
-	template<typename T>
-	void add_allocation(detail::Allocation_Block::Allocation_Type type, T *address, size_t count)
+	void add_allocation(detail::Allocation_Type type, T *address, size_t count)
 	{
 		m_allocations.emplace_back(
 		    std::make_unique<detail::Allocation_Block_Typed<T>>(
