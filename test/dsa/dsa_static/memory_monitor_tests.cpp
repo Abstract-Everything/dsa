@@ -5,233 +5,113 @@
 #include <dsa/allocator_traits.hpp>
 #include <dsa/memory_monitor.hpp>
 
+#include <any>
 #include <variant>
 
 #include <catch2/catch_all.hpp>
 
+using namespace dsa;
+
 namespace test
 {
 
-/// Data class used to store the parameters passed to an allocate or deallocate
-/// call.
-class Allocation_Event
+template<typename T>
+using Event_Type = std::variant<Allocation_Event<T>, Object_Event<T>>;
+
+class Memory_Monitor_Event
 {
  public:
-	enum class Type
+	virtual ~Memory_Monitor_Event() = default;
+
+	friend auto operator<<(std::ostream &stream, Memory_Monitor_Event const &event)
+	    -> std::ostream &
 	{
-		Allocate,
-		Deallocate
-	};
-
-	Allocation_Event(Type type, void *pointer, size_t count)
-	    : m_type(type)
-	    , m_pointer(pointer)
-	    , m_count(count)
-	{
-	}
-
-	auto operator==(Allocation_Event const &event) const -> bool = default;
-	friend auto operator<<(std::ostream &stream, Allocation_Event const &event)
-	    -> std::ostream &;
-
- private:
-	Type   m_type;
-	void  *m_pointer;
-	size_t m_count;
-};
-
-auto operator<<(std::ostream &stream, Allocation_Event::Type type)
-    -> std::ostream &
-{
-	switch (type)
-	{
-	case Allocation_Event::Type::Allocate:
-		stream << "Allocation";
-		break;
-
-	case Allocation_Event::Type::Deallocate:
-		stream << "Deallocation";
-		break;
-	};
-	return stream;
-}
-
-auto operator<<(std::ostream &stream, Allocation_Event const &event)
-    -> std::ostream &
-{
-	stream << event.m_type << " at address "
-	       << reinterpret_cast<uintptr_t>(event.m_pointer) << " with count "
-	       << event.m_count;
-	return stream;
-}
-
-/// Data class used to store the parameters passed to object lifetime
-/// manipulation functions. These involve construction, destruction and moves.
-class Object_Event
-{
- public:
-	enum class Type
-	{
-		Construct,
-		Copy_Construct,
-		Copy_Assign,
-		Move_Construct,
-		Move_Assign,
-		Destroy
-	};
-
-	Object_Event(Type type, void *destination, void const *source = nullptr)
-	    : m_type(type)
-	    , m_destination(destination)
-	    , m_source(source)
-	{
-	}
-
-	auto operator==(Object_Event const &event) const -> bool = default;
-	friend auto operator<<(std::ostream &stream, Object_Event const &event)
-	    -> std::ostream &;
-
- private:
-	Type        m_type;
-	void       *m_destination;
-	void const *m_source;
-};
-
-auto operator<<(std::ostream &stream, Object_Event::Type type) -> std::ostream &
-{
-	switch (type)
-	{
-	case Object_Event::Type::Construct:
-		stream << "Construction";
-		break;
-
-	case Object_Event::Type::Destroy:
-		stream << "Destruction";
-		break;
-
-	case Object_Event::Type::Copy_Construct:
-		stream << "Copy construction";
-		break;
-
-	case Object_Event::Type::Copy_Assign:
-		stream << "Copy assignment";
-		break;
-
-	case Object_Event::Type::Move_Construct:
-		stream << "Move construction";
-		break;
-
-	case Object_Event::Type::Move_Assign:
-		stream << "Move assignment";
-		break;
-	};
-	return stream;
-}
-
-auto operator<<(std::ostream &stream, Object_Event const &event) -> std::ostream &
-{
-	stream << event.m_type << " at address "
-	       << reinterpret_cast<uintptr_t>(event.m_destination);
-
-	if (event.m_source == nullptr)
-	{
+		event.stream_impl(stream);
 		return stream;
 	}
 
-	switch (event.m_type)
+	[[nodiscard]] virtual auto equals(std::any value) const -> bool = 0;
+
+ protected:
+	Memory_Monitor_Event() = default;
+
+	virtual void stream_impl(std::ostream &stream) const = 0;
+};
+
+template<typename T>
+class Memory_Monitor_Event_Typed : public Memory_Monitor_Event
+{
+ public:
+	explicit Memory_Monitor_Event_Typed(Allocation_Event<T> event)
+	    : m_event(event)
 	{
-	case Object_Event::Type::Construct:
-	case Object_Event::Type::Destroy:
-		break;
+	}
 
-	case Object_Event::Type::Copy_Construct:
-	case Object_Event::Type::Copy_Assign:
-	case Object_Event::Type::Move_Construct:
-	case Object_Event::Type::Move_Assign:
-		stream << " from address "
-		       << reinterpret_cast<uintptr_t>(event.m_source);
-		break;
-	};
+	explicit Memory_Monitor_Event_Typed(Object_Event<T> event)
+	    : m_event(event)
+	{
+	}
 
-	return stream;
-}
+	void stream_impl(std::ostream &stream) const override
+	{
+		std::visit([&](auto const &event) { stream << event; }, m_event);
+	}
 
-using Events = std::variant<Allocation_Event, Object_Event>;
+	[[nodiscard]] auto equals(std::any value) const -> bool override
+	{
+		try
+		{
+			return std::any_cast<Event_Type<T>>(value) == m_event;
+		}
+		catch (...)
+		{
+			return false;
+		}
+	}
 
-auto operator<<(std::ostream &stream, Events const &event) -> std::ostream &
+ private:
+	Event_Type<T> m_event;
+};
+
+template<typename T>
+struct EqualsMemoryMonitorEventMatcher : Catch::Matchers::MatcherGenericBase
 {
-	std::visit([&](auto const &type) { stream << type; }, event);
-	return stream;
+	EqualsMemoryMonitorEventMatcher(Event_Type<T> event) : m_event(event)
+	{
+	}
+
+	bool match(std::unique_ptr<Memory_Monitor_Event> const &other) const
+	{
+		return other->equals(m_event);
+	}
+
+	std::string describe() const override
+	{
+		std::stringstream stream;
+		std::visit([&](auto const &event) { stream << event; }, m_event);
+		return "Equals: " + stream.str();
+	}
+
+ private:
+	Event_Type<T> m_event;
+};
+
+template<typename T>
+auto EqualsEvent(Allocation_Event_Type type, T *pointer, size_t count)
+    -> EqualsMemoryMonitorEventMatcher<T>
+{
+	return EqualsMemoryMonitorEventMatcher(
+	    Event_Type<T>(Allocation_Event(type, pointer, count)));
 }
 
 template<typename T>
-auto create_allocate_event(T *pointer, size_t count) -> Events
+auto EqualsEvent(
+    Object_Event_Type type,
+    T                *destination,
+    T const          *source = nullptr) -> EqualsMemoryMonitorEventMatcher<T>
 {
-	return Allocation_Event(
-	    Allocation_Event::Type::Allocate,
-	    static_cast<void *>(pointer),
-	    count);
-}
-
-template<typename T>
-auto create_deallocate_event(T *pointer, size_t count) -> Events
-{
-	return Allocation_Event(
-	    Allocation_Event::Type::Deallocate,
-	    static_cast<void *>(pointer),
-	    count);
-}
-
-template<typename T>
-auto create_construct_event(T *destination) -> Events
-{
-	return Object_Event(
-	    Object_Event::Type::Construct,
-	    static_cast<void *>(destination));
-}
-
-template<typename T>
-auto create_copy_construct_event(T *destination, T const *source) -> Events
-{
-	return Object_Event(
-	    Object_Event::Type::Copy_Construct,
-	    static_cast<void *>(destination),
-	    static_cast<void const *>(source));
-}
-
-template<typename T>
-auto create_copy_assign_event(T *destination, T const *source) -> Events
-{
-	return Object_Event(
-	    Object_Event::Type::Copy_Assign,
-	    static_cast<void *>(destination),
-	    static_cast<void const *>(source));
-}
-
-template<typename T>
-auto create_move_construct_event(T *destination, T const *source) -> Events
-{
-	return Object_Event(
-	    Object_Event::Type::Move_Construct,
-	    static_cast<void *>(destination),
-	    static_cast<void const *>(source));
-}
-
-template<typename T>
-auto create_move_assign_event(T *destination, T const *source) -> Events
-{
-	return Object_Event(
-	    Object_Event::Type::Move_Assign,
-	    static_cast<void *>(destination),
-	    static_cast<void const *>(source));
-}
-
-template<typename T>
-auto create_destroy_event(T *destination) -> Events
-{
-	return Object_Event(
-	    Object_Event::Type::Destroy,
-	    static_cast<void *>(destination));
+	return EqualsMemoryMonitorEventMatcher(
+	    Event_Type<T>(Object_Event(type, destination, source)));
 }
 
 /// Maintains a list events produced by the appropriate callback. The entries
@@ -247,78 +127,23 @@ class Event_Handler
 	}
 
 	template<typename T>
-	static void on_allocate(T *address, size_t count)
-	{
-		instance()->m_events.emplace_back(
-		    create_allocate_event(address, count));
-	}
-
-	template<typename T>
-	static void on_construct(T *address)
-	{
-		instance()->m_events.emplace_back(create_construct_event(address));
-	}
-
-	template<typename T>
-	static void on_copy_construct(T *destination, T const *source)
-	{
-		instance()->m_events.emplace_back(
-		    create_copy_construct_event(destination, source));
-	}
-
-	template<typename T>
-	static void on_copy_assign(T *destination, T const *source)
-	{
-		instance()->m_events.emplace_back(
-		    create_copy_assign_event(destination, source));
-	}
-
-	template<typename T>
-	static void on_underlying_value_copy_assign(T *destination)
-	{
-		instance()->m_events.emplace_back(
-		    create_copy_assign_event<T>(destination, nullptr));
-	}
-
-	template<typename T>
-	static void on_move_construct(T *destination, T const *source)
-	{
-		instance()->m_events.emplace_back(
-		    create_move_construct_event(destination, source));
-	}
-
-	template<typename T>
-	static void on_move_assign(T *destination, T const *source)
-	{
-		instance()->m_events.emplace_back(
-		    create_move_assign_event(destination, source));
-	}
-
-	template<typename T>
-	static void on_underlying_value_move_assign(T *destination)
-	{
-		instance()->m_events.emplace_back(
-		    create_move_assign_event<T>(destination, nullptr));
-	}
-
-	template<typename T>
-	static void on_destroy(T *address)
-	{
-		instance()->m_events.emplace_back(create_destroy_event(address));
-	}
-
-	template<typename T>
-	static auto before_deallocate(T * /* address */, size_t /* count */)
-	    -> bool
+	static auto before_deallocate(Allocation_Event<T> /* event */) -> bool
 	{
 		return instance()->m_allow_deallocate;
 	}
 
 	template<typename T>
-	static void on_deallocate(T *address, size_t count)
+	static void process_allocation_event(Allocation_Event<T> event)
 	{
-		instance()->m_events.emplace_back(
-		    create_deallocate_event(address, count));
+		instance()->m_events.push_back(
+		    std::make_unique<Memory_Monitor_Event_Typed<T>>(event));
+	}
+
+	template<typename T>
+	static void process_object_event(Object_Event<T> event)
+	{
+		instance()->m_events.push_back(
+		    std::make_unique<Memory_Monitor_Event_Typed<T>>(event));
 	}
 
 	void cleanup()
@@ -335,14 +160,15 @@ class Event_Handler
 		m_allow_deallocate = true;
 	}
 
-	[[nodiscard]] auto events() -> std::vector<Events> const &
+	[[nodiscard]] auto events()
+	    -> std::vector<std::unique_ptr<Memory_Monitor_Event>> const &
 	{
 		return m_events;
 	}
 
  private:
-	std::vector<Events> m_events;
-	bool                m_allow_deallocate = true;
+	std::vector<std::unique_ptr<Memory_Monitor_Event>> m_events;
+	bool m_allow_deallocate = true;
 };
 
 using Handler_Scope = Memory_Monitor_Handler_Scope<Event_Handler>;
@@ -368,9 +194,9 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 	SECTION("Monitor detects calls to allocate")
 	{
 		REQUIRE(Event_Handler::instance()->events().size() == 1);
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_allocate_event(allocation, count));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Allocation_Event_Type::Allocate, allocation, count));
 
 		Alloc_Traits::deallocate(monitor, allocation, count);
 	}
@@ -379,9 +205,9 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 	{
 		Alloc_Traits::deallocate(monitor, allocation, count);
 
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_deallocate_event(allocation, count));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Allocation_Event_Type::Deallocate, allocation, count));
 	}
 
 	SECTION("The handler can signal the Monitor to block a deallocate")
@@ -410,13 +236,13 @@ TEST_CASE(
 		address = &value;
 	}
 
-	REQUIRE(
-	    Event_Handler::instance()->events().front()
-	    == create_construct_event(address));
+	REQUIRE_THAT(
+	    Event_Handler::instance()->events().front(),
+	    EqualsEvent(Object_Event_Type::Construct, address));
 
-	REQUIRE(
-	    Event_Handler::instance()->events().back()
-	    == create_destroy_event(address));
+	REQUIRE_THAT(
+	    Event_Handler::instance()->events().back(),
+	    EqualsEvent(Object_Event_Type::Destroy, address));
 }
 
 TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
@@ -437,18 +263,18 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		    allocation,
 		    Allocator::Underlying_Value{});
 
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_construct_event(allocation));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Object_Event_Type::Construct, allocation));
 	}
 
 	SECTION("Monitor detects an uninitialised construct")
 	{
 		std::uninitialized_default_construct_n(allocation, 1);
 
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_construct_event(allocation));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Object_Event_Type::Construct, allocation));
 	}
 
 	SECTION("Monitor detects copy construction")
@@ -456,9 +282,9 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		Allocator::Value value;
 		std::uninitialized_fill_n(allocation, 1, value);
 
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_copy_construct_event(allocation, &value));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Object_Event_Type::Copy_Construct, allocation, &value));
 	}
 
 	SECTION("An uninitialized_move sends a notification to the handler")
@@ -466,9 +292,9 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		Allocator::Value value;
 		std::uninitialized_move_n(&value, 1, allocation);
 
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_move_construct_event(allocation, &value));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Object_Event_Type::Move_Construct, allocation, &value));
 	}
 
 	Alloc_Traits::destroy(monitor, allocation);
@@ -494,9 +320,9 @@ TEST_CASE(
 	    allocation,
 	    No_Default_Constructor_Value_Construct_Tag());
 
-	REQUIRE(
-	    Event_Handler::instance()->events().back()
-	    == create_construct_event(allocation));
+	REQUIRE_THAT(
+	    Event_Handler::instance()->events().back(),
+	    EqualsEvent(Object_Event_Type::Construct, allocation));
 
 	Alloc_Traits::destroy(monitor, allocation);
 	Alloc_Traits::deallocate(monitor, allocation, count);
@@ -517,9 +343,9 @@ TEST_CASE(
 	auto  *allocation = Alloc_Traits::allocate(monitor, count);
 	Alloc_Traits::construct(monitor, allocation, Allocator::Underlying_Value());
 
-	REQUIRE(
-	    Event_Handler::instance()->events().back()
-	    == create_construct_event(allocation));
+	REQUIRE_THAT(
+	    Event_Handler::instance()->events().back(),
+	    EqualsEvent(Object_Event_Type::Construct, allocation));
 
 	Alloc_Traits::destroy(monitor, allocation);
 	Alloc_Traits::deallocate(monitor, allocation, count);
@@ -544,39 +370,39 @@ TEST_CASE("Monitor notifies handler about object assignment", "[monitor]")
 	{
 		*allocation = value;
 
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_copy_assign_event(allocation, &value));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Object_Event_Type::Copy_Assign, allocation, &value));
 	}
 
 	SECTION("Monitor detects copy assignment from the underlying value")
 	{
 		*allocation = underlying_value;
 
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_copy_assign_event<Allocator::Value>(
-			allocation,
-			nullptr));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(
+			Object_Event_Type::Underlying_Copy_Assign,
+			allocation));
 	}
 
 	SECTION("Monitor detects move assignment")
 	{
 		*allocation = std::move(value);
 
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_move_assign_event(allocation, &value));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Object_Event_Type::Move_Assign, allocation, &value));
 	}
 
 	SECTION("Monitor detects move assignment from the underlying value")
 	{
 		*allocation = std::move(underlying_value);
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_move_assign_event<Allocator::Value>(
-			allocation,
-			nullptr));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(
+			Object_Event_Type::Underlying_Move_Assign,
+			allocation));
 	}
 
 	Alloc_Traits::destroy(monitor, allocation);
@@ -599,17 +425,17 @@ TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
 	SECTION("Monitor detects destruction through allocation traits")
 	{
 		Alloc_Traits::destroy(monitor, allocation);
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_destroy_event(allocation));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Object_Event_Type::Destroy, allocation));
 	}
 
 	SECTION("Monitor detects destruction through destroy call")
 	{
 		std::destroy_n(allocation, 1);
-		REQUIRE(
-		    Event_Handler::instance()->events().back()
-		    == create_destroy_event(allocation));
+		REQUIRE_THAT(
+		    Event_Handler::instance()->events().back(),
+		    EqualsEvent(Object_Event_Type::Destroy, allocation));
 	}
 
 	Alloc_Traits::deallocate(monitor, allocation, count);

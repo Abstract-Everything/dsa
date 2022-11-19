@@ -74,28 +74,202 @@ class Element_Monitor_Base<Base, false>
  private:
 	Base m_base;
 };
+
+} // namespace detail
+
+enum class Allocation_Event_Type
+{
+	Allocate,
+	Deallocate,
+};
+
+inline auto operator<<(std::ostream &stream, Allocation_Event_Type type)
+    -> std::ostream &
+{
+	switch (type)
+	{
+	case Allocation_Event_Type::Allocate:
+		stream << "Allocation";
+		break;
+
+	case Allocation_Event_Type::Deallocate:
+		stream << "Deallocation";
+		break;
+	};
+	return stream;
 }
 
-template<typename Handler, typename Type>
-concept Memory_Monitor_Event_Handler =
-    requires(Type *destination, Type const *source, size_t count)
+enum class Object_Event_Type
 {
-	{Handler::on_allocate(destination, count)};
+	Construct,
+	Copy_Construct,
+	Copy_Assign,
+	Underlying_Copy_Assign,
+	Move_Construct,
+	Move_Assign,
+	Underlying_Move_Assign,
+	Destroy,
+};
 
-	{Handler::on_construct(destination)};
+inline auto operator<<(std::ostream &stream, Object_Event_Type type)
+    -> std::ostream &
+{
+	switch (type)
+	{
+	case Object_Event_Type::Construct:
+		stream << "Construction";
+		break;
 
-	{Handler::on_copy_construct(destination, source)};
-	{Handler::on_copy_assign(destination, source)};
-	{Handler::on_underlying_value_copy_assign(destination)};
+	case Object_Event_Type::Destroy:
+		stream << "Destruction";
+		break;
 
-	{Handler::on_move_construct(destination, source)};
-	{Handler::on_move_assign(destination, source)};
-	{Handler::on_underlying_value_move_assign(destination)};
+	case Object_Event_Type::Copy_Construct:
+		stream << "Copy construction";
+		break;
 
-	{Handler::on_destroy(destination)};
+	case Object_Event_Type::Copy_Assign:
+		stream << "Copy assignment";
+		break;
 
-	{Handler::before_deallocate(destination, count)} -> std::same_as<bool>;
-	{Handler::on_deallocate(destination, count)};
+	case Object_Event_Type::Underlying_Copy_Assign:
+		stream << "Underlying copy assignment";
+		break;
+
+	case Object_Event_Type::Move_Construct:
+		stream << "Move construction";
+		break;
+
+	case Object_Event_Type::Move_Assign:
+		stream << "Move assignment";
+		break;
+
+	case Object_Event_Type::Underlying_Move_Assign:
+		stream << "Underlying move assignment";
+		break;
+	};
+	return stream;
+}
+
+/// Describes the parameters passed to an allocate or deallocate call
+template<typename T>
+class Allocation_Event
+{
+ public:
+	Allocation_Event(Allocation_Event_Type type, T *pointer, size_t count)
+	    : m_type(type)
+	    , m_pointer(pointer)
+	    , m_count(count)
+	{
+	}
+
+	auto operator==(Allocation_Event const &event) const -> bool = default;
+
+	friend auto operator<<(std::ostream &stream, Allocation_Event const &event)
+	    -> std::ostream &
+	{
+		stream << event.m_type << " at address "
+		       << reinterpret_cast<uintptr_t>(event.m_pointer)
+		       << " with count " << event.m_count;
+		return stream;
+	}
+
+	auto type() -> Allocation_Event_Type
+	{
+		return m_type;
+	}
+
+	auto address() -> T *
+	{
+		return m_pointer;
+	}
+
+	auto count() -> size_t
+	{
+		return m_count;
+	}
+
+ private:
+	Allocation_Event_Type m_type;
+	T		     *m_pointer;
+	size_t                m_count;
+};
+
+/// Describes the parameters passed to functions which modify an object or its
+/// lifetime.
+template<typename T>
+class Object_Event
+{
+ public:
+	Object_Event(Object_Event_Type type, T *destination, T const *source = nullptr)
+	    : m_type(type)
+	    , m_destination(destination)
+	    , m_source(source)
+	{
+	}
+
+	auto operator==(Object_Event const &event) const -> bool = default;
+
+	friend auto operator<<(std::ostream &stream, Object_Event const &event)
+	    -> std::ostream &
+	{
+		stream << event.m_type << " at address "
+		       << reinterpret_cast<uintptr_t>(event.m_destination);
+
+		if (event.m_source != nullptr)
+		{
+			switch (event.m_type)
+			{
+			case Object_Event_Type::Construct:
+			case Object_Event_Type::Destroy:
+			case Object_Event_Type::Underlying_Copy_Assign:
+			case Object_Event_Type::Underlying_Move_Assign:
+				break;
+
+			case Object_Event_Type::Copy_Construct:
+			case Object_Event_Type::Copy_Assign:
+			case Object_Event_Type::Move_Construct:
+			case Object_Event_Type::Move_Assign:
+				stream
+				    << " from address "
+				    << reinterpret_cast<uintptr_t>(event.m_source);
+				break;
+			};
+		}
+
+		return stream;
+	}
+
+	auto type() -> Object_Event_Type
+	{
+		return m_type;
+	}
+
+	auto destination() -> T *
+	{
+		return m_destination;
+	}
+
+	auto source() -> T const *
+	{
+		return m_source;
+	}
+
+ private:
+	Object_Event_Type m_type;
+	T		 *m_destination;
+	T const          *m_source;
+};
+
+template<typename Handler, typename Type>
+concept Memory_Monitor_Event_Handler = requires(
+    Allocation_Event<Type> allocation_event,
+    Object_Event<Type>     object_event)
+{
+	{Handler::before_deallocate(std::move(allocation_event))} -> std::same_as<bool>;
+
+	{Handler::process_allocation_event(std::move(allocation_event))};
+	{Handler::process_object_event(std::move(object_event))};
 };
 
 /// @brief Monitors the allocations and object lifetime within those allocations
@@ -122,19 +296,24 @@ class Memory_Monitor
 		    requires std::is_constructible_v<Base, Arguments...>
 		    : Base_Wrapper(std::forward<Arguments>(arguments)...)
 		{
-			Handler::on_construct(this);
+			Handler::process_object_event(
+			    Object_Event(Object_Event_Type::Construct, this));
 		}
 
 		~Element_Monitor()
 		{
-			Handler::on_destroy(this);
+			Handler::process_object_event(
+			    Object_Event(Object_Event_Type::Destroy, this));
 		}
 
 		Element_Monitor(Element_Monitor const &element)
 		    requires std::is_constructible_v<Base>
 		    : Base_Wrapper(element)
 		{
-			Handler::on_copy_construct(this, &element);
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Copy_Construct,
+			    this,
+			    &element));
 		}
 
 		auto operator=(Element_Monitor const &element)
@@ -142,7 +321,10 @@ class Memory_Monitor
 		    requires std::is_assignable_v<Base&, Base>
 		{
 			Base_Wrapper::base() = element.base();
-			Handler::on_copy_assign(this, &element);
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Copy_Assign,
+			    this,
+			    &element));
 			return *this;
 		}
 
@@ -151,7 +333,9 @@ class Memory_Monitor
 		    requires std::is_assignable_v<Base&, Base>
 		{
 			Base_Wrapper::base() = value;
-			Handler::on_underlying_value_copy_assign(this);
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Underlying_Copy_Assign,
+			    this));
 			return *this;
 		}
 
@@ -159,7 +343,10 @@ class Memory_Monitor
 		    requires std::is_move_constructible_v<Base>
 		    : Base_Wrapper(std::move(element))
 		{
-			Handler::on_move_construct(this, &element);
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Move_Construct,
+			    this,
+			    &element));
 		}
 
 		auto operator=(Element_Monitor &&element) noexcept
@@ -167,7 +354,10 @@ class Memory_Monitor
 		    requires std::is_move_assignable_v<Base>
 		{
 			Base_Wrapper::base() = std::move(element.base());
-			Handler::on_move_assign(this, &element);
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Move_Assign,
+			    this,
+			    &element));
 			return *this;
 		}
 
@@ -176,7 +366,9 @@ class Memory_Monitor
 		    requires std::is_move_assignable_v<Base>
 		{
 			Base_Wrapper::base() = value;
-			Handler::on_underlying_value_move_assign(this);
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Underlying_Move_Assign,
+			    this));
 			return *this;
 		}
 	};
@@ -187,23 +379,37 @@ class Memory_Monitor
 
 	explicit Memory_Monitor() = default;
 
+	template<typename T>
+	explicit Memory_Monitor(Memory_Monitor<T, Handler> /* monitor */)
+	    : Memory_Monitor()
+	{
+	}
+
 	~Memory_Monitor() = default;
 
 	auto allocate(std::size_t count) -> Pointer
 	{
 		Allocator allocator;
 		Pointer   address = Alloc_Traits::allocate(allocator, count);
-		Handler::on_allocate(address, count);
+		Handler::process_allocation_event(Allocation_Event(
+		    Allocation_Event_Type::Allocate,
+		    address,
+		    count));
 		return address;
 	}
 
 	void deallocate(Pointer address, std::size_t count)
 	{
+		Allocation_Event event(
+		    Allocation_Event_Type::Deallocate,
+		    address,
+		    count);
+
 		Allocator allocator;
-		if (Handler::before_deallocate(address, count))
+		if (Handler::before_deallocate(event))
 		{
 			Alloc_Traits::deallocate(allocator, address, count);
-			Handler::on_deallocate(address, count);
+			Handler::process_allocation_event(event);
 		}
 	}
 

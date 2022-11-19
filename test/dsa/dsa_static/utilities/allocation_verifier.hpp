@@ -3,6 +3,7 @@
 
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
+#include <dsa/memory_monitor.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -313,69 +314,75 @@ class Allocation_Verifier
 	}
 
 	template<typename T>
-	static void on_allocate(T *address, size_t count)
+	static auto before_deallocate(dsa::Allocation_Event<T> event) -> bool
 	{
-		instance()->on_allocate_impl(address, count);
+		assert(event.type() == dsa::Allocation_Event_Type::Deallocate);
+		return instance()->before_deallocate_impl(
+		    event.address(),
+		    event.count());
 	}
 
 	template<typename T>
-	static void on_construct(T *typed_address)
+	static void process_allocation_event(dsa::Allocation_Event<T> event)
 	{
-		instance()->on_construct_impl(typed_address);
+		switch (event.type())
+		{
+		case dsa::Allocation_Event_Type::Allocate:
+			instance()->add_allocation(
+			    detail::Allocation_Block::Allocation_Type::Owned,
+			    event.address(),
+			    event.count());
+			break;
+
+		case dsa::Allocation_Event_Type::Deallocate:
+			instance()->on_deallocate(event.address());
+			break;
+		}
 	}
 
 	template<typename T>
-	static void on_copy_construct(T *destination, T const *source)
+	static void process_object_event(dsa::Object_Event<T> event)
 	{
-		instance()->on_copy_construct_impl(destination, source);
-	}
+		switch (event.type())
+		{
+		case dsa::Object_Event_Type::Construct:
+			instance()->on_construct(event.destination());
+			break;
 
-	template<typename T>
-	static void on_copy_assign(T *destination, T const *source)
-	{
-		instance()->on_copy_assign_impl(destination, source);
-	}
+		case dsa::Object_Event_Type::Copy_Construct:
+			instance()->verify_constructed(event.source());
+			instance()->on_construct(event.destination());
+			break;
 
-	template<typename T>
-	static void on_underlying_value_copy_assign(T *destination)
-	{
-		instance()->on_underlying_value_copy_assign_impl(destination);
-	}
+		case dsa::Object_Event_Type::Copy_Assign:
+			instance()->verify_constructed(event.source());
+			instance()->on_assign(event.destination());
+			break;
 
-	template<typename T>
-	static void on_move_construct(T *destination, T const *source)
-	{
-		instance()->on_move_construct_impl(destination, source);
-	}
+		case dsa::Object_Event_Type::Underlying_Copy_Assign:
+			instance()->on_assign(event.destination());
+			break;
 
-	template<typename T>
-	static void on_move_assign(T *destination, T const *source)
-	{
-		instance()->on_move_assign_impl(destination, source);
-	}
+		case dsa::Object_Event_Type::Move_Construct:
+			instance()->verify_constructed(event.source());
+			instance()->on_construct(event.destination());
+			instance()->on_moved(event.source());
+			break;
 
-	template<typename T>
-	static void on_underlying_value_move_assign(T *destination)
-	{
-		instance()->on_underlying_value_move_assign_impl(destination);
-	}
+		case dsa::Object_Event_Type::Move_Assign:
+			instance()->verify_constructed(event.source());
+			instance()->on_assign(event.destination());
+			instance()->on_moved(event.source());
+			break;
 
-	template<typename T>
-	static void on_destroy(T *typed_address)
-	{
-		instance()->on_destroy_impl(typed_address);
-	}
+		case dsa::Object_Event_Type::Underlying_Move_Assign:
+			instance()->on_assign(event.destination());
+			break;
 
-	template<typename T>
-	static auto before_deallocate(T *address, size_t count) -> bool
-	{
-		return instance()->before_deallocate_impl(address, count);
-	}
-
-	template<typename T>
-	static void on_deallocate(T *address, size_t /* count */)
-	{
-		instance()->on_deallocate_impl(address);
+		case dsa::Object_Event_Type::Destroy:
+			instance()->on_destroy(event.destination());
+			break;
+		}
 	}
 
  private:
@@ -385,27 +392,53 @@ class Allocation_Verifier
 	Allocations           m_allocations;
 	std::set<std::string> m_errors;
 
-	auto find_containing_allocation(uintptr_t address) -> Allocations::iterator
+	template<typename T>
+	auto find_containing_allocation(T const *address) -> Allocations::iterator
 	{
 		return std::find_if(
 		    m_allocations.begin(),
 		    m_allocations.end(),
 		    [&](Allocation const &block)
-		    { return block->contains(address); });
+		    { return block->contains(detail::numeric_address(address)); });
 	}
 
-	void verify_constructed(uintptr_t address)
+	template<typename T>
+	void on_construct(T *address)
+	{
+		auto allocation = find_containing_allocation(address);
+		if (allocation == m_allocations.end())
+		{
+			// If we do not find an allocation with this address we
+			// assume that this is a stack variable. This is not
+			// correct because we could be constructing on memory
+			// which we are not aware of. However, due to the way
+			// Memory_Monitor works it is the best we can do
+			add_allocation(
+			    detail::Allocation_Block::Allocation_Type::FromConstruct,
+			    address,
+			    1);
+			allocation = m_allocations.end() - 1;
+		}
+
+		add_error_if_any(
+		    (*allocation)->mark_constructed(detail::numeric_address(address)));
+	}
+
+	template<typename T>
+	void verify_constructed(T const *address)
 	{
 		auto allocation = find_containing_allocation(address);
 		if (allocation == m_allocations.end()
-		    || !(*allocation)->is_initialised(address))
+		    || !(*allocation)
+			    ->is_initialised(detail::numeric_address(address)))
 		{
 			m_errors.insert(assign_from_uninitialized_memory);
 			return;
 		}
 	}
 
-	void on_assign(uintptr_t address)
+	template<typename T>
+	void on_assign(T const *address)
 	{
 		auto allocation = find_containing_allocation(address);
 		if (allocation == m_allocations.end())
@@ -414,17 +447,53 @@ class Allocation_Verifier
 			return;
 		}
 
-		add_error_if_any((*allocation)->mark_assigned(address));
+		add_error_if_any(
+		    (*allocation)->mark_assigned(detail::numeric_address(address)));
 	}
 
-	void on_moved(uintptr_t address)
+	template<typename T>
+	void on_moved(T const *address)
 	{
 		auto allocation = find_containing_allocation(address);
 		if (allocation == m_allocations.end())
 		{
 			return;
 		}
-		(*allocation)->mark_moved(address);
+		(*allocation)->mark_moved(detail::numeric_address(address));
+	}
+
+	template<typename T>
+	void on_destroy(T const *address)
+	{
+		auto allocation = find_containing_allocation(address);
+		if (allocation == m_allocations.end())
+		{
+			m_errors.insert(destroying_nonconstructed_memory);
+			return;
+		}
+
+		add_error_if_any(
+		    (*allocation)->mark_destroyed(detail::numeric_address(address)));
+
+		// For stack values we treat destroy as a deallocate
+		// aswell. Stack values will never get a cal to
+		// deallocate and the same address can be used as soon
+		// as destroy is called. For example in a loop that
+		// calls a function each iteration
+		if (!(*allocation)->owns_allocation())
+		{
+			m_allocations.erase(allocation);
+		}
+	}
+
+	template<typename T>
+	void add_allocation(detail::Allocation_Block::Allocation_Type type, T *address, size_t count)
+	{
+		m_allocations.emplace_back(
+		    std::make_unique<detail::Allocation_Block_Typed<T>>(
+			type,
+			address,
+			count));
 	}
 
 	void add_error_if_any(std::optional<std::string> &&error)
@@ -432,104 +501,6 @@ class Allocation_Verifier
 		if (error.has_value())
 		{
 			m_errors.emplace(std::move(error.value()));
-		}
-	}
-
-	template<typename T>
-	void on_allocate_impl(T *address, size_t count)
-	{
-		m_allocations.emplace_back(
-		    std::make_unique<detail::Allocation_Block_Typed<T>>(
-			detail::Allocation_Block_Typed<T>::Allocation_Type::Owned,
-			address,
-			count));
-	}
-
-	template<typename T>
-	void on_construct_impl(T *typed_address)
-	{
-		uintptr_t address    = detail::numeric_address(typed_address);
-		auto      allocation = find_containing_allocation(address);
-		if (allocation == m_allocations.end())
-		{
-			// If we do not find an allocation with this address we
-			// assume that this is a stack variable. This is not
-			// correct because we could be constructing on memory
-			// which we are not aware of. However, due to the way
-			// Memory_Monitor works it is the best we can do
-			m_allocations.emplace_back(
-			    std::make_unique<detail::Allocation_Block_Typed<T>>(
-				detail::Allocation_Block_Typed<T>::Allocation_Type::FromConstruct,
-				typed_address,
-				1));
-			allocation = m_allocations.end() - 1;
-		}
-
-		add_error_if_any((*allocation)->mark_constructed(address));
-	}
-
-	template<typename T>
-	void on_copy_construct_impl(T *destination, T const *source)
-	{
-		verify_constructed(detail::numeric_address(source));
-		on_construct(destination);
-	}
-
-	template<typename T>
-	void on_copy_assign_impl(T *destination, T const *source)
-	{
-		verify_constructed(detail::numeric_address(source));
-		on_assign(detail::numeric_address(destination));
-	}
-
-	template<typename T>
-	void on_underlying_value_copy_assign_impl(T *destination)
-	{
-		on_assign(detail::numeric_address(destination));
-	}
-
-	template<typename T>
-	void on_move_construct_impl(T *destination, T const *source)
-	{
-		verify_constructed(detail::numeric_address(source));
-		on_construct(destination);
-		on_moved(detail::numeric_address(source));
-	}
-
-	template<typename T>
-	void on_move_assign_impl(T *destination, T const *source)
-	{
-		verify_constructed(detail::numeric_address(source));
-		on_assign(detail::numeric_address(destination));
-		on_moved(detail::numeric_address(source));
-	}
-
-	template<typename T>
-	void on_underlying_value_move_assign_impl(T *destination)
-	{
-		on_assign(detail::numeric_address(destination));
-	}
-
-	template<typename T>
-	void on_destroy_impl(T *typed_address)
-	{
-		uintptr_t address    = detail::numeric_address(typed_address);
-		auto      allocation = find_containing_allocation(address);
-		if (allocation == m_allocations.end())
-		{
-			m_errors.insert(destroying_nonconstructed_memory);
-			return;
-		}
-
-		add_error_if_any((*allocation)->mark_destroyed(address));
-
-		// For stack values we treat destroy as a deallocate aswell.
-		// Stack values will never get a cal to deallocate and the same
-		// address can be used as soon as destroy is called. For example
-		// in a loop that calls a function each iteration
-		if (!(*allocation)->owns_allocation())
-		{
-			m_allocations.erase(allocation);
 		}
 	}
 
@@ -560,7 +531,7 @@ class Allocation_Verifier
 	}
 
 	template<typename T>
-	void on_deallocate_impl(T *address)
+	void on_deallocate(T *address)
 	{
 		auto allocation = std::find_if(
 		    m_allocations.begin(),
