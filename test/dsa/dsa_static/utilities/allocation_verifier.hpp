@@ -107,7 +107,6 @@ class Allocation_Block_Typed : public Allocation_Block
 	    : Allocation_Block()
 	    , m_allocation_type(allocation_type)
 	    , m_address(address)
-	    , m_count(count)
 	{
 		m_state.resize(count);
 	}
@@ -116,7 +115,7 @@ class Allocation_Block_Typed : public Allocation_Block
 
 	[[nodiscard]] auto count() const -> size_t override
 	{
-		return m_count;
+		return m_state.size();
 	}
 
 	[[nodiscard]] auto match_address(uintptr_t address) const -> bool override
@@ -127,7 +126,7 @@ class Allocation_Block_Typed : public Allocation_Block
 	[[nodiscard]] auto contains(uintptr_t address) const -> bool override
 	{
 		return address >= numeric_address(m_address)
-		       && address < numeric_address(m_address + m_count);
+		       && address < numeric_address(m_address + count());
 	}
 
 	[[nodiscard]] auto is_initialised(uintptr_t address) const -> bool override
@@ -198,7 +197,7 @@ class Allocation_Block_Typed : public Allocation_Block
 		}
 
 		Allocator allocator;
-		for (size_t i = 0; i < m_count; ++i)
+		for (size_t i = 0; i < count(); ++i)
 		{
 			if (m_state[i] == Element_State::Initialised)
 			{
@@ -216,7 +215,7 @@ class Allocation_Block_Typed : public Allocation_Block
 		}
 
 		Allocator allocator;
-		Alloc_Traits::deallocate(allocator, m_address, m_count);
+		Alloc_Traits::deallocate(allocator, m_address, count());
 		return memory_leaked;
 	}
 
@@ -232,8 +231,7 @@ class Allocation_Block_Typed : public Allocation_Block
 	};
 
 	Allocation_Type            m_allocation_type;
-	Type		      *m_address;
-	size_t                     m_count;
+	Type		           *m_address;
 	std::vector<Element_State> m_state;
 
 	auto element_state(uintptr_t address) -> Element_State &
