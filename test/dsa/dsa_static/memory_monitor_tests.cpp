@@ -238,6 +238,10 @@ TEST_CASE(
 
 	REQUIRE_THAT(
 	    Event_Handler::instance()->events().front(),
+	    EqualsEvent(Object_Event_Type::Before_Construct, address));
+
+	REQUIRE_THAT(
+	    Event_Handler::instance()->events()[1],
 	    EqualsEvent(Object_Event_Type::Construct, address));
 
 	REQUIRE_THAT(

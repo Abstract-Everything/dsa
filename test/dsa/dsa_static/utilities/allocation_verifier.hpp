@@ -64,11 +64,6 @@ class Alloc_Traits_Misuse : public std::runtime_error
 class Allocation_Element
 {
  public:
-	Allocation_Element()
-	    : m_state(State::Uninitialised)
-	{
-	}
-
 	[[nodiscard]] auto initialised() const -> bool
 	{
 		return m_state == State::Initialised;
@@ -97,6 +92,17 @@ class Allocation_Element
 	{
 		switch (event.type())
 		{
+		case dsa::Object_Event_Type::Before_Construct:
+		{
+			State old_state = m_state;
+			m_state         = State::Constructing;
+			return old_state != State::Uninitialised
+				       && old_state != State::Moved
+				   ? object_leaked
+				   : std::optional<std::string>{};
+		}
+		break;
+
 		case dsa::Object_Event_Type::Construct:
 		case dsa::Object_Event_Type::Copy_Construct:
 		case dsa::Object_Event_Type::Move_Construct:
@@ -118,6 +124,7 @@ class Allocation_Element
 			break;
 
 		case dsa::Object_Event_Type::Destroy:
+			assert(m_state != State::Constructing);
 			if (m_state == State::Uninitialised)
 			{
 				return destroying_nonconstructed_memory;
@@ -131,12 +138,21 @@ class Allocation_Element
  private:
 	enum class State
 	{
+		/// Memory has been allocated for this element its constructor
+		/// has not been called
 		Uninitialised,
+		/// We are currently running the constructor of this element.
+		/// This state might have multiple calls if there are multiple
+		/// fields in the structure.
+		Constructing,
+		/// We have constructed this element, it should be in a valid
+		/// state
 		Initialised,
+		/// A move was executed on this object
 		Moved
 	};
 
-	State m_state;
+	State m_state = State::Uninitialised;
 };
 
 enum class Allocation_Type
@@ -431,7 +447,7 @@ class Allocation_Verifier
 		auto destination_allocation =
 		    find_containing_allocation(event.destination());
 
-		if (event.constructing()
+		if (event.type() == dsa::Object_Event_Type::Before_Construct
 		    && destination_allocation == m_allocations.end())
 		{
 			// If we do not find an allocation with this address we

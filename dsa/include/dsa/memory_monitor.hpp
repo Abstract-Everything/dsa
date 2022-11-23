@@ -14,6 +14,16 @@ namespace dsa
 namespace detail
 {
 
+/// @brief Allows the Element_Monitor to send events before construction starts
+class Pre_Construct
+{
+ public:
+	explicit Pre_Construct(std::invocable auto callback)
+	{
+		callback();
+	}
+};
+
 /// @brief Allows the Element_Monitor to act as another type. We either inherit
 /// from an object or contain a trivial type
 template<typename Base, bool = std::is_class_v<Base>>
@@ -101,6 +111,7 @@ inline auto operator<<(std::ostream &stream, Allocation_Event_Type type)
 
 enum class Object_Event_Type
 {
+	Before_Construct,
 	Construct,
 	Copy_Construct,
 	Copy_Assign,
@@ -116,6 +127,10 @@ inline auto operator<<(std::ostream &stream, Object_Event_Type type)
 {
 	switch (type)
 	{
+	case Object_Event_Type::Before_Construct:
+		stream << "Before construction";
+		break;
+
 	case Object_Event_Type::Construct:
 		stream << "Construction";
 		break;
@@ -220,6 +235,7 @@ class Object_Event
 		{
 			switch (event.m_type)
 			{
+			case Object_Event_Type::Before_Construct:
 			case Object_Event_Type::Construct:
 			case Object_Event_Type::Destroy:
 			case Object_Event_Type::Underlying_Copy_Assign:
@@ -264,6 +280,7 @@ class Object_Event
 		case Object_Event_Type::Move_Construct:
 			return true;
 
+		case Object_Event_Type::Before_Construct:
 		case Object_Event_Type::Copy_Assign:
 		case Object_Event_Type::Underlying_Copy_Assign:
 		case Object_Event_Type::Move_Assign:
@@ -281,6 +298,7 @@ class Object_Event
 		case Object_Event_Type::Copy_Assign:
 			return true;
 
+		case Object_Event_Type::Before_Construct:
 		case Object_Event_Type::Construct:
 		case Object_Event_Type::Underlying_Copy_Assign:
 		case Object_Event_Type::Move_Construct:
@@ -299,6 +317,7 @@ class Object_Event
 		case Object_Event_Type::Move_Assign:
 			return true;
 
+		case Object_Event_Type::Before_Construct:
 		case Object_Event_Type::Construct:
 		case Object_Event_Type::Copy_Construct:
 		case Object_Event_Type::Copy_Assign:
@@ -339,7 +358,9 @@ class Memory_Monitor
 {
  public:
 	/// @brief Wraps around a value in order to monitor its lifetime
-	class Element_Monitor : public detail::Element_Monitor_Base<Value_t>
+	class Element_Monitor
+	    : private detail::Pre_Construct
+	    , public detail::Element_Monitor_Base<Value_t>
 	{
 		using Base         = Value_t;
 		using Base_Wrapper = detail::Element_Monitor_Base<Base>;
@@ -348,7 +369,8 @@ class Memory_Monitor
 		template<typename... Arguments>
 		explicit Element_Monitor(Arguments &&...arguments)
 		    requires std::is_constructible_v<Base, Arguments...>
-		    : Base_Wrapper(std::forward<Arguments>(arguments)...)
+		    : Pre_Construct([this]() { before_construct(); })
+		    , Base_Wrapper(std::forward<Arguments>(arguments)...)
 		{
 			Handler::process_object_event(
 			    Object_Event(Object_Event_Type::Construct, this));
@@ -362,7 +384,8 @@ class Memory_Monitor
 
 		Element_Monitor(Element_Monitor const &element)
 		    requires std::is_constructible_v<Base>
-		    : Base_Wrapper(element)
+		    : Pre_Construct([this]() { before_construct(); })
+		    , Base_Wrapper(element)
 		{
 			Handler::process_object_event(Object_Event(
 			    Object_Event_Type::Copy_Construct,
@@ -395,7 +418,8 @@ class Memory_Monitor
 
 		Element_Monitor(Element_Monitor &&element) noexcept
 		    requires std::is_move_constructible_v<Base>
-		    : Base_Wrapper(std::move(element))
+		    : Pre_Construct([this]() { before_construct(); })
+		    , Base_Wrapper(std::move(element))
 		{
 			Handler::process_object_event(Object_Event(
 			    Object_Event_Type::Move_Construct,
@@ -425,6 +449,14 @@ class Memory_Monitor
 			    this));
 			return *this;
 		}
+
+	private:
+	       void before_construct()
+	       {
+		       Handler::process_object_event(Object_Event(
+			   Object_Event_Type::Before_Construct,
+			   this));
+	       }
 	};
 
 	using Underlying_Value = Value_t;
