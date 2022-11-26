@@ -6,6 +6,7 @@
 #include <dsa/memory_monitor.hpp>
 
 #include <algorithm>
+#include <any>
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -64,6 +65,8 @@ class Alloc_Traits_Misuse : public std::runtime_error
 class Allocation_Element
 {
  public:
+	virtual ~Allocation_Element() = default;
+
 	[[nodiscard]] auto initialised() const -> bool
 	{
 		return m_state == State::Initialised;
@@ -93,25 +96,12 @@ class Allocation_Element
 		switch (event.type())
 		{
 		case dsa::Object_Event_Type::Before_Construct:
-		{
-			State old_state = m_state;
-			m_state         = State::Constructing;
-			return old_state != State::Uninitialised
-				       && old_state != State::Moved
-				   ? object_leaked
-				   : std::optional<std::string>{};
-		}
-		break;
+			return start_construction(event.destination());
 
 		case dsa::Object_Event_Type::Construct:
 		case dsa::Object_Event_Type::Copy_Construct:
 		case dsa::Object_Event_Type::Move_Construct:
-			if (m_state == State::Initialised)
-			{
-				return object_leaked;
-			}
-			m_state = State::Initialised;
-			break;
+			return construct(event.destination());
 
 		case dsa::Object_Event_Type::Copy_Assign:
 		case dsa::Object_Event_Type::Underlying_Copy_Assign:
@@ -124,16 +114,19 @@ class Allocation_Element
 			break;
 
 		case dsa::Object_Event_Type::Destroy:
-			assert(m_state != State::Constructing);
-			if (m_state == State::Uninitialised)
-			{
-				return destroying_nonconstructed_memory;
-			}
-			m_state = State::Uninitialised;
-			break;
+			return destroy(event.destination());
 		}
 		return {};
 	}
+
+ protected:
+	Allocation_Element() = default;
+
+	[[nodiscard]] virtual auto match_address(std::any const &address) const
+	    -> bool = 0;
+
+	[[nodiscard]] virtual auto contains_address(uintptr_t address) const
+	    -> bool = 0;
 
  private:
 	enum class State
@@ -153,7 +146,129 @@ class Allocation_Element
 	};
 
 	State m_state = State::Uninitialised;
+	std::vector<std::unique_ptr<Allocation_Element>> m_fields;
+
+	template<typename T>
+	auto start_construction(T *address) -> std::optional<std::string>;
+
+	template<typename T>
+	auto construct(T *address) -> std::optional<std::string>
+	{
+		assert(contains_address(numeric_address(address)));
+		if (match_address(address))
+		{
+			assert(m_state == State::Constructing);
+			m_state = State::Initialised;
+			return {};
+		}
+
+		auto element = std::find_if(
+		    m_fields.begin(),
+		    m_fields.end(),
+		    [&](std::unique_ptr<Allocation_Element> const &element) {
+			    return element->contains_address(
+				numeric_address(address));
+		    });
+		assert(element != m_fields.end());
+		(*element)->construct(address);
+		return {};
+	}
+
+	template<typename T>
+	auto destroy(T *address) -> std::optional<std::string>
+	{
+		assert(contains_address(numeric_address(address)));
+		if (match_address(address))
+		{
+			assert(m_state != State::Constructing);
+			if (m_state == State::Uninitialised)
+			{
+				return destroying_nonconstructed_memory;
+			}
+			m_state = State::Uninitialised;
+			return {};
+		}
+
+		auto element = std::find_if(
+		    m_fields.begin(),
+		    m_fields.end(),
+		    [&](std::unique_ptr<Allocation_Element> const &element) {
+			    return element->contains_address(
+				numeric_address(address));
+		    });
+		assert(element != m_fields.end());
+		(*element)->destroy(address);
+		return {};
+	}
 };
+
+// Merge this with allocation block
+template<typename T>
+class Allocation_Element_Typed : public Allocation_Element
+{
+ public:
+	explicit Allocation_Element_Typed(T *address)
+	    : Allocation_Element()
+	    , m_address(address)
+	{
+	}
+
+	[[nodiscard]] auto match_address(std::any const &address) const
+	    -> bool override
+	{
+		if (auto *typed_address = std::any_cast<T *>(&address))
+		{
+			return *typed_address == m_address;
+		}
+
+		if (auto *typed_address = std::any_cast<T const *>(&address))
+		{
+			return *typed_address == m_address;
+		}
+		return false;
+	}
+
+	[[nodiscard]] auto contains_address(uintptr_t address) const
+	    -> bool override
+	{
+		uintptr_t base = numeric_address(m_address);
+		return address >= base && address < base + sizeof(*m_address);
+	}
+
+ private:
+	T *m_address;
+};
+
+template<typename T>
+auto Allocation_Element::start_construction(T *address)
+    -> std::optional<std::string>
+{
+	assert(contains_address(numeric_address(address)));
+	if (match_address(address))
+	{
+		State old_state = m_state;
+		m_state         = State::Constructing;
+		return old_state != State::Uninitialised && old_state != State::Moved
+			   ? object_leaked
+			   : std::optional<std::string>{};
+	}
+
+	auto element = std::find_if(
+	    m_fields.begin(),
+	    m_fields.end(),
+	    [&](std::unique_ptr<Allocation_Element> const &element)
+	    { return element->contains_address(numeric_address(address)); });
+	if (element == m_fields.end())
+	{
+		auto pointer =
+		    std::make_unique<Allocation_Element_Typed<T>>(address);
+		m_fields.emplace_back(std::move(pointer));
+		element = m_fields.end() - 1;
+	}
+
+	(*element)->start_construction(address);
+	return {};
+}
 
 enum class Allocation_Type
 {
@@ -215,7 +330,13 @@ class Allocation_Block_Typed : public Allocation_Block
 	    , m_allocation_type(allocation_type)
 	    , m_address(address)
 	{
-		m_elements.resize(count);
+		m_elements.reserve(count);
+		for (size_t i = 0; i < count; ++i)
+		{
+			m_elements.emplace_back(
+			    std::make_unique<detail::Allocation_Element_Typed<Type>>(
+				address + i));
+		}
 	}
 
 	~Allocation_Block_Typed() override = default;
@@ -257,7 +378,7 @@ class Allocation_Block_Typed : public Allocation_Block
 		    m_elements.begin(),
 		    m_elements.end(),
 		    [](Element const &element)
-		    { return element.initialised(); });
+		    { return element->initialised(); });
 		if (all_elements_destroyed)
 		{
 			return {};
@@ -266,7 +387,7 @@ class Allocation_Block_Typed : public Allocation_Block
 		Allocator allocator;
 		for (size_t i = 0; i < count(); ++i)
 		{
-			if (m_elements[i].initialised())
+			if (m_elements[i]->initialised())
 			{
 				Alloc_Traits::destroy(allocator, m_address + i);
 			}
@@ -289,7 +410,7 @@ class Allocation_Block_Typed : public Allocation_Block
  private:
 	using Allocator    = dsa::Default_Allocator<Type>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
-	using Element      = Allocation_Element;
+	using Element      = std::unique_ptr<Allocation_Element>;
 
 	Allocation_Type      m_allocation_type;
 	Type		    *m_address;
@@ -309,13 +430,13 @@ class Allocation_Block_Typed : public Allocation_Block
 	[[nodiscard]] auto element(uintptr_t address)
 	    -> Allocation_Element & override
 	{
-		return m_elements[element_index(address)];
+		return *m_elements[element_index(address)];
 	}
 
 	[[nodiscard]] auto element(uintptr_t address) const
 	    -> Allocation_Element const & override
 	{
-		return m_elements[element_index(address)];
+		return *m_elements[element_index(address)];
 	}
 };
 
