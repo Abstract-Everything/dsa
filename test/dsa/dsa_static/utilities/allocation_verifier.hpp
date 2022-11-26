@@ -40,7 +40,7 @@ static constexpr const char *object_leaked =
     "Constructed memory was not destroyed\n";
 
 static constexpr const char *assign_uninitialized_memory =
-    "Assignment was made to unintialised memory\n";
+    "Assignment was made to uninitialised memory\n";
 
 static constexpr const char *assign_from_uninitialized_memory =
     "Assignment was made from an uninitialised value\n";
