@@ -337,6 +337,88 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Values can be used to copy construct and assign multiple times",
+    "[allocation_verifier]")
+{
+	Allocator_Scope scope;
+	Allocator       verifier;
+
+	size_t count  = 2;
+	auto  *memory = Alloc_Traits::allocate(verifier, count);
+
+	Allocator::Value value;
+	Alloc_Traits::construct(verifier, memory, value);
+	*memory = value;
+	Alloc_Traits::construct(verifier, memory + 1, value);
+	*(memory + 1) = value;
+
+	std::destroy_n(memory, count);
+	Alloc_Traits::deallocate(verifier, memory, count);
+
+	REQUIRE_NOTHROW(Allocator::handler()->cleanup());
+}
+
+TEST_CASE(
+    "Values can be used to move construct only once",
+    "[allocation_verifier]")
+{
+	Allocator_Scope scope;
+	Allocator       verifier;
+
+	size_t count  = 1;
+	auto  *memory = Alloc_Traits::allocate(verifier, count);
+
+	Allocator::Value value;
+	Alloc_Traits::construct(verifier, memory, std::move(value));
+	Alloc_Traits::construct(verifier, memory, std::move(value));
+
+	std::destroy_n(memory, count);
+	Alloc_Traits::deallocate(verifier, memory, count);
+
+	REQUIRE_THROWS(
+	    Allocator::handler()->cleanup(),
+	    assign_from_uninitialized_memory);
+}
+
+TEST_CASE("Values can be used to move assign only once", "[allocation_verifier]")
+{
+	Allocator_Scope scope;
+	Allocator       verifier;
+
+	size_t count  = 1;
+	auto  *memory = Alloc_Traits::allocate(verifier, count);
+
+	Allocator::Value value;
+	*memory = std::move(value);
+	*memory = std::move(value);
+
+	std::destroy_n(memory, count);
+	Alloc_Traits::deallocate(verifier, memory, count);
+
+	REQUIRE_THROWS(
+	    Allocator::handler()->cleanup(),
+	    assign_from_uninitialized_memory);
+}
+
+TEST_CASE("Construct can be called on moved values", "[allocation_verifier]")
+{
+	Allocator_Scope scope;
+	Allocator       verifier;
+
+	size_t count  = 1;
+	auto  *memory = Alloc_Traits::allocate(verifier, count);
+
+	Alloc_Traits::construct(verifier, memory);
+	Allocator::Value value(std::move(*memory));
+	Alloc_Traits::construct(verifier, memory);
+
+	std::destroy_n(memory, count);
+	Alloc_Traits::deallocate(verifier, memory, count);
+
+	REQUIRE_NOTHROW(Allocator::handler()->cleanup());
+}
+
+TEST_CASE(
     "Calling destroy on unconstructed memory raises an error",
     "[allocation_verifier]")
 {
