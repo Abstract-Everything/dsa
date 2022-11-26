@@ -11,6 +11,71 @@
 namespace dsa
 {
 
+namespace detail
+{
+
+/// @brief Allows the Element_Monitor to act as another type. We either inherit
+/// from an object or contain a trivial type
+template<typename Base, bool = std::is_class_v<Base>>
+class Element_Monitor_Base;
+
+template<typename Base>
+class Element_Monitor_Base<Base, true> : public Base
+{
+ public:
+	using Base::Base;
+
+	explicit Element_Monitor_Base(Base const &base) : Base(base)
+	{
+	}
+
+	explicit Element_Monitor_Base(Base &&base) : Base(std::move(base))
+	{
+	}
+
+ protected:
+	auto base() -> Base &
+	{
+		return *this;
+	}
+
+	auto base() const -> Base const &
+	{
+		return *this;
+	}
+};
+
+template<typename Base>
+class Element_Monitor_Base<Base, false>
+{
+ public:
+	Element_Monitor_Base() = default;
+
+	explicit Element_Monitor_Base(Base base) : m_base(base)
+	{
+	}
+
+	operator Base const &() const
+	{
+		return m_base;
+	}
+
+ protected:
+	auto base() -> Base &
+	{
+		return m_base;
+	}
+
+	auto base() const -> Base const &
+	{
+		return m_base;
+	}
+
+ private:
+	Base m_base;
+};
+}
+
 template<typename Handler, typename Type>
 concept Memory_Monitor_Event_Handler =
     requires(Handler handler, Type *destination, Type const *source, size_t count)
@@ -46,12 +111,16 @@ class Memory_Monitor
 {
  public:
 	/// @brief Wraps around a value in order to monitor its lifetime
-	class Element_Monitor
+	class Element_Monitor : public detail::Element_Monitor_Base<Value_t>
 	{
+		using Base         = Value_t;
+		using Base_Wrapper = detail::Element_Monitor_Base<Base>;
+
 	 public:
 		template<typename... Arguments>
 		explicit Element_Monitor(Arguments &&...arguments)
-		    : m_value(std::forward<Arguments>(arguments)...)
+		    requires std::is_constructible_v<Base, Arguments...>
+		    : Base_Wrapper(std::forward<Arguments>(arguments)...)
 		{
 			handler()->on_construct(this);
 		}
@@ -62,58 +131,54 @@ class Memory_Monitor
 		}
 
 		Element_Monitor(Element_Monitor const &element)
-		    : m_value(element.m_value)
+		    requires std::is_constructible_v<Base>
+		    : Base_Wrapper(element)
 		{
 			handler()->on_copy_construct(this, &element);
 		}
 
-		auto operator=(Element_Monitor const &element) -> Element_Monitor &
+		auto operator=(Element_Monitor const &element)
+		    -> Element_Monitor &
+		    requires std::is_assignable_v<Base, Base>
 		{
-			m_value = element.m_value;
+			Base_Wrapper::base() = element.base();
 			handler()->on_copy_assign(this, &element);
 			return *this;
 		}
 
-		auto operator=(Value_t const &value) -> Element_Monitor &
+		auto operator=(Base const &value) noexcept
+		    -> Element_Monitor &
+		    requires std::is_assignable_v<Base, Base>
 		{
-			m_value = value;
+			Base_Wrapper::base() = value;
 			handler()->on_underlying_value_copy_assign(this);
 			return *this;
 		}
 
 		Element_Monitor(Element_Monitor &&element) noexcept
-		    : m_value(std::move(element.m_value))
+		    requires std::is_move_constructible_v<Base>
+		    : Base_Wrapper(std::move(element))
 		{
 			handler()->on_move_construct(this, &element);
 		}
 
 		auto operator=(Element_Monitor &&element) noexcept
 		    -> Element_Monitor &
+		    requires std::is_move_assignable_v<Base>
 		{
-			m_value = std::move(element.m_value);
+			Base_Wrapper::base() = std::move(element.base());
 			handler()->on_move_assign(this, &element);
 			return *this;
 		}
 
-		auto operator=(Value_t &&value) noexcept -> Element_Monitor &
+		auto operator=(Base &&value) noexcept
+		    -> Element_Monitor &
+		    requires std::is_move_assignable_v<Base>
 		{
-			m_value = std::move(value);
+			Base_Wrapper::base() = value;
 			handler()->on_underlying_value_move_assign(this);
 			return *this;
 		}
-
-		explicit operator Value_t &()
-		{
-			return m_value;
-		}
-
-		explicit operator Value_t const &() const
-		{
-			return m_value;
-		}
-
-	 private:
-		Value_t m_value{};
 	};
 
 	using Underlying_Value = Value_t;
