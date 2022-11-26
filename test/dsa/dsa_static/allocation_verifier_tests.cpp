@@ -588,4 +588,34 @@ TEST_CASE("allocated on the stack do not raise errors", "[allocation_verifier]")
 	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
 }
 
+struct Multiple_Field_Struct
+{
+	typename Single_Field_Allocator::Value field_a;
+	typename Single_Field_Allocator::Value field_b;
+
+	Multiple_Field_Struct() = default;
+};
+
+using Multiple_Field_Allocator =
+    dsa::Memory_Monitor<Multiple_Field_Struct, Allocation_Verifier>;
+
+using Multiple_Field_Alloc_Traits =
+    dsa::Allocator_Traits<Multiple_Field_Allocator>;
+
+TEST_CASE(
+    "Complex structures can have overlapping construct calls",
+    "[allocation_verifier]")
+{
+	Handler_Scope            scope;
+	Multiple_Field_Allocator verifier;
+
+	size_t count  = 1;
+	auto  *memory = Multiple_Field_Alloc_Traits::allocate(verifier, count);
+	Multiple_Field_Alloc_Traits::construct(verifier, memory);
+	Multiple_Field_Alloc_Traits::destroy(verifier, memory);
+	Multiple_Field_Alloc_Traits::deallocate(verifier, memory, count);
+
+	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
+}
+
 } // namespace test
