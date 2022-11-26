@@ -211,7 +211,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Copy construct from uninitialised memory raises an error"
+    "Copy construct from uninitialised memory raises an error",
     "[allocation_verifier]")
 {
 	Allocator_Scope scope;
@@ -232,7 +232,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Move construct from uninitialised memory raises an error"
+    "Move construct from uninitialised memory raises an error",
     "[allocation_verifier]")
 {
 	Allocator_Scope scope;
@@ -253,7 +253,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Copy assign from uninitialised memory raises an error"
+    "Copy assign from uninitialised memory raises an error",
     "[allocation_verifier]")
 {
 	Allocator_Scope scope;
@@ -275,7 +275,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Move assign from uninitialised memory raises an error"
+    "Move assign from uninitialised memory raises an error",
     "[allocation_verifier]")
 {
 	Allocator_Scope scope;
