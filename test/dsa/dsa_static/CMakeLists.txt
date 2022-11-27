@@ -1,9 +1,9 @@
 find_package(Catch2 REQUIRED)
 include(Catch)
 
-set(DSA_STATIC_TEST_INCLUDES
-	"${CMAKE_CURRENT_LIST_DIR}"
-	"${CMAKE_CURRENT_LIST_DIR}/utilities")
+set(DSA_STATIC_TEST_INCLUDES "${CMAKE_CURRENT_LIST_DIR}"
+	"${CMAKE_CURRENT_LIST_DIR}/utilities"
+	"${CMAKE_CURRENT_LIST_DIR}/matchers")
 
 set(DSA_STATIC_TEST_FILES allocator_traits_tests.cpp memory_monitor_tests.cpp
 	allocation_verifier_tests.cpp )
