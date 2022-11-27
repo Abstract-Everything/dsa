@@ -33,10 +33,10 @@ class Vector
  public:
 	using Allocator       = typename Alloc_Traits::Allocator;
 	using Value           = typename Alloc_Traits::Value;
-	using Pointer         = typename Alloc_Traits::Pointer;
-	using Const_Pointer   = typename Alloc_Traits::Const_Pointer;
 	using Reference       = typename Alloc_Traits::Reference;
 	using Const_Reference = typename Alloc_Traits::Const_Reference;
+	using Pointer         = typename Alloc_Traits::Pointer;
+	using Const_Pointer   = typename Alloc_Traits::Const_Pointer;
 
 	/**
 	 * @brief Constucts an empty vector

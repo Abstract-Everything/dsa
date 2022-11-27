@@ -27,15 +27,15 @@ template<
 class Heap
 {
  private:
-	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
+	using Storage = dsa::Vector<Value_t, Allocator_Base>;
 
  public:
-	using Allocator     = typename Alloc_Traits::Allocator;
-	using Value         = typename Alloc_Traits::Value;
-	using Pointer       = typename Alloc_Traits::Pointer;
-	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
-
-	using Storage = dsa::Vector<Value, Allocator_Base>;
+	using Allocator       = typename Storage::Allocator;
+	using Value           = typename Storage::Value;
+	using Reference       = typename Storage::Reference;
+	using Const_Reference = typename Storage::Const_Reference;
+	using Pointer         = typename Storage::Pointer;
+	using Const_Pointer   = typename Storage::Const_Pointer;
 
 	/**
 	 * @brief Constructs an empty heap
