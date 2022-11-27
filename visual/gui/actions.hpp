@@ -27,6 +27,7 @@ DEFINE_HAS_MEMBER(append);
 DEFINE_HAS_MEMBER(insert);
 DEFINE_HAS_MEMBER(push);
 DEFINE_HAS_MEMBER(erase);
+DEFINE_HAS_MEMBER(contains);
 DEFINE_HAS_MEMBER(pop);
 DEFINE_HAS_OPERATOR_ACCESS();
 
@@ -98,8 +99,12 @@ class Actions_UI
 	static constexpr bool has_indexed_insert  = has_member_insert_v<Container, std::size_t, Value>;
 	static constexpr bool has_insert          = has_member_insert_v<Container, Value>;
 	static constexpr bool has_push            = has_member_push_v<Container, Value>;
-	static constexpr bool has_indexed_erase   = has_member_erase_v<Container, std::size_t>;
-	static constexpr bool has_erase           = has_member_erase_v<Container, Value>;
+	static constexpr bool has_value_erase     = has_member_erase_v<Container, Value> && has_member_contains_v<Container, Value>;
+	// We do not support a structure that has both value and index erase. We
+	// did not find a way to detect if index erase is present when value
+	// erase is. If we try to detect an index erase, an implicit cast could
+	// construct a Value from a size_t, this will result in a false positive
+	static constexpr bool has_indexed_erase   = has_member_erase_v<Container, std::size_t> && !has_value_erase;
 	static constexpr bool has_pop             = has_member_pop_v<Container>;
 };
 
@@ -277,7 +282,7 @@ void Actions_UI<Container>::modifiers()
 		}
 	}
 
-	if constexpr (has_erase)
+	if constexpr (has_value_erase)
 	{
 		ImGui::Separator();
 
@@ -354,7 +359,7 @@ void Actions_UI<Container>::refresh_cached_values()
 	}
 
 	m_cached_values.clear();
-	if constexpr (has_operator_access || has_erase)
+	if constexpr (has_operator_access || has_value_erase)
 	{
 		for (auto value : m_container)
 		{

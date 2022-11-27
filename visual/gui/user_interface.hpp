@@ -2,15 +2,14 @@
 #define VISUAL_USER_INTERFACE_HPP
 
 #include "actions.hpp"
-#include "element_monitor.hpp"
-#include "memory_monitor.hpp"
-#include "weak_pointer_monitor.hpp"
+#include "visual_monitor.hpp"
 
 #include <dsa/binary_tree.hpp>
 #include <dsa/dynamic_array.hpp>
-#include <dsa/list.hpp>
-#include <dsa/vector.hpp>
 #include <dsa/heap.hpp>
+#include <dsa/list.hpp>
+#include <dsa/memory_monitor.hpp>
+#include <dsa/vector.hpp>
 
 #include <variant>
 
@@ -19,10 +18,10 @@ namespace visual
 
 class User_Interface
 {
-	using Value = Element_Monitor<int>;
+	using Value = int;
 
 	template<typename T>
-	using Allocator = Memory_Monitor<T>;
+	using Allocator = dsa::Memory_Monitor<T, Visual_Monitor>;
 
 	using Array       = dsa::Dynamic_Array<Value, Allocator>;
 	using Vector      = dsa::Vector<Value, Allocator>;
