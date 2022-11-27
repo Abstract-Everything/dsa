@@ -111,7 +111,7 @@ class Allocation_Element
 		case dsa::Object_Event_Type::Underlying_Copy_Assign:
 		case dsa::Object_Event_Type::Move_Assign:
 		case dsa::Object_Event_Type::Underlying_Move_Assign:
-			if (m_state != State::Initialised)
+			if (m_state != State::Initialised && m_state != State::Moved)
 			{
 				return assign_uninitialized_memory;
 			}

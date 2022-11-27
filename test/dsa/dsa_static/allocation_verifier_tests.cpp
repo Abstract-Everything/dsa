@@ -430,6 +430,24 @@ TEST_CASE("Construct can be called on moved values", "[allocation_verifier]")
 	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
 }
 
+TEST_CASE("Moved memory can be reassigned", "[allocation_verifier]")
+{
+	Handler_Scope scope;
+	Allocator     verifier;
+
+	size_t count  = 1;
+	auto  *memory = Alloc_Traits::allocate(verifier, count);
+
+	Alloc_Traits::construct(verifier, memory);
+	Allocator::Value value(std::move(*memory));
+	*memory = std::move(value);
+
+	std::destroy_n(memory, count);
+	Alloc_Traits::deallocate(verifier, memory, count);
+
+	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
+}
+
 TEST_CASE(
     "Calling destroy on unconstructed memory raises an error",
     "[allocation_verifier]")
