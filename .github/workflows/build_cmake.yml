@@ -21,25 +21,11 @@ jobs:
       matrix:
         config:
           - {
-              name: "ubuntu-gcc",
-              artifact: "linux-gcc.tar.xz",
-              os: ubuntu-latest,
-              cc: "gcc",
-              cxx: "g++"
-            }
-          - {
               name: "ubuntu-clang",
               artifact: "linux-clang.tar.xz",
               os: ubuntu-latest,
               cc: "clang",
               cxx: "clang++"
-            }
-          - {
-              name: "windows-msvc",
-              artifact: "windows-msvc.tar.xz",
-              os: windows-latest,
-              cc: "cl",
-              cxx: "cl"
             }
 
     steps:
@@ -59,15 +45,6 @@ jobs:
       shell: bash
       run: cmake -E make_directory "${{ runner.workspace }}/build"
 
-    - name: Update environment
-      shell: bash
-      run: |
-        if [ "${{ matrix.config.name }}" == "ubuntu-gcc" ]; then
-          sudo apt update -y
-          sudo apt install -y gcc-10 g++-10 cpp-10
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
-        fi
-
     - name: Install conan
       shell: bash
       run: |
@@ -86,13 +63,9 @@ jobs:
       # Set CC/ CXX so that the specified compiler is used
       # Source the profile to make sure conan is in PATH
       run: |
-        # Gihub windows runner has MinGw for bash which finds VS compiler
-        # automatically
-        if [ "${{ matrix.config.os }}" != "windows-latest" ]; then
-          export CC=$(whereis -b ${{ matrix.config.cc }} | awk '{print $2}')
-          export CXX=$(whereis -b ${{ matrix.config.cxx }} | awk '{print $2}')
-          source ~/.profile
-        fi
+        export CC=$(whereis -b ${{ matrix.config.cc }} | awk '{print $2}')
+        export CXX=$(whereis -b ${{ matrix.config.cxx }} | awk '{print $2}')
+        source ~/.profile
         cmake -S $GITHUB_WORKSPACE                       \
               -B "${{ runner.workspace }}/build"         \
               -DCMAKE_BUILD_TYPE="${{ env.build_type }}" \
