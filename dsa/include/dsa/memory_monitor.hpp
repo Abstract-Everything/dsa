@@ -139,7 +139,7 @@ class Memory_Monitor
 
 		auto operator=(Element_Monitor const &element)
 		    -> Element_Monitor &
-		    requires std::is_assignable_v<Base, Base>
+		    requires std::is_assignable_v<Base&, Base>
 		{
 			Base_Wrapper::base() = element.base();
 			handler()->on_copy_assign(this, &element);
@@ -148,7 +148,7 @@ class Memory_Monitor
 
 		auto operator=(Base const &value) noexcept
 		    -> Element_Monitor &
-		    requires std::is_assignable_v<Base, Base>
+		    requires std::is_assignable_v<Base&, Base>
 		{
 			Base_Wrapper::base() = value;
 			handler()->on_underlying_value_copy_assign(this);
