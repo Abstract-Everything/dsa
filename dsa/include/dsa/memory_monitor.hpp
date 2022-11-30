@@ -43,7 +43,6 @@ class Element_Monitor_Base<Base, true> : public Base
 	{
 	}
 
- protected:
 	auto base() -> Base &
 	{
 		return *this;
@@ -70,7 +69,6 @@ class Element_Monitor_Base<Base, false>
 		return m_base;
 	}
 
- protected:
 	auto base() -> Base &
 	{
 		return m_base;
@@ -216,7 +214,12 @@ template<typename T>
 class Object_Event
 {
  public:
-	Object_Event(Object_Event_Type type, T *destination, T const *source = nullptr)
+	Object_Event(Object_Event_Type type, T *destination)
+	    : Object_Event(type, destination, nullptr)
+	{
+	}
+
+	Object_Event(Object_Event_Type type, T *destination, T const *source)
 	    : m_type(type)
 	    , m_destination(destination)
 	    , m_source(source)
@@ -228,6 +231,9 @@ class Object_Event
 		case dsa::Object_Event_Type::Underlying_Copy_Assign:
 		case dsa::Object_Event_Type::Underlying_Move_Assign:
 		case dsa::Object_Event_Type::Destroy:
+			assert(
+			    m_source == nullptr
+			    && "We expect the source to be absent for these events");
 			break;
 
 		case dsa::Object_Event_Type::Copy_Construct:
@@ -375,6 +381,9 @@ template<typename Value_t, Memory_Monitor_Event_Handler<Value_t> Handler>
 class Memory_Monitor
 {
  public:
+	using Underlying_Value   = Value_t;
+	using Underlying_Pointer = Value_t *;
+
 	/// @brief Wraps around a value in order to monitor its lifetime
 	class Element_Monitor
 	    : private detail::Pre_Construct
@@ -390,14 +399,16 @@ class Memory_Monitor
 		    : Pre_Construct([this]() { before_construct(); })
 		    , Base_Wrapper(std::forward<Arguments>(arguments)...)
 		{
-			Handler::process_object_event(
-			    Object_Event(Object_Event_Type::Construct, this));
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Construct,
+			    &Base_Wrapper::base()));
 		}
 
 		~Element_Monitor()
 		{
-			Handler::process_object_event(
-			    Object_Event(Object_Event_Type::Destroy, this));
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Destroy,
+			    &Base_Wrapper::base()));
 		}
 
 		Element_Monitor(Element_Monitor const &element)
@@ -407,30 +418,30 @@ class Memory_Monitor
 		{
 			Handler::process_object_event(Object_Event(
 			    Object_Event_Type::Copy_Construct,
-			    this,
-			    &element));
+			    &Base_Wrapper::base(),
+			    &element.base()));
 		}
 
 		auto operator=(Element_Monitor const &element)
 		    -> Element_Monitor &
-		    requires std::is_assignable_v<Base&, Base>
+		    requires std::is_assignable_v<Base &, Base>
 		{
 			Base_Wrapper::base() = element.base();
 			Handler::process_object_event(Object_Event(
 			    Object_Event_Type::Copy_Assign,
-			    this,
-			    &element));
+			    &Base_Wrapper::base(),
+			    &element.base()));
 			return *this;
 		}
 
 		auto operator=(Base const &value) noexcept
 		    -> Element_Monitor &
-		    requires std::is_assignable_v<Base&, Base>
+		    requires std::is_assignable_v<Base &, Base>
 		{
 			Base_Wrapper::base() = value;
 			Handler::process_object_event(Object_Event(
 			    Object_Event_Type::Underlying_Copy_Assign,
-			    this));
+			    &Base_Wrapper::base()));
 			return *this;
 		}
 
@@ -441,8 +452,8 @@ class Memory_Monitor
 		{
 			Handler::process_object_event(Object_Event(
 			    Object_Event_Type::Move_Construct,
-			    this,
-			    &element));
+			    &Base_Wrapper::base(),
+			    &element.base()));
 		}
 
 		auto operator=(Element_Monitor &&element) noexcept
@@ -452,8 +463,8 @@ class Memory_Monitor
 			Base_Wrapper::base() = std::move(element.base());
 			Handler::process_object_event(Object_Event(
 			    Object_Event_Type::Move_Assign,
-			    this,
-			    &element));
+			    &Base_Wrapper::base(),
+			    &element.base()));
 			return *this;
 		}
 
@@ -464,22 +475,21 @@ class Memory_Monitor
 			Base_Wrapper::base() = value;
 			Handler::process_object_event(Object_Event(
 			    Object_Event_Type::Underlying_Move_Assign,
-			    this));
+			    &Base_Wrapper::base()));
 			return *this;
 		}
 
-	private:
-	       void before_construct()
-	       {
-		       Handler::process_object_event(Object_Event(
-			   Object_Event_Type::Before_Construct,
-			   this));
-	       }
+	 private:
+		void before_construct()
+		{
+			Handler::process_object_event(Object_Event(
+			    Object_Event_Type::Before_Construct,
+			    &Base_Wrapper::base()));
+		}
 	};
 
-	using Underlying_Value = Value_t;
-	using Value            = Element_Monitor;
-	using Pointer          = Value *;
+	using Value   = Element_Monitor;
+	using Pointer = Value *;
 
 	explicit Memory_Monitor() = default;
 
@@ -497,7 +507,7 @@ class Memory_Monitor
 		Pointer   address = Alloc_Traits::allocate(allocator, count);
 		Handler::process_allocation_event(Allocation_Event(
 		    Allocation_Event_Type::Allocate,
-		    address,
+		    &address->base(),
 		    count));
 		return address;
 	}
@@ -506,7 +516,7 @@ class Memory_Monitor
 	{
 		Allocation_Event event(
 		    Allocation_Event_Type::Deallocate,
-		    address,
+		    &address->base(),
 		    count);
 
 		Allocator allocator;
