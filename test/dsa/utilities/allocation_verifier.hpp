@@ -451,6 +451,55 @@ class Memory_Representation
 		return m_allocations;
 	}
 
+	template<typename T>
+	[[nodiscard]] std::optional<std::reference_wrapper<detail::Allocation_Block>> allocation_at(
+	    T *address)
+	{
+		uintptr_t raw_address = detail::numeric_address(address);
+		for (auto &allocation : m_allocations)
+		{
+			if (allocation->match_address(raw_address))
+			{
+				return *allocation;
+			}
+		}
+		return std::nullopt;
+	}
+
+	template<typename T>
+	void add_allocation(detail::Allocation_Type type, T *address, size_t count)
+	{
+		m_allocations.emplace_back(
+		    std::make_unique<detail::Allocation_Block_Typed<T>>(
+			type,
+			address,
+			count));
+	}
+
+	template<typename T>
+	void process_allocation_event(dsa::Allocation_Event<T> event)
+	{
+		switch (event.type())
+		{
+		case dsa::Allocation_Event_Type::Allocate:
+			add_allocation(
+			    detail::Allocation_Type::Owned,
+			    event.address(),
+			    event.count());
+			break;
+
+		case dsa::Allocation_Event_Type::Deallocate:
+			std::erase_if(
+			    m_allocations,
+			    [&](auto const &allocation)
+			    {
+				    return allocation->match_address(
+					detail::numeric_address(event.address()));
+			    });
+			break;
+		}
+	}
+
 	void free_heap_allocations()
 	{
 		for (auto &allocation : m_allocations)
@@ -542,19 +591,7 @@ class Allocation_Verifier
 	template<typename T>
 	static void process_allocation_event(dsa::Allocation_Event<T> event)
 	{
-		switch (event.type())
-		{
-		case dsa::Allocation_Event_Type::Allocate:
-			instance()->add_allocation(
-			    detail::Allocation_Type::Owned,
-			    event.address(),
-			    event.count());
-			break;
-
-		case dsa::Allocation_Event_Type::Deallocate:
-			instance()->on_deallocate(event.address());
-			break;
-		}
+		instance()->process_allocation_event_impl(event);
 	}
 
 	template<typename T>
@@ -575,6 +612,29 @@ class Allocation_Verifier
 		    memory_representation.m_allocations.end(),
 		    [&](auto const &block)
 		    { return block->contains(detail::numeric_address(address)); });
+	}
+
+	template<typename T>
+	void process_allocation_event_impl(dsa::Allocation_Event<T> event)
+	{
+		if (event.type() == dsa::Allocation_Event_Type::Deallocate)
+		{
+			auto result =
+			    memory_representation.allocation_at(event.address());
+			if (!result.has_value())
+			{
+				return;
+			}
+
+			auto &allocation = result.value().get();
+			if (!allocation.all_heap_elements_destroyed())
+			{
+				allocation.cleanup();
+				add_error_if_any(object_leaked);
+			}
+		}
+
+		memory_representation.process_allocation_event(event);
 	}
 
 	template<typename T>
@@ -606,7 +666,7 @@ class Allocation_Verifier
 			// correct because we could be constructing on memory
 			// which we are not aware of. However, due to the way
 			// Memory_Monitor works it is the best we can do
-			add_allocation(
+			memory_representation.add_allocation(
 			    detail::Allocation_Type::FromConstruct,
 			    event.destination(),
 			    1);
@@ -615,16 +675,6 @@ class Allocation_Verifier
 
 		add_error_if_any(
 		    (*destination_allocation)->process_destination_event(event));
-	}
-
-	template<typename T>
-	void add_allocation(detail::Allocation_Type type, T *address, size_t count)
-	{
-		memory_representation.m_allocations.emplace_back(
-		    std::make_unique<detail::Allocation_Block_Typed<T>>(
-			type,
-			address,
-			count));
 	}
 
 	void add_error_if_any(std::optional<std::string> &&error)
@@ -659,30 +709,6 @@ class Allocation_Verifier
 		}
 
 		return true;
-	}
-
-	template<typename T>
-	void on_deallocate(T *address)
-	{
-		auto allocation = std::find_if(
-		    memory_representation.m_allocations.begin(),
-		    memory_representation.m_allocations.end(),
-		    [&](auto const &block) {
-			    return block->match_address(
-				detail::numeric_address(address));
-		    });
-
-		assert(
-		  allocation != memory_representation.m_allocations.end()
-		  && "The before_deallocate functions should verify if this operation is possible");
-
-		if (!(*allocation)->all_heap_elements_destroyed())
-		{
-			(*allocation)->cleanup();
-			add_error_if_any(object_leaked);
-		}
-
-		memory_representation.m_allocations.erase(allocation);
 	}
 };
 
