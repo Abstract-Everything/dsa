@@ -73,57 +73,51 @@ class Allocation_Element
 		return m_state == State::Initialised;
 	}
 
-	template<typename T>
-	auto process_source_event(dsa::Object_Event<T> event)
-	    -> std::optional<std::string>
+	[[nodiscard]] auto assignable() const -> bool
 	{
-		if ((event.moving() || event.copying()) && !initialised())
-		{
-			return assign_from_uninitialized_memory;
-		}
+		return m_state == State::Initialised || m_state == State::Moved;
+	}
 
-		if (event.moving())
-		{
-			m_state = State::Moved;
-		}
+	[[nodiscard]] auto destructable() const -> bool
+	{
+		return m_state == State::Initialised || m_state == State::Moved;
+	}
 
-		return {};
+	auto move()
+	{
+		m_state = State::Moved;
+	}
+
+	auto assign()
+	{
+		m_state = State::Initialised;
+	}
+
+	auto construct()
+	{
+		m_state = State::Initialised;
+	}
+
+	auto destroy()
+	{
+		m_state = State::Uninitialised;
 	}
 
 	template<typename T>
-	auto process_destination_event(dsa::Object_Event<T> event)
-	    -> std::optional<std::string>
+	void start_construction(T *address);
+
+	template<typename T>
+	[[nodiscard]] auto field_at(T const *address) const
+	    -> std::optional<std::reference_wrapper<const Allocation_Element>>
 	{
-		switch (event.type())
-		{
-		case dsa::Object_Event_Type::Before_Construct:
-			return start_construction(event.destination());
+		return field_at_impl(address);
+	}
 
-		case dsa::Object_Event_Type::Construct:
-		case dsa::Object_Event_Type::Copy_Construct:
-		case dsa::Object_Event_Type::Move_Construct:
-			return construct(event.destination());
-
-		case dsa::Object_Event_Type::Copy_Assign:
-		case dsa::Object_Event_Type::Underlying_Copy_Assign:
-		case dsa::Object_Event_Type::Move_Assign:
-		case dsa::Object_Event_Type::Underlying_Move_Assign:
-			if (m_state != State::Initialised
-			    && m_state != State::Moved)
-			{
-				return assign_uninitialized_memory;
-			}
-
-			if (m_state == State::Moved)
-			{
-				m_state = State::Initialised;
-			}
-			break;
-
-		case dsa::Object_Event_Type::Destroy:
-			return destroy(event.destination());
-		}
-		return {};
+	template<typename T>
+	[[nodiscard]] auto field_at(T const *address)
+	    -> std::optional<std::reference_wrapper<Allocation_Element>>
+	{
+		return field_at_impl(address);
 	}
 
  protected:
@@ -156,56 +150,28 @@ class Allocation_Element
 	std::vector<std::unique_ptr<Allocation_Element>> m_fields;
 
 	template<typename T>
-	auto start_construction(T *address) -> std::optional<std::string>;
-
-	template<typename T>
-	auto construct(T *address) -> std::optional<std::string>
+	[[nodiscard]] auto field_at_impl(T const *address)
+	    -> std::optional<std::reference_wrapper<Allocation_Element>>
 	{
-		assert(contains_address(numeric_address(address)));
+		const uintptr_t raw_address = numeric_address(address);
+		assert(contains_address(raw_address));
 		if (match_address(address))
 		{
-			assert(m_state == State::Constructing);
-			m_state = State::Initialised;
-			return {};
+			return *this;
 		}
 
 		auto element = std::find_if(
 		    m_fields.begin(),
 		    m_fields.end(),
-		    [&](std::unique_ptr<Allocation_Element> const &element) {
-			    return element->contains_address(
-				numeric_address(address));
-		    });
-		assert(element != m_fields.end());
-		(*element)->construct(address);
-		return {};
-	}
+		    [&](auto const &element)
+		    { return element->contains_address(raw_address); });
 
-	template<typename T>
-	auto destroy(T *address) -> std::optional<std::string>
-	{
-		assert(contains_address(numeric_address(address)));
-		if (match_address(address))
+		if (element == m_fields.end())
 		{
-			assert(m_state != State::Constructing);
-			if (m_state == State::Uninitialised)
-			{
-				return destroying_nonconstructed_memory;
-			}
-			m_state = State::Uninitialised;
-			return {};
+			return std::nullopt;
 		}
 
-		auto element = std::find_if(
-		    m_fields.begin(),
-		    m_fields.end(),
-		    [&](std::unique_ptr<Allocation_Element> const &element) {
-			    return element->contains_address(
-				numeric_address(address));
-		    });
-		assert(element != m_fields.end());
-		(*element)->destroy(address);
-		return {};
+		return (*element)->field_at_impl(address);
 	}
 };
 
@@ -247,17 +213,13 @@ class Allocation_Element_Typed : public Allocation_Element
 };
 
 template<typename T>
-auto Allocation_Element::start_construction(T *address)
-    -> std::optional<std::string>
+void Allocation_Element::start_construction(T *address)
 {
 	assert(contains_address(numeric_address(address)));
 	if (match_address(address))
 	{
-		State old_state = m_state;
-		m_state         = State::Constructing;
-		return old_state != State::Uninitialised && old_state != State::Moved
-			   ? object_leaked
-			   : std::optional<std::string>{};
+		m_state = State::Constructing;
+		return;
 	}
 
 	auto element = std::find_if(
@@ -274,7 +236,6 @@ auto Allocation_Element::start_construction(T *address)
 	}
 
 	(*element)->start_construction(address);
-	return {};
 }
 
 enum class Allocation_Type
@@ -302,19 +263,23 @@ class Allocation_Block
 	    -> bool = 0;
 
 	template<typename T>
-	auto process_source_event(dsa::Object_Event<T> event)
-	    -> std::optional<std::string>
+	[[nodiscard]] auto field_at(const T *address) const
+	    -> std::optional<std::reference_wrapper<const Allocation_Element>>
 	{
-		return element(numeric_address(event.source()))
-		    .process_source_event(event);
+		return element(numeric_address(address)).field_at(address);
 	}
 
 	template<typename T>
-	auto process_destination_event(dsa::Object_Event<T> event)
-	    -> std::optional<std::string>
+	[[nodiscard]] auto field_at(const T *address)
+	    -> std::optional<std::reference_wrapper<Allocation_Element>>
 	{
-		return element(numeric_address(event.destination()))
-		    .process_destination_event(event);
+		return element(numeric_address(address)).field_at(address);
+	}
+
+	template<typename T>
+	void start_construction(T *address)
+	{
+		element(numeric_address(address)).start_construction(address);
 	}
 
 	virtual void cleanup()    = 0;
@@ -442,10 +407,10 @@ class Allocation_Block_Typed : public Allocation_Block
 
 class Memory_Representation
 {
- public:
 	using Allocation  = std::unique_ptr<detail::Allocation_Block>;
 	using Allocations = std::vector<Allocation>;
 
+ public:
 	[[nodiscard]] Allocations const &allocations() const
 	{
 		return m_allocations;
@@ -467,13 +432,33 @@ class Memory_Representation
 	}
 
 	template<typename T>
-	void add_allocation(detail::Allocation_Type type, T *address, size_t count)
+	auto field_at(const T *address) const
+	    -> std::optional<std::reference_wrapper<Allocation_Element>>
 	{
-		m_allocations.emplace_back(
-		    std::make_unique<detail::Allocation_Block_Typed<T>>(
-			type,
-			address,
-			count));
+		for (auto const &allocation : m_allocations)
+		{
+			if (allocation->contains(numeric_address(address)))
+			{
+				return allocation->field_at(address);
+			}
+		}
+
+		return std::nullopt;
+	}
+
+	template<typename T>
+	auto field_at(const T *address)
+	    -> std::optional<std::reference_wrapper<Allocation_Element>>
+	{
+		for (auto &allocation : m_allocations)
+		{
+			if (allocation->contains(numeric_address(address)))
+			{
+				return allocation->field_at(address);
+			}
+		}
+
+		return std::nullopt;
 	}
 
 	template<typename T>
@@ -500,6 +485,71 @@ class Memory_Representation
 		}
 	}
 
+	template<typename T>
+	void process_object_event(dsa::Object_Event<T> event)
+	{
+		if (event.moving())
+		{
+			auto result = field_at(event.source());
+			assert(result.has_value() && "We expect the source to be monitored");
+			result.value().get().move();
+		}
+
+		const auto field = field_at(event.destination());
+		assert(
+		    (field.has_value()
+		     || event.type() == dsa::Object_Event_Type::Before_Construct)
+		    && "Field should only be absent when we first construct it");
+
+		switch (event.type())
+		{
+		case dsa::Object_Event_Type::Before_Construct:
+		{
+			if (!field_at(event.destination()).has_value())
+			{
+				// If we do not find an allocation with this
+				// address we assume that this is a stack
+				// variable. This is not correct because we
+				// could be constructing on memory which we are
+				// not aware of. However, due to the way
+				// Memory_Monitor works it is the best we can do
+				add_allocation(
+				    detail::Allocation_Type::FromConstruct,
+				    event.destination(),
+				    1);
+			}
+
+			for (auto &allocation : m_allocations)
+			{
+				if (allocation->contains(
+					numeric_address(event.destination())))
+				{
+					allocation->start_construction(
+					    event.destination());
+				}
+			}
+		}
+		break;
+
+		case dsa::Object_Event_Type::Construct:
+		case dsa::Object_Event_Type::Copy_Construct:
+		case dsa::Object_Event_Type::Move_Construct:
+			field.value().get().construct();
+			break;
+
+		case dsa::Object_Event_Type::Copy_Assign:
+		case dsa::Object_Event_Type::Underlying_Copy_Assign:
+		case dsa::Object_Event_Type::Underlying_Move_Assign:
+		case dsa::Object_Event_Type::Move_Assign:
+			field.value().get().assign();
+			break;
+
+		case dsa::Object_Event_Type::Destroy:
+			field.value().get().destroy();
+			break;
+		}
+	}
+
 	void free_heap_allocations()
 	{
 		for (auto &allocation : m_allocations)
@@ -514,7 +564,18 @@ class Memory_Representation
 		    { return allocation->owns_allocation(); });
 	}
 
+ private:
 	Allocations m_allocations;
+
+	template<typename T>
+	void add_allocation(detail::Allocation_Type type, T *address, size_t count)
+	{
+		m_allocations.emplace_back(
+		    std::make_unique<detail::Allocation_Block_Typed<T>>(
+			type,
+			address,
+			count));
+	}
 };
 
 } // namespace detail
@@ -591,7 +652,7 @@ class Allocation_Verifier
 	template<typename T>
 	static void process_allocation_event(dsa::Allocation_Event<T> event)
 	{
-		instance()->process_allocation_event_impl(event);
+		instance()->memory_representation.process_allocation_event(event);
 	}
 
 	template<typename T>
@@ -605,76 +666,63 @@ class Allocation_Verifier
 	std::set<std::string>         m_errors;
 
 	template<typename T>
-	auto find_containing_allocation(T const *address) -> detail::Memory_Representation::Allocations::iterator
-	{
-		return std::find_if(
-		    memory_representation.m_allocations.begin(),
-		    memory_representation.m_allocations.end(),
-		    [&](auto const &block)
-		    { return block->contains(detail::numeric_address(address)); });
-	}
-
-	template<typename T>
-	void process_allocation_event_impl(dsa::Allocation_Event<T> event)
-	{
-		if (event.type() == dsa::Allocation_Event_Type::Deallocate)
-		{
-			auto result =
-			    memory_representation.allocation_at(event.address());
-			if (!result.has_value())
-			{
-				return;
-			}
-
-			auto &allocation = result.value().get();
-			if (!allocation.all_heap_elements_destroyed())
-			{
-				allocation.cleanup();
-				add_error_if_any(object_leaked);
-			}
-		}
-
-		memory_representation.process_allocation_event(event);
-	}
-
-	template<typename T>
 	void process_object_event_impl(dsa::Object_Event<T> event)
 	{
 		if (event.copying() || event.moving())
 		{
-			auto source_allocation =
-			    find_containing_allocation(event.source());
-			if (source_allocation == memory_representation.m_allocations.end())
+			const auto source_field =
+			    memory_representation.field_at(event.source());
+
+			if (!source_field.has_value()
+			    || !source_field.value().get().initialised())
 			{
-				m_errors.insert(assign_from_uninitialized_memory);
-			}
-			else
-			{
-				add_error_if_any(
-				    (*source_allocation)->process_source_event(event));
+				add_error_if_any(assign_from_uninitialized_memory);
+				return;
 			}
 		}
 
-		auto destination_allocation =
-		    find_containing_allocation(event.destination());
+		const auto destination_field =
+		    memory_representation.field_at(event.destination());
 
-		if (event.type() == dsa::Object_Event_Type::Before_Construct
-		    && destination_allocation == memory_representation.m_allocations.end())
+		switch (event.type())
 		{
-			// If we do not find an allocation with this address we
-			// assume that this is a stack variable. This is not
-			// correct because we could be constructing on memory
-			// which we are not aware of. However, due to the way
-			// Memory_Monitor works it is the best we can do
-			memory_representation.add_allocation(
-			    detail::Allocation_Type::FromConstruct,
-			    event.destination(),
-			    1);
-			destination_allocation = memory_representation.m_allocations.end() - 1;
+		case dsa::Object_Event_Type::Before_Construct:
+			if (destination_field.has_value()
+			    && destination_field.value().get().initialised())
+			{
+				add_error_if_any(object_leaked);
+				return;
+			}
+			break;
+
+		case dsa::Object_Event_Type::Construct:
+		case dsa::Object_Event_Type::Copy_Construct:
+		case dsa::Object_Event_Type::Move_Construct:
+			break;
+
+		case dsa::Object_Event_Type::Copy_Assign:
+		case dsa::Object_Event_Type::Underlying_Copy_Assign:
+		case dsa::Object_Event_Type::Move_Assign:
+		case dsa::Object_Event_Type::Underlying_Move_Assign:
+			if (!(destination_field.has_value()
+			      && destination_field.value().get().assignable()))
+			{
+				add_error_if_any(assign_uninitialized_memory);
+				return;
+			}
+			break;
+
+		case dsa::Object_Event_Type::Destroy:
+			if (!(destination_field.has_value()
+			      && destination_field.value().get().destructable()))
+			{
+				add_error_if_any(destroying_nonconstructed_memory);
+				return;
+			}
+			break;
 		}
 
-		add_error_if_any(
-		    (*destination_allocation)->process_destination_event(event));
+		memory_representation.process_object_event(event);
 	}
 
 	void add_error_if_any(std::optional<std::string> &&error)
@@ -688,24 +736,25 @@ class Allocation_Verifier
 	template<typename T>
 	auto before_deallocate_impl(T *address, size_t count) -> bool
 	{
-		auto allocation = std::find_if(
-		    memory_representation.m_allocations.begin(),
-		    memory_representation.m_allocations.end(),
-		    [&](auto const &block) {
-			    return block->match_address(
-				detail::numeric_address(address));
-		    });
-
-		if (allocation == memory_representation.m_allocations.end())
+		auto result = memory_representation.allocation_at(address);
+		if (!result.has_value())
 		{
-			m_errors.insert(deallocating_unallocated_memory);
+			add_error_if_any(deallocating_unallocated_memory);
 			return false;
 		}
 
-		if ((*allocation)->count() != count)
+		auto &allocation = result.value().get();
+		if (allocation.count() != count)
 		{
-			m_errors.insert(deallocating_count_mismatch);
+			allocation.cleanup();
+			add_error_if_any(deallocating_count_mismatch);
 			return false;
+		}
+
+		if (!allocation.all_heap_elements_destroyed())
+		{
+			allocation.cleanup();
+			add_error_if_any(object_leaked);
 		}
 
 		return true;
