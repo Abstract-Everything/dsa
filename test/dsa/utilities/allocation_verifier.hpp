@@ -438,6 +438,15 @@ class Allocation_Block_Typed : public Allocation_Block
 	}
 };
 
+class Memory_Representation
+{
+ public:
+	using Allocation  = std::unique_ptr<detail::Allocation_Block>;
+	using Allocations = std::vector<Allocation>;
+
+	Allocations m_allocations;
+};
+
 } // namespace detail
 
 class Allocation_Verifier
@@ -464,14 +473,14 @@ class Allocation_Verifier
 
 	void cleanup()
 	{
-		for (auto &allocation : m_allocations)
+		for (auto &allocation : memory_representation.m_allocations)
 		{
 			add_error_if_any(allocation->cleanup());
 			add_error_if_any(allocation->deallocate());
 		}
 		std::erase_if(
-		    m_allocations,
-		    [](Allocation const &allocation)
+		    memory_representation.m_allocations,
+		    [](auto const &allocation)
 		    { return allocation->owns_allocation(); });
 
 		if (m_errors.empty())
@@ -529,19 +538,16 @@ class Allocation_Verifier
 	}
 
  private:
-	using Allocation  = std::unique_ptr<detail::Allocation_Block>;
-	using Allocations = std::vector<Allocation>;
-
-	Allocations           m_allocations;
-	std::set<std::string> m_errors;
+	detail::Memory_Representation memory_representation;
+	std::set<std::string>         m_errors;
 
 	template<typename T>
-	auto find_containing_allocation(T const *address) -> Allocations::iterator
+	auto find_containing_allocation(T const *address) -> detail::Memory_Representation::Allocations::iterator
 	{
 		return std::find_if(
-		    m_allocations.begin(),
-		    m_allocations.end(),
-		    [&](Allocation const &block)
+		    memory_representation.m_allocations.begin(),
+		    memory_representation.m_allocations.end(),
+		    [&](auto const &block)
 		    { return block->contains(detail::numeric_address(address)); });
 	}
 
@@ -552,7 +558,7 @@ class Allocation_Verifier
 		{
 			auto source_allocation =
 			    find_containing_allocation(event.source());
-			if (source_allocation == m_allocations.end())
+			if (source_allocation == memory_representation.m_allocations.end())
 			{
 				m_errors.insert(assign_from_uninitialized_memory);
 			}
@@ -567,7 +573,7 @@ class Allocation_Verifier
 		    find_containing_allocation(event.destination());
 
 		if (event.type() == dsa::Object_Event_Type::Before_Construct
-		    && destination_allocation == m_allocations.end())
+		    && destination_allocation == memory_representation.m_allocations.end())
 		{
 			// If we do not find an allocation with this address we
 			// assume that this is a stack variable. This is not
@@ -578,7 +584,7 @@ class Allocation_Verifier
 			    detail::Allocation_Type::FromConstruct,
 			    event.destination(),
 			    1);
-			destination_allocation = m_allocations.end() - 1;
+			destination_allocation = memory_representation.m_allocations.end() - 1;
 		}
 
 		add_error_if_any(
@@ -588,7 +594,7 @@ class Allocation_Verifier
 	template<typename T>
 	void add_allocation(detail::Allocation_Type type, T *address, size_t count)
 	{
-		m_allocations.emplace_back(
+		memory_representation.m_allocations.emplace_back(
 		    std::make_unique<detail::Allocation_Block_Typed<T>>(
 			type,
 			address,
@@ -607,14 +613,14 @@ class Allocation_Verifier
 	auto before_deallocate_impl(T *address, size_t count) -> bool
 	{
 		auto allocation = std::find_if(
-		    m_allocations.begin(),
-		    m_allocations.end(),
-		    [&](Allocation const &block) {
+		    memory_representation.m_allocations.begin(),
+		    memory_representation.m_allocations.end(),
+		    [&](auto const &block) {
 			    return block->match_address(
 				detail::numeric_address(address));
 		    });
 
-		if (allocation == m_allocations.end())
+		if (allocation == memory_representation.m_allocations.end())
 		{
 			m_errors.insert(deallocating_unallocated_memory);
 			return false;
@@ -633,20 +639,20 @@ class Allocation_Verifier
 	void on_deallocate(T *address)
 	{
 		auto allocation = std::find_if(
-		    m_allocations.begin(),
-		    m_allocations.end(),
-		    [&](Allocation const &block) {
+		    memory_representation.m_allocations.begin(),
+		    memory_representation.m_allocations.end(),
+		    [&](auto const &block) {
 			    return block->match_address(
 				detail::numeric_address(address));
 		    });
 
 		assert(
-		  allocation != m_allocations.end()
+		  allocation != memory_representation.m_allocations.end()
 		  && "The before_deallocate functions should verify if this operation is possible");
 
 		add_error_if_any((*allocation)->cleanup());
 
-		m_allocations.erase(allocation);
+		memory_representation.m_allocations.erase(allocation);
 	}
 };
 
