@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <any>
 #include <cassert>
+#include <concepts>
 #include <iostream>
 #include <memory>
 #include <numeric>
@@ -297,6 +298,9 @@ class Allocation_Block
 
 	[[nodiscard]] virtual auto owns_allocation() const -> bool = 0;
 
+	[[nodiscard]] virtual auto all_heap_elements_destroyed() const
+	    -> bool = 0;
+
 	template<typename T>
 	auto process_source_event(dsa::Object_Event<T> event)
 	    -> std::optional<std::string>
@@ -313,8 +317,8 @@ class Allocation_Block
 		    .process_destination_event(event);
 	}
 
-	virtual auto cleanup() -> std::optional<std::string>    = 0;
-	virtual auto deallocate() -> std::optional<std::string> = 0;
+	virtual void cleanup()    = 0;
+	virtual void deallocate() = 0;
 
  private:
 	[[nodiscard]] virtual auto element(uintptr_t address)
@@ -365,21 +369,21 @@ class Allocation_Block_Typed : public Allocation_Block
 		return m_allocation_type == Allocation_Type::Owned;
 	}
 
-	auto cleanup() -> std::optional<std::string> override
+	[[nodiscard]] auto all_heap_elements_destroyed() const -> bool override
+	{
+		return !owns_allocation()
+		       || std::none_of(
+			   m_elements.begin(),
+			   m_elements.end(),
+			   [](Element const &element)
+			   { return element->initialised(); });
+	}
+
+	void cleanup() override
 	{
 		if (!owns_allocation())
 		{
-			return {};
-		}
-
-		bool all_elements_destroyed = std::none_of(
-		    m_elements.begin(),
-		    m_elements.end(),
-		    [](Element const &element)
-		    { return element->initialised(); });
-		if (all_elements_destroyed)
-		{
-			return {};
+			return;
 		}
 
 		Allocator allocator;
@@ -390,19 +394,17 @@ class Allocation_Block_Typed : public Allocation_Block
 				Alloc_Traits::destroy(allocator, m_address + i);
 			}
 		}
-		return object_leaked;
 	}
 
-	auto deallocate() -> std::optional<std::string> override
+	void deallocate() override
 	{
 		if (!owns_allocation())
 		{
-			return {};
+			return;
 		}
 
 		Allocator allocator;
 		Alloc_Traits::deallocate(allocator, m_address, count());
-		return memory_leaked;
 	}
 
  private:
@@ -444,6 +446,25 @@ class Memory_Representation
 	using Allocation  = std::unique_ptr<detail::Allocation_Block>;
 	using Allocations = std::vector<Allocation>;
 
+	[[nodiscard]] Allocations const &allocations() const
+	{
+		return m_allocations;
+	}
+
+	void free_heap_allocations()
+	{
+		for (auto &allocation : m_allocations)
+		{
+			allocation->cleanup();
+			allocation->deallocate();
+		}
+
+		std::erase_if(
+		    m_allocations,
+		    [](auto const &allocation)
+		    { return allocation->owns_allocation(); });
+	}
+
 	Allocations m_allocations;
 };
 
@@ -473,15 +494,20 @@ class Allocation_Verifier
 
 	void cleanup()
 	{
-		for (auto &allocation : memory_representation.m_allocations)
+		for (auto const &allocation : memory_representation.allocations())
 		{
-			add_error_if_any(allocation->cleanup());
-			add_error_if_any(allocation->deallocate());
+			if (!allocation->all_heap_elements_destroyed())
+			{
+				add_error_if_any(object_leaked);
+			}
+
+			if (allocation->owns_allocation())
+			{
+				add_error_if_any(memory_leaked);
+			}
 		}
-		std::erase_if(
-		    memory_representation.m_allocations,
-		    [](auto const &allocation)
-		    { return allocation->owns_allocation(); });
+
+		memory_representation.free_heap_allocations();
 
 		if (m_errors.empty())
 		{
@@ -650,7 +676,11 @@ class Allocation_Verifier
 		  allocation != memory_representation.m_allocations.end()
 		  && "The before_deallocate functions should verify if this operation is possible");
 
-		add_error_if_any((*allocation)->cleanup());
+		if (!(*allocation)->all_heap_elements_destroyed())
+		{
+			(*allocation)->cleanup();
+			add_error_if_any(object_leaked);
+		}
 
 		memory_representation.m_allocations.erase(allocation);
 	}
