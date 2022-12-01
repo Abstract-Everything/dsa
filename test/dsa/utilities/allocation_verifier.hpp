@@ -295,9 +295,6 @@ class Allocation_Block
 
 	[[nodiscard]] virtual auto contains(uintptr_t address) const -> bool = 0;
 
-	[[nodiscard]] virtual auto initialised(uintptr_t address) const
-	    -> bool = 0;
-
 	[[nodiscard]] virtual auto owns_allocation() const -> bool = 0;
 
 	template<typename T>
@@ -361,11 +358,6 @@ class Allocation_Block_Typed : public Allocation_Block
 	{
 		return address >= numeric_address(m_address)
 		       && address < numeric_address(m_address + count());
-	}
-
-	[[nodiscard]] auto initialised(uintptr_t address) const -> bool override
-	{
-		return element(address).initialised();
 	}
 
 	[[nodiscard]] auto owns_allocation() const -> bool override
