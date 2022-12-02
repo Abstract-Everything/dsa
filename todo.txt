@@ -31,6 +31,7 @@ Development:
 		DSA:
 			Create a buffer class to encapsulate Alloc_Traits calls and dealing with uninitialised values.
 			Create a class for a pointer base (Creates a pointer looking class given .get and .set functions for Value*)
+			Memory_Representation could be managed by Memory_Monitor. It could store the state of the objects it monitors inside and allow the current Event_Handlers to use the visits to extract the information that they require. We would probably need to separate the Memory_Monitor into an Allocator and a State class. So that the State is not in a different instance based on the template parameter.
 
 		Visual:
 			Nodes should automatically place themselves not require the user to drag them manually
