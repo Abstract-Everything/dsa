@@ -15,15 +15,14 @@ using namespace dsa;
 namespace test
 {
 
-using Value = Memory_Monitor<Empty_Value, Event_Handler>::Element_Monitor;
+using Value = Element_Monitor<Empty_Value, Event_Handler>;
 
 TEST_CASE_METHOD(
     Memory_Monitor_Event_Handler_Fixture,
     "Element Monitor correctly constructs objects with passed parameters",
     "[element_monitor]")
 {
-	using Type =
-	    Memory_Monitor<No_Default_Constructor_Value, Event_Handler>::Element_Monitor;
+	using Type = Element_Monitor<No_Default_Constructor_Value, Event_Handler>;
 
 	Type value{No_Default_Constructor_Value_Construct_Tag()};
 	REQUIRE_THAT(

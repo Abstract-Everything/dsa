@@ -44,7 +44,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 2;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::deallocate(verifier, memory + 1, count);
 
@@ -61,7 +61,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 2;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::deallocate(verifier, memory, count + 1);
 
@@ -78,7 +78,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::deallocate(verifier, memory, count);
 
@@ -91,8 +91,8 @@ TEST_CASE("Allocations can only be deallocated once", "[allocation_verifier]")
 	Single_Field_Allocator verifier;
 
 	size_t count    = 2;
-	auto  *memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
-	auto  *memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::deallocate(verifier, memory_a, count);
 	Single_Field_Alloc_Traits::deallocate(verifier, memory_a, count);
@@ -111,9 +111,9 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count_a = 1;
-	auto *memory_a = Single_Field_Alloc_Traits::allocate(verifier, count_a);
+	auto  memory_a = Single_Field_Alloc_Traits::allocate(verifier, count_a);
 	size_t count_b = 2;
-	auto *memory_b = Single_Field_Alloc_Traits::allocate(verifier, count_b);
+	auto  memory_b = Single_Field_Alloc_Traits::allocate(verifier, count_b);
 	size_t count_c = 3;
 	Single_Field_Alloc_Traits::allocate(verifier, count_c);
 
@@ -133,7 +133,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::construct(verifier, memory, Empty_Value());
 	Single_Field_Alloc_Traits::deallocate(verifier, memory, count);
@@ -151,7 +151,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	std::uninitialized_default_construct_n(memory, count);
 
@@ -170,7 +170,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::construct(verifier, memory, Empty_Value());
 	Single_Field_Alloc_Traits::construct(verifier, memory, Empty_Value());
@@ -191,7 +191,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Allocator::Value value;
 	std::uninitialized_fill_n(memory, 1, value);
@@ -211,7 +211,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Allocator::Value value;
 	std::uninitialized_move_n(&value, 1, memory);
@@ -231,8 +231,8 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count    = 1;
-	auto  *memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
-	auto  *memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	std::uninitialized_fill_n(memory_b, 1, *memory_a);
 
@@ -252,8 +252,8 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count    = 1;
-	auto  *memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
-	auto  *memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	std::uninitialized_move_n(memory_a, 1, memory_b);
 
@@ -273,8 +273,8 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count    = 1;
-	auto  *memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
-	auto  *memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
 	Single_Field_Alloc_Traits::construct(verifier, memory_b);
 
 	*memory_b = *memory_a;
@@ -295,8 +295,8 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count    = 1;
-	auto  *memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
-	auto  *memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_a = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory_b = Single_Field_Alloc_Traits::allocate(verifier, count);
 	Single_Field_Alloc_Traits::construct(verifier, memory_b);
 
 	*memory_b = std::move(*memory_a);
@@ -317,7 +317,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Allocator::Value value;
 	*memory = value;
@@ -337,7 +337,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, 1);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, 1);
 
 	Single_Field_Allocator::Value value;
 	*memory = std::move(value);
@@ -357,7 +357,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 2;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Allocator::Value value;
 	Single_Field_Alloc_Traits::construct(verifier, memory, value);
@@ -379,7 +379,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Allocator::Value value;
 	Single_Field_Alloc_Traits::construct(verifier, memory, std::move(value));
@@ -399,7 +399,7 @@ TEST_CASE("Values can be used to move assign only once", "[allocation_verifier]"
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Allocator::Value value;
 	*memory = std::move(value);
@@ -419,7 +419,7 @@ TEST_CASE("Construct can be called on moved values", "[allocation_verifier]")
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::construct(verifier, memory);
 	Single_Field_Allocator::Value value(std::move(*memory));
@@ -437,7 +437,7 @@ TEST_CASE("Moved memory can be reassigned", "[allocation_verifier]")
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::construct(verifier, memory);
 	Single_Field_Allocator::Value value(std::move(*memory));
@@ -455,7 +455,7 @@ TEST_CASE("Moved into memory is considered initialised", "[allocation_verifier]"
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::construct(verifier, memory);
 	Single_Field_Allocator::Value value(std::move(*memory));
@@ -476,7 +476,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::destroy(verifier, memory);
 
@@ -495,7 +495,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 	Single_Field_Alloc_Traits::construct(verifier, memory, Empty_Value());
 
 	Single_Field_Allocator::Value value(std::move(*memory));
@@ -513,7 +513,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 	Single_Field_Alloc_Traits::construct(verifier, memory, Empty_Value());
 
 	Single_Field_Allocator::Value value;
@@ -532,7 +532,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::construct(verifier, memory, Empty_Value());
 	Single_Field_Allocator::Value value(*memory);
@@ -552,7 +552,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, 1);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, 1);
 
 	Single_Field_Alloc_Traits::construct(verifier, memory, Empty_Value());
 	Single_Field_Allocator::Value value;
@@ -573,7 +573,7 @@ TEST_CASE(
 	Single_Field_Allocator verifier;
 
 	size_t count  = 2;
-	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Single_Field_Alloc_Traits::allocate(verifier, count);
 
 	Single_Field_Alloc_Traits::construct(verifier, memory, Empty_Value());
 	Single_Field_Alloc_Traits::construct(verifier, memory + 1, Empty_Value());
@@ -629,7 +629,7 @@ TEST_CASE(
 	Multiple_Field_Allocator verifier;
 
 	size_t count  = 1;
-	auto  *memory = Multiple_Field_Alloc_Traits::allocate(verifier, count);
+	auto   memory = Multiple_Field_Alloc_Traits::allocate(verifier, count);
 	Multiple_Field_Alloc_Traits::construct(verifier, memory);
 	Multiple_Field_Alloc_Traits::destroy(verifier, memory);
 	Multiple_Field_Alloc_Traits::deallocate(verifier, memory, count);

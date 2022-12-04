@@ -8,6 +8,7 @@
 
 #include <utilities/memory_monitor_handler_scope.hpp>
 
+#include <optional>
 #include <variant>
 #include <vector>
 
@@ -15,14 +16,21 @@ namespace test
 {
 
 using Event_Type = std::variant<
+    std::monostate,
     dsa::Allocation_Event<Empty_Value>,
     dsa::Object_Event<Empty_Value>,
+    dsa::Object_Event<Empty_Value *>,
     dsa::Allocation_Event<No_Default_Constructor_Value>,
-    dsa::Object_Event<No_Default_Constructor_Value>>;
+    dsa::Object_Event<No_Default_Constructor_Value>,
+    dsa::Object_Event<No_Default_Constructor_Value *>>;
 
 inline auto operator<<(std::ostream &stream, Event_Type const &event) -> std::ostream &
 {
-	std::visit([&](auto const &typed_event) { stream << typed_event; }, event);
+	std::visit(
+	    dsa::Overloaded_Lambda{
+		[&](std::monostate const &) { stream << "<not-found>"; },
+		[&](auto const &typed_event) { stream << typed_event; }},
+	    event);
 	return stream;
 }
 
@@ -74,6 +82,30 @@ class Event_Handler
 	[[nodiscard]] static auto events() -> std::vector<Event_Type> const &
 	{
 		return instance()->m_events;
+	}
+
+	template<typename T>
+	[[nodiscard]] auto last_event(
+	    std::optional<typename T::Event_Type> const &type = std::nullopt) const
+	    -> Event_Type
+	{
+		for (auto it = m_events.rbegin(); it != m_events.rend(); ++it)
+		{
+			const bool found = std::visit(
+			    dsa::Overloaded_Lambda{
+				[](auto &&) -> bool { return false; },
+				[&](T const &instance) -> bool {
+					return !type.has_value()
+					       || instance.type() == type.value();
+				}},
+			    *it);
+
+			if (found)
+			{
+				return *it;
+			}
+		}
+		return std::monostate{};
 	}
 
  private:
