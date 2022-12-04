@@ -30,6 +30,15 @@ struct Is_Same<Type, T>
 template<typename Type, typename... Arguments>
 constexpr bool Is_Same_v = Is_Same<Type, Arguments...>::value;
 
+template<typename... Arguments>
+struct Overloaded_Lambda : Arguments...
+{
+ public:
+	using Arguments::operator()...;
+};
+
+template<typename... Arguments>
+Overloaded_Lambda(Arguments...) -> Overloaded_Lambda<Arguments...>;
 
 } // namespace dsa
 

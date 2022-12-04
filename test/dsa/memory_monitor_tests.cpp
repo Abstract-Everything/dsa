@@ -35,13 +35,13 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 
 	Allocator    monitor;
 	const size_t count      = 5;
-	auto        *allocation = Alloc_Traits::allocate(monitor, count);
+	auto         allocation = Alloc_Traits::allocate(monitor, count);
 
 	SECTION("Monitor detects calls to allocate")
 	{
-		REQUIRE(Event_Handler::instance()->events().size() == 1);
 		REQUIRE_THAT(
-		    Event_Handler::instance()->events().back(),
+		    Event_Handler::instance()
+			->last_event<Allocation_Event<Empty_Value>>(),
 		    EqualsEvent(
 			Allocation_Event_Type::Allocate,
 			&allocation->base(),
@@ -55,7 +55,8 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 		Alloc_Traits::deallocate(monitor, allocation, count);
 
 		REQUIRE_THAT(
-		    Event_Handler::instance()->events().back(),
+		    Event_Handler::instance()
+			->last_event<Allocation_Event<Empty_Value>>(),
 		    EqualsEvent(
 			Allocation_Event_Type::Deallocate,
 			&allocation->base(),
@@ -67,7 +68,13 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 		Event_Handler::instance()->block_deallocate();
 		Alloc_Traits::deallocate(monitor, allocation, count);
 
-		REQUIRE(Event_Handler::instance()->events().size() == 1);
+		REQUIRE_THAT(
+		    Event_Handler::instance()
+			->last_event<Allocation_Event<Empty_Value>>(),
+		    EqualsEvent(
+			Allocation_Event_Type::Allocate,
+			&allocation->base(),
+			count));
 
 		Event_Handler::instance()->unblock_deallocate();
 		Alloc_Traits::deallocate(monitor, allocation, count);
@@ -83,7 +90,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 	Allocator     monitor;
 
 	size_t count      = 1;
-	auto  *allocation = Alloc_Traits::allocate(monitor, count);
+	auto   allocation = Alloc_Traits::allocate(monitor, count);
 
 	SECTION("Monitor detects construction through allocation traits")
 	{
@@ -93,7 +100,8 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		    Allocator::Underlying_Value{});
 
 		REQUIRE_THAT(
-		    Event_Handler::instance()->events().back(),
+		    Event_Handler::instance()
+			->last_event<Object_Event<Empty_Value>>(),
 		    EqualsEvent(Object_Event_Type::Construct, &allocation->base()));
 	}
 
@@ -102,7 +110,8 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		std::uninitialized_default_construct_n(allocation, 1);
 
 		REQUIRE_THAT(
-		    Event_Handler::instance()->events().back(),
+		    Event_Handler::instance()
+			->last_event<Object_Event<Empty_Value>>(),
 		    EqualsEvent(Object_Event_Type::Construct, &allocation->base()));
 	}
 
@@ -112,7 +121,8 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		std::uninitialized_fill_n(allocation, 1, value);
 
 		REQUIRE_THAT(
-		    Event_Handler::instance()->events().back(),
+		    Event_Handler::instance()
+			->last_event<Object_Event<Empty_Value>>(),
 		    EqualsEvent(
 			Object_Event_Type::Copy_Construct,
 			&allocation->base(),
@@ -125,7 +135,8 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		std::uninitialized_move_n(&value, 1, allocation);
 
 		REQUIRE_THAT(
-		    Event_Handler::instance()->events().back(),
+		    Event_Handler::instance()
+			->last_event<Object_Event<Empty_Value>>(),
 		    EqualsEvent(
 			Object_Event_Type::Move_Construct,
 			&allocation->base(),
@@ -146,14 +157,15 @@ TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
 	Allocator monitor;
 
 	size_t count      = 1;
-	auto  *allocation = Alloc_Traits::allocate(monitor, count);
+	auto   allocation = Alloc_Traits::allocate(monitor, count);
 	Alloc_Traits::construct(monitor, allocation);
 
 	SECTION("Monitor detects destruction through allocation traits")
 	{
 		Alloc_Traits::destroy(monitor, allocation);
 		REQUIRE_THAT(
-		    Event_Handler::instance()->events().back(),
+		    Event_Handler::instance()
+			->last_event<Object_Event<Empty_Value>>(),
 		    EqualsEvent(Object_Event_Type::Destroy, &allocation->base()));
 	}
 
@@ -161,7 +173,8 @@ TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
 	{
 		std::destroy_n(allocation, 1);
 		REQUIRE_THAT(
-		    Event_Handler::instance()->events().back(),
+		    Event_Handler::instance()
+			->last_event<Object_Event<Empty_Value>>(),
 		    EqualsEvent(Object_Event_Type::Destroy, &allocation->base()));
 	}
 
