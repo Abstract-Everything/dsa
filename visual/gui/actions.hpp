@@ -170,7 +170,7 @@ void Actions_UI<Container>::modifiers()
 {
 	if constexpr (has_clear)
 	{
-		ImGui::Text("Remove all the elements from the m_container");
+		ImGui::Text("Remove all the elements from the container");
 		ImGui::SameLine();
 		if (ImGui::Button("Clear"))
 		{
