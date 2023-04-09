@@ -93,6 +93,17 @@ class List_Node
 
 	Satellite_Value m_satellite;
 	Pointer         m_next = nullptr;
+
+	friend auto operator<<(std::ostream &stream, List_Node const &node)
+	    -> std::ostream &
+	{
+		// clang-format off
+		return stream << '{'
+				<< node.m_next
+				<< ',' << node.m_satellite
+			<< '}';
+		// clang-format on
+	}
 };
 
 } // namespace detail

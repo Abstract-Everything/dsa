@@ -43,6 +43,7 @@ Development:
 	Issues:
 		DSA:
 			Binary_Tree does not account for duplicates
+			Object_Event_Type::Underlying_(Copy/Move)_Assign can be merged together into Underlying_Value_Assign
 
 		Visual:
 			Container queries run per frame so non constant operations dirty the log with duplicated events
@@ -50,6 +51,7 @@ Development:
 			Simplify memory representation classes
 			Viewport should not have rendering code + rename the class
 			Use the size to determine if a pointer is pointing to the buffer or to a particular value
+			Pop should not be clickable when there are no items in the heap
 
 
 	Research:
@@ -70,4 +72,4 @@ Testing:
 	Use Memory_Monitor_Event_Handler_Fixture in all the tests that need a handler
 
 	DSA:
-		Create a struct for testing destructor. shared_ptr does not work because calling a single destructor multiple times (undefined behaviour yes but double frees do happen) It is better to check that each element was individually destroyed with a custom allocator.
+		Memory_Representation is currently untested. It was moved from inside Allocation_Verifier - which is tested but during the extraction the tests were not written for it. The tests for Allocation_Verifier can now be set up by creating a memory representation instance and passing it directly to the verifier, instead of creating it through the interface (decide if this option is better or not)

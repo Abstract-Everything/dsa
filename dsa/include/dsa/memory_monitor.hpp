@@ -5,6 +5,7 @@
 #include <dsa/default_allocator.hpp>
 #include <dsa/type_traits.hpp>
 
+#include <sstream>
 #include <cassert>
 #include <cstddef>
 #include <memory>
@@ -249,6 +250,10 @@ class Object_Event
 			    && "We expect the source to be provided for these events");
 			break;
 		}
+
+		std::stringstream stream;
+		stream << *m_destination;
+		m_destination_value = stream.str();
 	}
 
 	auto operator==(Object_Event const &event) const -> bool = default;
@@ -294,6 +299,11 @@ class Object_Event
 	auto source() -> T const *
 	{
 		return m_source;
+	}
+
+	[[nodiscard]] auto destination_value() const -> std::string const &
+	{
+		return m_destination_value;
 	}
 
 	[[nodiscard]] auto constructing() const -> bool
@@ -357,6 +367,7 @@ class Object_Event
 	Object_Event_Type m_type;
 	T		 *m_destination;
 	T const          *m_source;
+	std::string       m_destination_value;
 };
 
 template<typename Handler, typename Type>
@@ -460,6 +471,12 @@ class Element_Monitor
 		    Object_Event_Type::Underlying_Move_Assign,
 		    &Base_Wrapper::base()));
 		return *this;
+	}
+
+	friend auto operator<<(std::ostream &stream, Element_Monitor const &monitor)
+	    -> std::ostream &
+	{
+		return stream << monitor.base();
 	}
 
  private:
@@ -736,6 +753,12 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 	auto base() -> Base_Pointer &
 	{
 		return m_base_pointer;
+	}
+
+	friend auto operator<<(std::ostream &stream, Element_Monitor_Pointer const &pointer)
+	    -> std::ostream &
+	{
+		return stream << pointer.get();
 	}
 
  private:

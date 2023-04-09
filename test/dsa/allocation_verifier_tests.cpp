@@ -613,6 +613,17 @@ struct Multiple_Field_Struct
 	typename Single_Field_Allocator::Value field_b;
 
 	Multiple_Field_Struct() = default;
+
+	friend auto operator<<(std::ostream &stream, Multiple_Field_Struct const &data)
+	    -> std::ostream &
+	{
+		// clang-format off
+		return stream << '{'
+			          << data.field_a
+			          << ',' << data.field_b
+			      << '}';
+		// clang-format on
+	}
 };
 
 using Multiple_Field_Allocator =
