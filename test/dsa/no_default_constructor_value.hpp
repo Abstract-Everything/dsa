@@ -1,6 +1,8 @@
 #ifndef TEST_DSA_STATIC_NO_DEFAULT_CONSTRUCTOR_VALUE_HPP
 #define TEST_DSA_STATIC_NO_DEFAULT_CONSTRUCTOR_VALUE_HPP
 
+#include <ostream>
+
 namespace test
 {
 
@@ -30,6 +32,13 @@ class No_Default_Constructor_Value
 	constexpr No_Default_Constructor_Value(No_Default_Constructor_Value &&) = delete;
 	constexpr No_Default_Constructor_Value &operator=(
 	    No_Default_Constructor_Value &&) = delete;
+
+	friend auto operator<<(
+	    std::ostream &stream,
+	    No_Default_Constructor_Value const & /*value*/) -> std::ostream &
+	{
+		return stream << "{}";
+	}
 };
 
 } // namespace test

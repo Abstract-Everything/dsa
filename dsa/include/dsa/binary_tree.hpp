@@ -142,6 +142,19 @@ class Binary_Tree_Node
 	    , m_satellite(std::forward<Arguments>(arguments)...)
 	{
 	}
+
+	friend auto operator<<(std::ostream &stream, Binary_Tree_Node const &node)
+	    -> std::ostream &
+	{
+		// clang-format off
+		return stream << '{'
+				<< node.m_left
+				<< ',' << node.m_parent
+				<< ',' << node.m_right
+				<< ',' << node.m_satellite
+			<< '}';
+		// clang-format on
+	}
 };
 
 } // namespace detail

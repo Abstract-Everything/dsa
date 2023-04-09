@@ -44,19 +44,26 @@ class Allocation_Element
 		m_state = State::Moved;
 	}
 
-	auto assign()
+	void assign(std::string value)
 	{
 		m_state = State::Initialised;
+		update_value(std::move(value));
 	}
 
-	auto construct()
+	void construct(std::string value)
 	{
 		m_state = State::Initialised;
+		update_value(std::move(value));
 	}
 
 	auto destroy()
 	{
 		m_state = State::Uninitialised;
+	}
+
+	[[nodiscard]] auto value() const -> std::string
+	{
+		return initialised() ? m_value : "";
 	}
 
 	template<typename T>
@@ -102,7 +109,8 @@ class Allocation_Element
 		Moved
 	};
 
-	State m_state = State::Uninitialised;
+	State       m_state = State::Uninitialised;
+	std::string m_value;
 	std::vector<std::unique_ptr<Allocation_Element>> m_fields;
 
 	template<typename T>
@@ -128,6 +136,11 @@ class Allocation_Element
 		}
 
 		return (*element)->field_at_impl(address);
+	}
+
+	void update_value(std::string &&value)
+	{
+		m_value = std::move(value);
 	}
 };
 
@@ -490,14 +503,14 @@ class Memory_Representation
 		case dsa::Object_Event_Type::Construct:
 		case dsa::Object_Event_Type::Copy_Construct:
 		case dsa::Object_Event_Type::Move_Construct:
-			field.value().get().construct();
+			field.value().get().construct(event.destination_value());
 			break;
 
 		case dsa::Object_Event_Type::Copy_Assign:
 		case dsa::Object_Event_Type::Underlying_Copy_Assign:
 		case dsa::Object_Event_Type::Underlying_Move_Assign:
 		case dsa::Object_Event_Type::Move_Assign:
-			field.value().get().assign();
+			field.value().get().assign(event.destination_value());
 			break;
 
 		case dsa::Object_Event_Type::Destroy:
