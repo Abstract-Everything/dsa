@@ -152,16 +152,6 @@ void Actions_UI<Container>::accessors()
 		    is_in_range(read) ? m_container[read].to_string()
 				      : "<Out of bounds>");
 		ImGui::LabelText("Value read", "%s", value.c_str());
-
-		ImGui::Separator();
-		index_input("Index of element to write", m_write, false);
-		ImGui::InputInt("Value to write", &m_write_value);
-
-		const auto write = static_cast<std::size_t>(m_write);
-		if (conditional_button("Write", is_in_range(write)))
-		{
-			m_container[write] = Value{m_write_value};
-		}
 	}
 }
 
@@ -197,6 +187,19 @@ void Actions_UI<Container>::modifiers()
 		{
 			const auto size = static_cast<std::size_t>(m_resize);
 			m_container.resize(size);
+		}
+	}
+
+	if constexpr (has_operator_access)
+	{
+		ImGui::Separator();
+		index_input("Index of element to write", m_write, false);
+		ImGui::InputInt("Value to write", &m_write_value);
+
+		const auto write = static_cast<std::size_t>(m_write);
+		if (conditional_button("Write", is_in_range(write)))
+		{
+			m_container[write] = Value{m_write_value};
 		}
 	}
 
