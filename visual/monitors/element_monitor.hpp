@@ -80,9 +80,10 @@ class Element_Monitor
 		return *this;
 	}
 
-	std::ostream &operator<<(std::ostream &stream) const
+	friend auto operator<<(std::ostream &stream, Element_Monitor const &monitor)
+	    -> std::ostream &
 	{
-		stream << to_string();
+		stream << monitor.to_string();
 		return stream;
 	}
 

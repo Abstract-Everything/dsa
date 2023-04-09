@@ -7,6 +7,7 @@
 #include <imgui.h>
 
 #include <string>
+#include <sstream>
 
 namespace visual
 {
@@ -54,9 +55,23 @@ class Actions_UI
 	int m_erase_value = 0;
 	int m_erase       = 0;
 
+	// If we read the container state using its methods it fires events to
+	// the viewport. Since we access this state every frame a lot of
+	// unneeded events are created. We keep a cache of the state in order to
+	// avoid this.
+	bool                     m_cached_empty    = true;
+	size_t                   m_cached_size     = 0;
+	size_t                   m_cached_capacity = 0;
+	std::string              m_cached_front;
+	std::string              m_cached_back;
+	std::string              m_cached_top;
+	std::vector<std::string> m_cached_values;
+
 	void properties();
 	void accessors();
 	void modifiers();
+
+	void refresh_cached_values();
 
 	bool is_in_range(std::size_t index);
 	bool is_last_index(std::size_t index);
@@ -64,6 +79,8 @@ class Actions_UI
 	void section(const char *label, void (Actions_UI::*interface)());
 	void index_input(const char *label, int &value, bool allow_end_index);
 	bool conditional_button(const char *label, bool enabled);
+
+	std::string element_value(typename Container::Const_Reference value);
 
 	static constexpr bool has_empty           = has_member_empty_v<Container>;
 	static constexpr bool has_size            = has_member_size_v<Container>;
@@ -97,17 +114,17 @@ void Actions_UI<Container>::properties()
 {
 	if constexpr (has_empty)
 	{
-		ImGui::LabelText("Is empty", m_container.empty() ? "true" : "false");
+		ImGui::LabelText("Is empty", m_cached_empty ? "true" : "false");
 	}
 
 	if constexpr (has_size)
 	{
-		ImGui::LabelText("Size", "%lu", m_container.size());
+		ImGui::LabelText("Size", "%lu", m_cached_size);
 	}
 
 	if constexpr (has_capacity)
 	{
-		ImGui::LabelText("Capacity", "%lu", m_container.capacity());
+		ImGui::LabelText("Capacity", "%lu", m_cached_capacity);
 	}
 }
 
@@ -116,30 +133,17 @@ void Actions_UI<Container>::accessors()
 {
 	if constexpr (has_front)
 	{
-		ImGui::LabelText(
-		    "Front element",
-		    "%s",
-		    m_container.empty()
-			? "Container is empty"
-			: m_container.front().to_string().c_str());
+		ImGui::LabelText("Front element", "%s", m_cached_front.c_str());
 	}
 
 	if constexpr (has_back)
 	{
-		ImGui::LabelText(
-		    "Back element",
-		    "%s",
-		    m_container.empty() ? "Container is empty"
-					: m_container.back().to_string().c_str());
+		ImGui::LabelText("Back element", "%s", m_cached_back.c_str());
 	}
 
 	if constexpr (has_top)
 	{
-		ImGui::LabelText(
-		    "Top element",
-		    "%s",
-		    m_container.empty() ? "Container is empty"
-					: m_container.top().to_string().c_str());
+		ImGui::LabelText("Top element", "%s", m_cached_top.c_str());
 	}
 
 	if constexpr (has_operator_access)
@@ -147,10 +151,9 @@ void Actions_UI<Container>::accessors()
 		ImGui::Separator();
 		index_input("Index to read", m_read, false);
 		const auto  read  = static_cast<std::size_t>(m_read);
-		std::string value = fmt::format(
-		    "{}",
-		    is_in_range(read) ? m_container[read].to_string()
-				      : "<Out of bounds>");
+		std::string value = is_in_range(read) ? m_cached_values[read]
+						      : "<Out of bounds>";
+
 		ImGui::LabelText("Value read", "%s", value.c_str());
 	}
 }
@@ -158,6 +161,7 @@ void Actions_UI<Container>::accessors()
 template<typename Container>
 void Actions_UI<Container>::modifiers()
 {
+	bool modified = false;
 	if constexpr (has_clear)
 	{
 		ImGui::Text("Remove all the elements from the container");
@@ -165,6 +169,7 @@ void Actions_UI<Container>::modifiers()
 		if (ImGui::Button("Clear"))
 		{
 			m_container.clear();
+			modified = true;
 		}
 	}
 
@@ -175,6 +180,7 @@ void Actions_UI<Container>::modifiers()
 		if (ImGui::Button("Shrink to fit"))
 		{
 			m_container.shrink_to_fit();
+			modified = true;
 		}
 	}
 
@@ -187,6 +193,7 @@ void Actions_UI<Container>::modifiers()
 		{
 			const auto size = static_cast<std::size_t>(m_resize);
 			m_container.resize(size);
+			modified = true;
 		}
 	}
 
@@ -210,6 +217,7 @@ void Actions_UI<Container>::modifiers()
 		if (ImGui::Button("Append"))
 		{
 			m_container.append(Value{m_append_value});
+			modified = true;
 		}
 	}
 
@@ -225,6 +233,7 @@ void Actions_UI<Container>::modifiers()
 			is_in_range(insert) || is_last_index(insert)))
 		{
 			m_container.insert(insert, Value{m_insert_value});
+			modified = true;
 		}
 	}
 
@@ -236,6 +245,7 @@ void Actions_UI<Container>::modifiers()
 		if (ImGui::Button("Insert"))
 		{
 			m_container.insert(Value{m_insert_value});
+			modified = true;
 		}
 	}
 
@@ -247,6 +257,7 @@ void Actions_UI<Container>::modifiers()
 		if (ImGui::Button("Push"))
 		{
 			m_container.push(Value{m_insert_value});
+			modified = true;
 		}
 	}
 
@@ -260,6 +271,7 @@ void Actions_UI<Container>::modifiers()
 		if (conditional_button("Erase", is_in_range(erase)))
 		{
 			m_container.erase(erase);
+			modified = true;
 		}
 	}
 
@@ -269,10 +281,17 @@ void Actions_UI<Container>::modifiers()
 
 		ImGui::InputInt("Erase Value", &m_erase_value);
 
-		Value erase_value{m_erase_value};
-		if (conditional_button("Erase", m_container.contains(erase_value)))
+		Value      erase_value{m_erase_value};
+		const bool contains_value = std::find(
+						m_cached_values.begin(),
+						m_cached_values.end(),
+						element_value(erase_value))
+					    != m_cached_values.end();
+
+		if (conditional_button("Erase", contains_value))
 		{
 			m_container.erase(erase_value);
+			modified = true;
 		}
 	}
 
@@ -283,21 +302,75 @@ void Actions_UI<Container>::modifiers()
 		if (ImGui::Button("Pop"))
 		{
 			m_container.pop();
+			modified = true;
 		}
 	}
 
+	if (modified)
+	{
+		refresh_cached_values();
+	}
+}
+
+template<typename Container>
+void Actions_UI<Container>::refresh_cached_values()
+{
+	if constexpr (has_empty)
+	{
+		m_cached_empty = m_container.empty();
+	}
+
+	if constexpr (has_size)
+	{
+		m_cached_size = m_container.size();
+	}
+
+	if constexpr (has_capacity)
+	{
+		m_cached_capacity = m_container.capacity();
+	}
+
+	if constexpr (has_front)
+	{
+		m_cached_front = m_cached_empty
+				     ? "Container is empty"
+				     : element_value(m_container.front());
+	}
+
+	if constexpr (has_back)
+	{
+		m_cached_back = m_cached_empty
+				    ? "Container is empty"
+				    : element_value(m_container.back());
+	}
+
+	if constexpr (has_top)
+	{
+		m_cached_back = m_cached_empty
+				    ? "Container is empty"
+				    : element_value(m_container.top());
+	}
+
+	m_cached_values.clear();
+	if constexpr (has_operator_access || has_erase)
+	{
+		for (auto value : m_container)
+		{
+			m_cached_values.push_back(element_value(value));
+		}
+	}
 }
 
 template<typename Container>
 bool Actions_UI<Container>::is_in_range(std::size_t index)
 {
-	return m_container.size() > index;
+	return m_cached_size > index;
 }
 
 template<typename Container>
 bool Actions_UI<Container>::is_last_index(std::size_t index)
 {
-	return m_container.size() == index;
+	return m_cached_size == index;
 }
 
 template<typename Container>
@@ -316,7 +389,7 @@ void Actions_UI<Container>::section(const char *label, void (Actions_UI::*interf
 template<typename Container>
 void Actions_UI<Container>::index_input(const char *label, int &value, bool allow_end_index)
 {
-	const auto size      = static_cast<int>(m_container.size());
+	const auto size      = static_cast<int>(m_cached_size);
 	const auto max_index = std::max(0, allow_end_index ? size : size - 1);
 	value                = std::clamp(value, 0, max_index);
 	ImGui::SliderInt(label, &value, 0, max_index);
@@ -338,6 +411,15 @@ bool Actions_UI<Container>::conditional_button(const char *label, bool enabled)
 	}
 
 	return clicked;
+}
+
+template<typename Container>
+std::string Actions_UI<Container>::element_value(
+    typename Container::Const_Reference value)
+{
+	std::stringstream stream;
+	stream << value;
+	return stream.str();
 }
 
 } // namespace visual
