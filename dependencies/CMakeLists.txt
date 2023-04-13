@@ -1,4 +1,5 @@
 # Download automatically, you can also just copy the conan.cmake file
+# TODO: Upgrade to use conan2
 if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conan.cmake")
 	message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
 	file(

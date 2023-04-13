@@ -49,7 +49,7 @@ jobs:
       shell: bash
       run: |
         python3 -m pip install --upgrade pip setuptools
-        python3 -m pip install --upgrade conan
+        python3 -m pip install --upgrade conan==1.59.0
         conan config init
         conan config set general.revisions_enabled=1
         conan profile update conf.tools.system.package_manager:mode=install default
