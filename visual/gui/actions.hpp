@@ -71,7 +71,7 @@ class Actions_UI
 	static constexpr bool has_front           = has_member_front_v<Container>;
 	static constexpr bool has_back            = has_member_back_v<Container>;
 	static constexpr bool has_top             = has_member_top_v<Container>;
-	static constexpr bool has_operator_access = has_member_operator_access_v<Container, std::size_t>;
+	static constexpr bool has_operator_access = has_operator_access_v<Container, std::size_t>;
 	static constexpr bool has_clear           = has_member_clear_v<Container>;
 	static constexpr bool has_shrink_to_fit   = has_member_shrink_to_fit_v<Container>;
 	static constexpr bool has_resize          = has_member_resize_v<Container, std::size_t>;
