@@ -7,7 +7,7 @@ set(DSA_STATIC_TEST_INCLUDES "${CMAKE_CURRENT_LIST_DIR}"
 
 set(DSA_STATIC_TEST_FILES allocator_traits_tests.cpp memory_monitor_tests.cpp
 	allocation_verifier_tests.cpp dynamic_array_tests.cpp vector_tests.cpp
-	list_tests.cpp binary_tree_tests.cpp)
+	list_tests.cpp binary_tree_tests.cpp algorithm_tests.cpp)
 
 if(${DSA_STATIC_TESTS})
 	add_executable(dsa_static_tests ${DSA_STATIC_TEST_FILES})
