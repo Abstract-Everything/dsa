@@ -367,7 +367,7 @@ class Memory_Monitor
 
 	 public:
 		template<typename... Arguments>
-		explicit Element_Monitor(Arguments &&...arguments)
+		Element_Monitor(Arguments &&...arguments)
 		    requires std::is_constructible_v<Base, Arguments...>
 		    : Pre_Construct([this]() { before_construct(); })
 		    , Base_Wrapper(std::forward<Arguments>(arguments)...)

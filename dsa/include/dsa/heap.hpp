@@ -5,6 +5,8 @@
 #include <dsa/default_allocator.hpp>
 #include <dsa/vector.hpp>
 
+#include <algorithm>
+
 namespace dsa
 {
 
@@ -16,13 +18,13 @@ namespace dsa
  * @ingroup containers
  *
  * @tparam Value_t: The type of element to store
- * @tparam Comparator: The type of a comparator for which comparator(x,y) holds
+ * @tparam Comparator_t: The type of a comparator for which comparator(x,y) holds
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
 template<
     typename Value_t,
-    typename Comparator                        = decltype(std::less{}),
+    typename Comparator_t                      = decltype(std::less{}),
     template<typename> typename Allocator_Base = Default_Allocator>
 class Heap
 {
@@ -30,6 +32,7 @@ class Heap
 	using Storage = dsa::Vector<Value_t, Allocator_Base>;
 
  public:
+	using Comparator      = Comparator_t;
 	using Allocator       = typename Storage::Allocator;
 	using Value           = typename Storage::Value;
 	using Reference       = typename Storage::Reference;
@@ -40,9 +43,7 @@ class Heap
 	/**
 	 * @brief Constructs an empty heap
 	 */
-	Heap() : Heap({})
-	{
-	}
+	Heap() = default;
 
 	/**
 	 * @brief Constructs a heap made up of the given elements
@@ -53,7 +54,7 @@ class Heap
 	    : m_comparator(std::move(comparator))
 	{
 		m_storage.reserve(list.size());
-		for (auto &value : list)
+		for (auto const &value : list)
 		{
 			push(value);
 		}
@@ -147,6 +148,12 @@ class Heap
 	void pop()
 	{
 		using std::swap;
+
+		if (size() == 1)
+		{
+			m_storage.clear();
+			return;
+		}
 
 		const std::size_t last = m_storage.size() - 1;
 		swap(m_storage[0], m_storage[last]);
