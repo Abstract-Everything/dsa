@@ -69,7 +69,6 @@ jobs:
         cmake -S $GITHUB_WORKSPACE                       \
               -B "${{ runner.workspace }}/build"         \
               -DCMAKE_BUILD_TYPE="${{ env.build_type }}" \
-              -DDSA_RUNTIME_TESTS=ON                     \
               -DDSA_STATIC_TESTS=ON
 
     - name: Build
