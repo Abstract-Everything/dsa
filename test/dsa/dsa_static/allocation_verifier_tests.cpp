@@ -449,6 +449,25 @@ TEST_CASE("Moved memory can be reassigned", "[allocation_verifier]")
 	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
 }
 
+TEST_CASE("Moved into memory is considered initialised", "[allocation_verifier]")
+{
+	Handler_Scope          scope;
+	Single_Field_Allocator verifier;
+
+	size_t count  = 1;
+	auto  *memory = Single_Field_Alloc_Traits::allocate(verifier, count);
+
+	Single_Field_Alloc_Traits::construct(verifier, memory);
+	Single_Field_Allocator::Value value(std::move(*memory));
+	*memory = std::move(value);
+	Single_Field_Allocator::Value value2(std::move(*memory));
+
+	std::destroy_n(memory, count);
+	Single_Field_Alloc_Traits::deallocate(verifier, memory, count);
+
+	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
+}
+
 TEST_CASE(
     "Calling destroy on unconstructed memory raises an error",
     "[allocation_verifier]")
