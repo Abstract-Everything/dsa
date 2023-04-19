@@ -38,7 +38,7 @@ TEST_CASE("Various mechanisims to initialise binary tree", "[binary_tree]")
 	}
 }
 
-TEST_CASE("Binary trees arrays can be compared", "[binary_tree]")
+TEST_CASE("Binary trees can be compared", "[binary_tree]")
 {
 	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
@@ -146,10 +146,12 @@ TEST_CASE("Binary trees can be moved", "[binary_tree]")
 		REQUIRE_THAT(binary_tree, EqualsRange(values));
 	}
 
-	SECTION("Binary trees can be copy assigned from one another")
+	SECTION("Binary trees can be move assigned from one another")
 	{
 		Binary_Tree binary_tree;
-		binary_tree = temporary;
+		REQUIRE(binary_tree != temporary);
+
+		binary_tree = std::move(temporary);
 		REQUIRE_THAT(binary_tree, EqualsRange(values));
 	}
 }
@@ -169,6 +171,24 @@ TEST_CASE("Binary trees can be swapped", "[binary_tree]")
 
 	REQUIRE_THAT(binary_tree_a, EqualsRange(values_b));
 	REQUIRE_THAT(binary_tree_b, EqualsRange(values_a));
+}
+
+TEST_CASE("Binary trees can be queried for element containment", "[binary_tree]")
+{
+	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
+	Handler_Scope scope;
+
+	Binary_Tree binary_tree{0, -1, 1};
+
+	SECTION("A present element is marked as contained")
+	{
+		REQUIRE(binary_tree.contains(1));
+	}
+
+	SECTION("An absent element is not marked as contained")
+	{
+		REQUIRE_FALSE(binary_tree.contains(2));
+	}
 }
 
 TEST_CASE("Elements can be inserted into the binary tree", "[binary_tree]")
@@ -291,8 +311,7 @@ TEST_CASE("Elements can be erased from the binary tree", "[binary_tree]")
 	}
 
 	SECTION(
-	    "Erasing a parent with both children promotes the right most child "
-	    "of the left node")
+	    "Erasing a parent with both children promotes the smaller element")
 	{
 		Binary_Tree expected{
 		            -1,
