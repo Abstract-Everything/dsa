@@ -608,12 +608,12 @@ class Allocation_Verifier
 		{
 			if (!allocation->all_heap_elements_destroyed())
 			{
-				add_error_if_any(object_leaked);
+				add_error(object_leaked);
 			}
 
 			if (allocation->owns_allocation())
 			{
-				add_error_if_any(memory_leaked);
+				add_error(memory_leaked);
 			}
 		}
 
@@ -676,7 +676,7 @@ class Allocation_Verifier
 			if (!source_field.has_value()
 			    || !source_field.value().get().initialised())
 			{
-				add_error_if_any(assign_from_uninitialized_memory);
+				add_error(assign_from_uninitialized_memory);
 				return;
 			}
 		}
@@ -690,7 +690,7 @@ class Allocation_Verifier
 			if (destination_field.has_value()
 			    && destination_field.value().get().initialised())
 			{
-				add_error_if_any(object_leaked);
+				add_error(object_leaked);
 				return;
 			}
 			break;
@@ -707,7 +707,7 @@ class Allocation_Verifier
 			if (!(destination_field.has_value()
 			      && destination_field.value().get().assignable()))
 			{
-				add_error_if_any(assign_uninitialized_memory);
+				add_error(assign_uninitialized_memory);
 				return;
 			}
 			break;
@@ -716,7 +716,7 @@ class Allocation_Verifier
 			if (!(destination_field.has_value()
 			      && destination_field.value().get().destructable()))
 			{
-				add_error_if_any(destroying_nonconstructed_memory);
+				add_error(destroying_nonconstructed_memory);
 				return;
 			}
 			break;
@@ -725,12 +725,9 @@ class Allocation_Verifier
 		memory_representation.process_object_event(event);
 	}
 
-	void add_error_if_any(std::optional<std::string> &&error)
+	void add_error(std::string &&error)
 	{
-		if (error.has_value())
-		{
-			m_errors.emplace(std::move(error.value()));
-		}
+		m_errors.emplace(std::move(error));
 	}
 
 	template<typename T>
@@ -739,7 +736,7 @@ class Allocation_Verifier
 		auto result = memory_representation.allocation_at(address);
 		if (!result.has_value())
 		{
-			add_error_if_any(deallocating_unallocated_memory);
+			add_error(deallocating_unallocated_memory);
 			return false;
 		}
 
@@ -747,14 +744,14 @@ class Allocation_Verifier
 		if (allocation.count() != count)
 		{
 			allocation.cleanup();
-			add_error_if_any(deallocating_count_mismatch);
+			add_error(deallocating_count_mismatch);
 			return false;
 		}
 
 		if (!allocation.all_heap_elements_destroyed())
 		{
 			allocation.cleanup();
-			add_error_if_any(object_leaked);
+			add_error(object_leaked);
 		}
 
 		return true;
