@@ -221,6 +221,24 @@ class Object_Event
 	    , m_destination(destination)
 	    , m_source(source)
 	{
+		switch (type)
+		{
+		case dsa::Object_Event_Type::Before_Construct:
+		case dsa::Object_Event_Type::Construct:
+		case dsa::Object_Event_Type::Underlying_Copy_Assign:
+		case dsa::Object_Event_Type::Underlying_Move_Assign:
+		case dsa::Object_Event_Type::Destroy:
+			break;
+
+		case dsa::Object_Event_Type::Copy_Construct:
+		case dsa::Object_Event_Type::Move_Construct:
+		case dsa::Object_Event_Type::Copy_Assign:
+		case dsa::Object_Event_Type::Move_Assign:
+			assert(
+			    m_source != nullptr
+			    && "We expect the source to be provided for these events");
+			break;
+		}
 	}
 
 	auto operator==(Object_Event const &event) const -> bool = default;
