@@ -67,7 +67,7 @@ Documentation:
 	Create a document in folders to explain the design of the components
 
 Testing:
-	Tests do not account for allocators, construction and destruction of objects
+	Use Memory_Monitor_Event_Handler_Fixture in all the tests that need a handler
 
 	DSA:
 		Create a struct for testing destructor. shared_ptr does not work because calling a single destructor multiple times (undefined behaviour yes but double frees do happen) It is better to check that each element was individually destroyed with a custom allocator.
