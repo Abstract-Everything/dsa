@@ -3,6 +3,7 @@
 
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
+#include <dsa/type_traits.hpp>
 
 #include <cassert>
 #include <cstddef>
@@ -391,7 +392,8 @@ class Memory_Monitor
 	 public:
 		template<typename... Arguments>
 		Element_Monitor(Arguments &&...arguments)
-		    requires std::is_constructible_v<Base, Arguments...>
+			requires(std::is_constructible_v<Base, Arguments...>
+				 && !Is_Same_v<Element_Monitor, Arguments...>)
 		    : Pre_Construct([this]() { before_construct(); })
 		    , Base_Wrapper(std::forward<Arguments>(arguments)...)
 		{
@@ -408,7 +410,7 @@ class Memory_Monitor
 		}
 
 		Element_Monitor(Element_Monitor const &element)
-		    requires std::is_constructible_v<Base>
+		    requires std::is_copy_constructible_v<Base>
 		    : Pre_Construct([this]() { before_construct(); })
 		    , Base_Wrapper(element)
 		{
@@ -420,7 +422,7 @@ class Memory_Monitor
 
 		auto operator=(Element_Monitor const &element)
 		    -> Element_Monitor &
-		    requires std::is_assignable_v<Base &, Base>
+		    requires std::is_copy_assignable_v<Base>
 		{
 			Base_Wrapper::base() = element.base();
 			Handler::process_object_event(Object_Event(
@@ -432,7 +434,7 @@ class Memory_Monitor
 
 		auto operator=(Base const &value) noexcept
 		    -> Element_Monitor &
-		    requires std::is_assignable_v<Base &, Base>
+		    requires std::is_copy_assignable_v<Base>
 		{
 			Base_Wrapper::base() = value;
 			Handler::process_object_event(Object_Event(
