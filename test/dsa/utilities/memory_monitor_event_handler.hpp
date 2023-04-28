@@ -71,9 +71,9 @@ class Event_Handler
 		m_allow_deallocate = true;
 	}
 
-	[[nodiscard]] auto events() -> std::vector<Event_Type> const &
+	[[nodiscard]] static auto events() -> std::vector<Event_Type> const &
 	{
-		return m_events;
+		return instance()->m_events;
 	}
 
  private:
