@@ -23,7 +23,7 @@ TEST_CASE("No event is received if no actions were performed", "[monitor]")
 {
 	Handler_Scope scope;
 
-	REQUIRE(Event_Handler::instance()->events().empty());
+	REQUIRE(Event_Handler::events().empty());
 }
 
 TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
