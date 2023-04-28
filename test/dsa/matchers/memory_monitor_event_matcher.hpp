@@ -23,8 +23,12 @@ struct EqualsMemoryMonitorEventMatcher : Catch::Matchers::MatcherGenericBase
 	std::string describe() const override
 	{
 		std::stringstream stream;
-		stream << m_event;
-		return "\nEquals:\n" + stream.str();
+		stream << "\nEquals:\n" << m_event << "\n\nAll the events received:";
+		for (auto const& event : Event_Handler::events())
+		{
+			stream << "\n" << event;
+		}
+		return stream.str();
 	}
 
  private:
