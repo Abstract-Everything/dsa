@@ -181,8 +181,7 @@ class Allocation_Event
 	friend auto operator<<(std::ostream &stream, Allocation_Event const &event)
 	    -> std::ostream &
 	{
-		stream << event.m_type << " at address "
-		       << reinterpret_cast<uintptr_t>(event.m_pointer)
+		stream << event.m_type << " at address " << event.m_pointer
 		       << " with count " << event.m_count;
 		return stream;
 	}
@@ -252,8 +251,7 @@ class Object_Event
 	friend auto operator<<(std::ostream &stream, Object_Event const &event)
 	    -> std::ostream &
 	{
-		stream << event.m_type << " at address "
-		       << reinterpret_cast<uintptr_t>(event.m_destination);
+		stream << event.m_type << " at address " << event.m_destination;
 
 		if (event.m_source != nullptr)
 		{
@@ -270,9 +268,7 @@ class Object_Event
 			case Object_Event_Type::Copy_Assign:
 			case Object_Event_Type::Move_Construct:
 			case Object_Event_Type::Move_Assign:
-				stream
-				    << " from address "
-				    << reinterpret_cast<uintptr_t>(event.m_source);
+				stream << " from address " << event.m_source;
 				break;
 			};
 		}
