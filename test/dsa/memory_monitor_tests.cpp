@@ -1,6 +1,8 @@
 #include "empty_value.hpp"
+#include "matchers/memory_monitor_event_matcher.hpp"
 #include "memory_monitor_handler_scope.hpp"
 #include "no_default_constructor_value.hpp"
+#include "utilities/memory_monitor_event_handler.hpp"
 
 #include <dsa/allocator_traits.hpp>
 #include <dsa/memory_monitor.hpp>
@@ -14,119 +16,6 @@ using namespace dsa;
 
 namespace test
 {
-
-using Event_Type = std::variant<
-    Allocation_Event<Empty_Value>,
-    Object_Event<Empty_Value>,
-    Allocation_Event<No_Default_Constructor_Value>,
-    Object_Event<No_Default_Constructor_Value>>;
-
-auto operator<<(std::ostream &stream, Event_Type const &event) -> std::ostream &
-{
-	std::visit([&](auto const &typed_event) { stream << typed_event; }, event);
-	return stream;
-}
-
-struct EqualsMemoryMonitorEventMatcher : Catch::Matchers::MatcherGenericBase
-{
-	explicit EqualsMemoryMonitorEventMatcher(Event_Type event)
-	    : m_event(event)
-	{
-	}
-
-	bool match(Event_Type const &other) const
-	{
-		return other == m_event;
-	}
-
-	std::string describe() const override
-	{
-		std::stringstream stream;
-		stream << m_event;
-		return "\nEquals:\n" + stream.str();
-	}
-
- private:
-	Event_Type m_event;
-};
-
-template<typename T>
-auto EqualsEvent(Allocation_Event_Type type, T *pointer, size_t count)
-    -> EqualsMemoryMonitorEventMatcher
-{
-	return EqualsMemoryMonitorEventMatcher(
-	    Event_Type(Allocation_Event(type, pointer, count)));
-}
-
-template<typename T>
-auto EqualsEvent(Object_Event_Type type, T *destination)
-    -> EqualsMemoryMonitorEventMatcher
-{
-	return EqualsMemoryMonitorEventMatcher(
-	    Event_Type(Object_Event(type, destination)));
-}
-
-template<typename T>
-auto EqualsEvent(Object_Event_Type type, T *destination, T const *source)
-    -> EqualsMemoryMonitorEventMatcher
-{
-	return EqualsMemoryMonitorEventMatcher(
-	    Event_Type(Object_Event(type, destination, source)));
-}
-
-/// Maintains a list events produced by the appropriate callback. The entries
-/// can be analysed to determine if the Memory_Monitor is calling the
-/// appropriate callbacks in the appropriate order
-class Event_Handler
-{
- public:
-	static auto instance() -> std::unique_ptr<Event_Handler> &
-	{
-		static std::unique_ptr<Event_Handler> instance = nullptr;
-		return instance;
-	}
-
-	template<typename T>
-	static auto before_deallocate(Allocation_Event<T> /* event */) -> bool
-	{
-		return instance()->m_allow_deallocate;
-	}
-
-	template<typename T>
-	static void process_allocation_event(Allocation_Event<T> event)
-	{
-		instance()->m_events.push_back(event);
-	}
-
-	template<typename T>
-	static void process_object_event(Object_Event<T> event)
-	{
-		instance()->m_events.push_back(event);
-	}
-
-	void cleanup()
-	{
-	}
-
-	void block_deallocate()
-	{
-		m_allow_deallocate = false;
-	}
-
-	void unblock_deallocate()
-	{
-		m_allow_deallocate = true;
-	}
-
-	[[nodiscard]] auto events() -> std::vector<Event_Type> const &
-	{
-		return m_events;
-	}
-
- private:
-	std::vector<Event_Type> m_events;
-	bool                    m_allow_deallocate = true;
-};
 
 using Handler_Scope = Memory_Monitor_Handler_Scope<Event_Handler>;
 
