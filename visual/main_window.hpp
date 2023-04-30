@@ -1,8 +1,6 @@
 #ifndef VISUAL_MAIN_WINDOW_HPP
 #define VISUAL_MAIN_WINDOW_HPP
 
-#include "event.hpp"
-#include "user_interface.hpp"
 #include "viewport.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -11,6 +9,8 @@
 
 namespace visual
 {
+
+class User_Interface;
 
 class Main_Window
 {
@@ -25,7 +25,11 @@ class Main_Window
 
 	const std::filesystem::path &executable_path();
 
-	void add_event(Event &&event);
+	static void add_event(dsa::Memory_Monitor_Event auto &&event)
+	{
+		instance().m_viewport.add_event(
+		    std::forward<decltype(event)>(event));
+	}
 
 	void initialise(const std::vector<std::string> &arguments);
 	void start();
@@ -39,7 +43,7 @@ class Main_Window
 	sf::RenderWindow m_window;
 
 	Viewport       m_viewport;
-	User_Interface m_user_interface;
+	std::unique_ptr<User_Interface> m_user_interface;
 };
 
 } // namespace visual

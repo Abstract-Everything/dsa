@@ -1,5 +1,7 @@
 #include "viewport.hpp"
 
+#include <dsa/memory_representation.hpp>
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <spdlog/spdlog.h>
@@ -7,6 +9,7 @@
 #include <algorithm>
 #include <exception>
 #include <map>
+#include <charconv>
 
 namespace
 {
@@ -40,172 +43,45 @@ ImU32 cell_background(bool initialised)
 	return initialised ? valid_background : invalid_background;
 }
 
-void draw_size(const visual::Memory_Allocation &allocation)
+auto allocation_name(uintptr_t address) -> std::string
 {
-	ImGui::TableNextColumn();
-	std::string size = std::to_string(allocation.size());
-	ImGui::TextUnformatted(size.c_str());
+	return fmt::format("Allocation_{:0x}", address);
 }
 
-void draw_value(visual::Memory_Value const &value)
+ImGuiWindow *allocation_window(dsa::Memory_Representation const &memory, uintptr_t address)
 {
-	ImGui::TableSetBgColor(
-	    ImGuiTableBgTarget_CellBg,
-	    cell_background(value.initialised()));
-
-	ImGui::Text("%s", value.value().c_str());
-}
-
-// We use a table to represent multiple values in a allocation element. For
-// example an allocation having elements with mutliple values can be represented
-// in different rows as:
-//
-// Element 1: Value A, Element 2: Value A, Element 3: Value A,
-//            Value B,            Value B,            Value B, ....
-//            Value C,            Value C,            Value C,
-//
-// Using a single table was the best way found to do it because ImGui does not
-// auto scale the cells in nested tables.
-void draw_allocation(
-    std::map<Address, Table_Value>  &table_values,
-    const visual::Memory_Allocation &allocation)
-{
-	for (std::size_t i = 0; i < allocation.max_element_size(); ++i)
+	uintptr_t source = 0;
+	for (auto const &allocation : memory.allocations())
 	{
-		if (i != 0)
+		if (allocation->contains(address))
 		{
-			ImGui::TableNextRow();
-		}
-
-		ImGui::TableSetColumnIndex(0);
-
-		for (auto const &element : allocation)
-		{
-			ImGui::TableNextColumn();
-
-			if (element.size() <= i)
-			{
-				continue;
-			}
-
-			draw_value(element[i]);
-
-			ImGuiContext *g                             = GImGui;
-			table_values[element.address_of_element(i)] = Table_Value{
-			    g->CurrentTable,
-			    ImGui::TableGetColumnIndex(),
-			    ImGui::TableGetRowIndex()};
+			source = allocation->address();
+			break;
 		}
 	}
-}
 
-std::map<Address, Table_Value> draw_values(const visual::Memory &memory)
-{
-	std::map<Address, Table_Value> table_values;
-	for (auto const &allocation : memory)
+	for (auto const &window : GImGui->Windows)
 	{
-		bool              open = true;
-		const std::string window_name =
-		    fmt::format("Allocation_{}", allocation.address());
-
-		ImGui::Begin(window_name.c_str(), &open, window_flags);
-		ImGui::SetWindowFontScale(2.0F);
-
-		ImGui::BeginTable(
-		    "Elements",
-		    1 + static_cast<int>(allocation.size()),
-		    table_flags);
-
-		draw_size(allocation);
-		draw_allocation(table_values, allocation);
-
-		ImGui::EndTable();
-
-		ImGui::End();
-	}
-	return table_values;
-}
-
-enum class Link_Position
-{
-	Front,
-	End
-};
-
-ImVec2 link_position(
-    const std::map<Address, Table_Value> &table_values,
-    Address                               address,
-    Link_Position                         position)
-{
-	ImGuiTable const *table  = table_values.at(address).table;
-	int const         column = table_values.at(address).column;
-	auto const  row = static_cast<float>(table_values.at(address).row);
-	float const middle_offset = 0.5F;
-
-	float horizontal = 0.0F;
-	switch (position)
-	{
-	case Link_Position::Front:
-		horizontal = table->Columns[column].MinX;
-		break;
-
-	case Link_Position::End:
-		horizontal = table->Columns[column].MaxX;
-		break;
-	}
-
-	float row_middle = table->LastFirstRowHeight * (row + middle_offset);
-
-	return ImVec2{horizontal, table->OuterRect.Min.y + row_middle};
-}
-
-void draw_pointer_links(
-    const std::map<Address, Table_Value> &table_values,
-    const visual::Memory                 &memory)
-{
-	for (auto const &allocation : memory)
-	{
-		Address element_address = allocation.address();
-		for (auto const &element : allocation)
+		if (window->Name == allocation_name(source))
 		{
-			Address current_address = element_address;
-			for (auto const &value : element)
-			{
-				if (value.is_pointer()
-				    && value.pointee_address() != 0U)
-				{
-					ImGui::GetBackgroundDrawList()->AddLine(
-					    link_position(
-						table_values,
-						current_address,
-						Link_Position::End),
-					    link_position(
-						table_values,
-						value.pointee_address(),
-						Link_Position::Front),
-					    line_colour,
-					    line_thickness);
-				}
-
-				current_address += value.size();
-			}
-			element_address += allocation.element_size();
+			return window;
 		}
 	}
+	return nullptr;
 }
+
 } // namespace
 
 namespace visual
 {
 
-void Viewport::add_event(Event &&event)
-{
-	spdlog::trace("Added eventof type: {}", to_string(event));
-	m_events.push_back(std::move(event));
-}
-
 void Viewport::update(std::chrono::microseconds delta_time)
 {
+	if (m_memory_representaion.size() <= 1)
+	{
+		return;
+	}
+
 	if (m_event_timeout.count() > 0)
 	{
 		m_event_timeout -= delta_time;
@@ -213,97 +89,149 @@ void Viewport::update(std::chrono::microseconds delta_time)
 	}
 
 	m_event_timeout = event_duration;
-
-	while (!m_events.empty())
-	{
-		auto event = std::move(m_events.front());
-		m_events.pop_front();
-		if (process(event))
-		{
-			break;
-		}
-	}
+	m_memory_representaion.pop_front();
 }
 
 void Viewport::draw() const
 {
-	const std::map<Address, Table_Value> table_values = draw_values(m_memory);
-	draw_pointer_links(table_values, m_memory);
+	draw_allocations();
+	draw_nullptr();
+	draw_pointers();
 }
 
-bool Viewport::process(const Event &event)
+dsa::Memory_Representation const &Viewport::current() const
 {
-	spdlog::trace("Processing event of type: {}", to_string(event));
-
-	return std::visit(
-	    [this](auto &&event_typed) { return process(event_typed); },
-	    event);
+	return m_memory_representaion.front();
 }
 
-bool Viewport::process(const Allocated_Array_Event &event)
+void Viewport::draw_allocations() const
 {
-	m_memory.insert(
-	    Memory_Allocation{event.address(), event.size(), event.element_size()});
-	return true;
-}
-
-bool Viewport::process(const Deallocated_Array_Event &event)
-{
-	m_memory.erase(event.address());
-	return true;
-}
-
-bool Viewport::process(const Copy_Assignment_Event &event)
-{
-	return update_value(event.address(), event.value());
-}
-
-bool Viewport::process(const Move_Assignment_Event &event)
-{
-	// This prevents short circuting
-	const bool moved_to   = updated_moved_to_element(event);
-	const bool moved_from = updated_moved_from_element(event);
-	return moved_to || moved_from;
-}
-
-bool Viewport::process(const Swap_Event &event)
-{
-	const bool copied_lhs =
-	    update_value(event.lhs_address(), event.lhs_value());
-
-	const bool copied_rhs =
-	    update_value(event.rhs_address(), event.rhs_value());
-
-	return copied_lhs && copied_rhs;
-}
-
-bool Viewport::updated_moved_to_element(const Move_Assignment_Event &event)
-{
-	return update_value(event.to_address(), event.value());
-}
-
-bool Viewport::updated_moved_from_element(const Move_Assignment_Event &event)
-{
-	return update_element(
-	    event.from_address(),
-	    event.value().is_pointer()
-		? Memory_Value(event.value().size(), false, 0U)
-		: Memory_Value(event.value().size(), false, ""));
-}
-
-bool Viewport::update_value(Address address, const Memory_Value &value)
-{
-	bool success = update_element(address, value);
-	if (!success)
+	for (auto const &allocation : current().allocations())
 	{
-		spdlog::warn("Received an assignment event for an address outside the registered ranges");
+		if (allocation->owns_allocation())
+		{
+			draw_allocation(*allocation);
+		}
 	}
-	return success;
 }
 
-bool Viewport::update_element(Address address, const Memory_Value &value)
+void Viewport::draw_allocation(dsa::Allocation_Block const &block) const
 {
-	return m_memory.update_element(address, value);
+	const std::string window_name = allocation_name(block.address());
+
+	ImGui::Begin(window_name.c_str(), nullptr, window_flags);
+	ImGui::SetWindowFontScale(2.0F);
+
+	ImGui::BeginTable(
+	    "Elements",
+	    1 + static_cast<int>(block.count()),
+	    table_flags);
+
+	ImGui::TableNextColumn();
+	std::string size = std::to_string(block.count());
+	ImGui::TextUnformatted(size.c_str());
+
+	for (auto const &field : block.fields())
+	{
+		draw_value(*field);
+	}
+
+	ImGui::EndTable();
+
+	ImGui::End();
+}
+
+void Viewport::draw_value(dsa::Allocation_Element const &element)
+{
+	if (!element.leaf())
+	{
+		for (auto const &field : element.fields())
+		{
+			draw_value(*field);
+		}
+		return;
+	}
+
+	if (element.pointer())
+	{
+		return;
+	}
+
+	ImGui::TableNextColumn();
+
+	ImGui::TableSetBgColor(
+	    ImGuiTableBgTarget_CellBg,
+	    cell_background(element.initialised()));
+
+	ImGui::Text("%s", element.value().c_str());
+}
+
+void Viewport::draw_nullptr()
+{
+	const std::string window_name =
+	    allocation_name(dsa::numeric_address(static_cast<void *>(nullptr)));
+	ImGui::Begin(window_name.c_str(), nullptr, window_flags);
+	ImGui::SetWindowFontScale(2.0F);
+	ImGui::Text("null pointer");
+	ImGui::End();
+}
+
+void Viewport::draw_pointers() const
+{
+	for (auto const &allocation : current().allocations())
+	{
+		if (allocation->owns_allocation())
+		{
+			for (auto const &inner_element : allocation->fields())
+			{
+				draw_pointer(*inner_element);
+			}
+		}
+	}
+}
+
+void Viewport::draw_pointer(dsa::Allocation_Element const &element) const
+{
+	if (!element.leaf())
+	{
+		for (auto const &field : element.fields())
+		{
+			draw_pointer(*field);
+		}
+		return;
+	}
+
+	if (!element.pointer())
+	{
+		return;
+	}
+
+	ImGuiWindow *source = allocation_window(current(), element.address());
+	assert(source != nullptr && "");
+
+	uintptr_t    pointee     = pointer_value_address(element);
+	ImGuiWindow *destination = allocation_window(current(), pointee);
+	assert(destination != nullptr && "");
+
+	ImGui::GetBackgroundDrawList()->AddLine(
+	    source->Pos,
+	    destination->Pos,
+	    line_colour,
+	    line_thickness);
+}
+
+auto Viewport::pointer_value_address(dsa::Allocation_Element const &element)
+    -> uintptr_t
+{
+	uintptr_t              address = 0;
+	std::string            string  = element.value();
+	std::from_chars_result result  = std::from_chars(
+            // Skip the 0x in hexadecimal
+            string.data() + 2,
+            string.data() + string.length(),
+            address,
+            16); // hexadecimal base
+	return result.ec == std::errc() ? address : 0;
 }
 
 } // namespace visual

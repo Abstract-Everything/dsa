@@ -21,11 +21,22 @@ auto numeric_address(T *pointer) -> uintptr_t
 
 class Allocation_Element
 {
+	using Element = std::unique_ptr<Allocation_Element>;
+
  public:
 	virtual ~Allocation_Element() = default;
 
 	[[nodiscard]] virtual auto clone() const
 	    -> std::unique_ptr<Allocation_Element> = 0;
+
+	[[nodiscard]] virtual auto pointer() const -> bool = 0;
+
+	[[nodiscard]] virtual auto address() const -> uintptr_t = 0;
+
+	[[nodiscard]] auto leaf() const -> bool
+	{
+		return m_fields.empty();
+	}
 
 	[[nodiscard]] auto initialised() const -> bool
 	{
@@ -71,6 +82,11 @@ class Allocation_Element
 
 	template<typename T>
 	void start_construction(T *address);
+
+	[[nodiscard]] std::vector<Element> const &fields() const
+	{
+		return m_fields;
+	}
 
 	template<typename T>
 	[[nodiscard]] auto field_at(T const *address) const
@@ -123,9 +139,9 @@ class Allocation_Element
 		Moved
 	};
 
-	State       m_state = State::Uninitialised;
-	std::string m_value;
-	std::vector<std::unique_ptr<Allocation_Element>> m_fields;
+	State                m_state = State::Uninitialised;
+	std::string          m_value;
+	std::vector<Element> m_fields;
 
 	template<typename T>
 	[[nodiscard]] auto field_at_impl(T const *address)
@@ -178,6 +194,16 @@ class Allocation_Element_Typed : public Allocation_Element
 	    -> std::unique_ptr<Allocation_Element> override
 	{
 		return std::make_unique<Allocation_Element_Typed>(*this);
+	}
+
+	[[nodiscard]] auto pointer() const -> bool override
+	{
+		return std::is_pointer_v<T>;
+	}
+
+	[[nodiscard]] auto address() const -> uintptr_t override
+	{
+		return numeric_address(m_address);
 	}
 
 	[[nodiscard]] auto match_address(std::any const &address) const
@@ -241,6 +267,8 @@ enum class Allocation_Type
 class Allocation_Block
 {
  public:
+	using Element = std::unique_ptr<Allocation_Element>;
+
 	Allocation_Block()          = default;
 	virtual ~Allocation_Block() = default;
 
@@ -248,6 +276,8 @@ class Allocation_Block
 	    -> std::unique_ptr<Allocation_Block> = 0;
 
 	[[nodiscard]] virtual auto count() const -> size_t = 0;
+
+	[[nodiscard]] virtual auto address() const -> uintptr_t = 0;
 
 	[[nodiscard]] virtual auto match_address(uintptr_t address) const
 	    -> bool = 0;
@@ -258,6 +288,11 @@ class Allocation_Block
 
 	[[nodiscard]] virtual auto all_heap_elements_destroyed() const
 	    -> bool = 0;
+
+	[[nodiscard]] std::vector<Element> const &fields() const
+	{
+		return m_elements;
+	}
 
 	template<typename T>
 	[[nodiscard]] auto field_at(const T *address) const
@@ -283,7 +318,6 @@ class Allocation_Block
 	virtual void deallocate() = 0;
 
  protected:
-	using Element = std::unique_ptr<Allocation_Element>;
 	std::vector<Element> m_elements;
 
  private:
@@ -340,15 +374,20 @@ class Allocation_Block_Typed : public Allocation_Block
 		return m_elements.size();
 	}
 
-	[[nodiscard]] auto match_address(uintptr_t address) const -> bool override
+	[[nodiscard]]  auto address() const -> uintptr_t override
 	{
-		return numeric_address(m_address) == address;
+		return numeric_address(m_address);
 	}
 
-	[[nodiscard]] auto contains(uintptr_t address) const -> bool override
+	[[nodiscard]] auto match_address(uintptr_t target) const -> bool override
 	{
-		return address >= numeric_address(m_address)
-		       && address < numeric_address(m_address + count());
+		return address() == target;
+	}
+
+	[[nodiscard]] auto contains(uintptr_t target) const -> bool override
+	{
+		return target >= numeric_address(m_address)
+		       && target < numeric_address(m_address + count());
 	}
 
 	[[nodiscard]] auto owns_allocation() const -> bool override
