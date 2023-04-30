@@ -2,6 +2,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <fmt/std.h>
 #include <imgui-SFML.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
@@ -58,9 +59,8 @@ void Main_Window::initialise(const std::vector<std::string> &arguments)
 	if (arguments.empty())
 	{
 		throw std::runtime_error(fmt::format(
-		    "{}: ",
-		    path_error,
-		    "The executable path was not passed through argv"));
+		    "{}: The executable path was not passed through argv",
+		    path_error));
 	}
 
 	fs::path argument{arguments[0]};

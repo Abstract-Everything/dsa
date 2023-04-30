@@ -35,8 +35,8 @@ conan_add_remote(
 
 conan_cmake_configure(
 	REQUIRES ${CONAN_EXTRA_REQUIRES}
-		 fmt/6.2.0
-		 spdlog/1.5.0
+		 fmt/9.1.0
+		 spdlog/1.11.0
 		 # We use an older version because v2.11 has an issue on MSVC
 		 # https://github.com/microsoft/vcpkg/pull/20674
 		 freetype/2.10.4
