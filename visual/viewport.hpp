@@ -1,13 +1,11 @@
 #ifndef VISUAL_VIEWPORT_HPP
 #define VISUAL_VIEWPORT_HPP
 
-#include "address.hpp"
-#include "allocated_array_event.hpp"
-#include "copy_assignment_event.hpp"
-#include "deallocated_array_event.hpp"
-#include "event.hpp"
-#include "memory.hpp"
-#include "move_assignment_event.hpp"
+#include "utilities/formatters.hpp"
+
+#include <dsa/memory_representation.hpp>
+
+#include <spdlog/spdlog.h>
 
 #include <chrono>
 #include <list>
@@ -18,31 +16,35 @@ namespace visual
 class Viewport
 {
  public:
-	void add_event(Event &&event);
+	void add_event(dsa::Memory_Monitor_Event auto &&event)
+	{
+		spdlog::trace("Added eventof type: {}", event);
+		m_memory_representaion.push_back(m_memory_representaion.back());
+		m_memory_representaion.back().process_event(
+		    std::forward<decltype(event)>(event));
+	}
+
 	void update(std::chrono::microseconds delta_time);
 
 	void draw() const;
 
  private:
-	std::list<Event>          m_events;
-	Memory                    m_memory;
+	std::list<dsa::Memory_Representation> m_memory_representaion = {
+	    dsa::Memory_Representation()};
+
 	std::chrono::microseconds m_event_timeout{-1};
 
-	[[nodiscard]] bool process(const Event &event);
-	[[nodiscard]] bool process(const Allocated_Array_Event &event);
-	[[nodiscard]] bool process(const Deallocated_Array_Event &event);
-	[[nodiscard]] bool process(const Copy_Assignment_Event &event);
-	[[nodiscard]] bool process(const Move_Assignment_Event &event);
-	[[nodiscard]] bool process(const Swap_Event &event);
+	[[nodiscard]] dsa::Memory_Representation const &current() const;
 
-	[[nodiscard]] bool updated_moved_to_element(
-	    const Move_Assignment_Event &event);
+	void        draw_allocations() const;
+	void        draw_allocation(dsa::Allocation_Block const &block) const;
+	static void draw_value(dsa::Allocation_Element const &element);
+	static void draw_nullptr();
+	void        draw_pointers() const;
+	void        draw_pointer(dsa::Allocation_Element const &element) const;
 
-	[[nodiscard]] bool updated_moved_from_element(
-	    const Move_Assignment_Event &event);
-
-	[[nodiscard]] bool update_value(Address address, const Memory_Value &value);
-	[[nodiscard]] bool update_element(Address address, const Memory_Value &value);
+	static auto pointer_value_address(dsa::Allocation_Element const &element)
+	    -> uintptr_t;
 };
 
 } // namespace visual

@@ -4,28 +4,16 @@ find_package(spdlog REQUIRED)
 
 add_executable(
 	visual
-	events/allocated_array_event.cpp
-	events/copy_assignment_event.cpp
-	events/swap_event.cpp
-	events/deallocated_array_event.cpp
-	events/event.cpp
-	events/move_assignment_event.cpp
 	gui/user_interface.cpp
 	main.cpp
 	main_window.cpp
-	memory_representation/memory.cpp
-	memory_representation/memory_allocation.cpp
-	memory_representation/memory_element.cpp
-	memory_representation/memory_value.cpp
 	viewport.cpp)
 
 target_include_directories(
 	visual
 	PRIVATE ${CMAKE_CURRENT_LIST_DIR}
-		${CMAKE_CURRENT_LIST_DIR}/events
 		${CMAKE_CURRENT_LIST_DIR}/gui
-		${CMAKE_CURRENT_LIST_DIR}/monitors
-		${CMAKE_CURRENT_LIST_DIR}/memory_representation)
+		${CMAKE_CURRENT_LIST_DIR}/utilities)
 
 target_link_libraries(
 	visual

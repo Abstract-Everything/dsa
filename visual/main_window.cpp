@@ -9,6 +9,8 @@
 
 #include <exception>
 
+#include <user_interface.hpp>
+
 namespace fs = std::filesystem;
 
 namespace
@@ -21,6 +23,7 @@ constexpr std::size_t frame_rate      = 60;
 
 namespace visual
 {
+
 Main_Window &Main_Window::instance()
 {
 	static Main_Window instance{};
@@ -31,6 +34,7 @@ Main_Window::Main_Window()
     : m_window{
 	sf::VideoMode(x_resolution, y_resolution),
 	"Visualising Data Structures and Algorithms"}
+    , m_user_interface(std::make_unique<User_Interface>())
 {
 	m_window.setFramerateLimit(frame_rate);
 	ImGui::SFML::Init(m_window, false);
@@ -44,11 +48,6 @@ Main_Window::~Main_Window()
 const fs::path &Main_Window::executable_path()
 {
 	return m_executable;
-}
-
-void Main_Window::add_event(Event &&event)
-{
-	m_viewport.add_event(std::move(event));
 }
 
 void Main_Window::initialise(const std::vector<std::string> &arguments)
@@ -147,7 +146,7 @@ void Main_Window::start()
 
 		if (ImGui::Begin("Data structure visualisation", &open, flags))
 		{
-			m_user_interface.draw();
+			m_user_interface->draw();
 		}
 		ImGui::End();
 
