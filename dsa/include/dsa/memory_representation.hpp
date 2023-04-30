@@ -24,6 +24,9 @@ class Allocation_Element
  public:
 	virtual ~Allocation_Element() = default;
 
+	[[nodiscard]] virtual auto clone() const
+	    -> std::unique_ptr<Allocation_Element> = 0;
+
 	[[nodiscard]] auto initialised() const -> bool
 	{
 		return m_state == State::Initialised;
@@ -39,7 +42,7 @@ class Allocation_Element
 		return m_state == State::Initialised || m_state == State::Moved;
 	}
 
-	auto move()
+	void move()
 	{
 		m_state = State::Moved;
 	}
@@ -56,7 +59,7 @@ class Allocation_Element
 		update_value(std::move(value));
 	}
 
-	auto destroy()
+	void destroy()
 	{
 		m_state = State::Uninitialised;
 	}
@@ -85,6 +88,17 @@ class Allocation_Element
 
  protected:
 	Allocation_Element() = default;
+
+	Allocation_Element(Allocation_Element const &element)
+	    : m_state(element.m_state)
+	    , m_value(element.m_value)
+	{
+		m_fields.reserve(element.m_fields.size());
+		for (auto const &field : element.m_fields)
+		{
+			m_fields.emplace_back(field->clone());
+		}
+	}
 
 	[[nodiscard]] virtual auto match_address(std::any const &address) const
 	    -> bool = 0;
@@ -154,6 +168,18 @@ class Allocation_Element_Typed : public Allocation_Element
 	{
 	}
 
+	Allocation_Element_Typed(Allocation_Element_Typed const &element)
+	    : Allocation_Element(element)
+	    , m_address(element.m_address)
+	{
+	}
+
+	[[nodiscard]] auto clone() const
+	    -> std::unique_ptr<Allocation_Element> override
+	{
+		return std::make_unique<Allocation_Element_Typed>(*this);
+	}
+
 	[[nodiscard]] auto match_address(std::any const &address) const
 	    -> bool override
 	{
@@ -218,6 +244,9 @@ class Allocation_Block
 	Allocation_Block()          = default;
 	virtual ~Allocation_Block() = default;
 
+	[[nodiscard]] virtual auto clone() const
+	    -> std::unique_ptr<Allocation_Block> = 0;
+
 	[[nodiscard]] virtual auto count() const -> size_t = 0;
 
 	[[nodiscard]] virtual auto match_address(uintptr_t address) const
@@ -253,6 +282,10 @@ class Allocation_Block
 	virtual void cleanup()    = 0;
 	virtual void deallocate() = 0;
 
+ protected:
+	using Element = std::unique_ptr<Allocation_Element>;
+	std::vector<Element> m_elements;
+
  private:
 	[[nodiscard]] virtual auto element(uintptr_t address)
 	    -> Allocation_Element & = 0;
@@ -279,7 +312,28 @@ class Allocation_Block_Typed : public Allocation_Block
 		}
 	}
 
+	Allocation_Block_Typed(Allocation_Block_Typed const &block)
+	    : Allocation_Block()
+	    , m_allocation_type(block.m_allocation_type)
+	    , m_address(block.m_address)
+	{
+		m_elements.reserve(block.m_elements.size());
+		for (auto const &element : block.m_elements)
+		{
+			m_elements.emplace_back(element->clone());
+		}
+	}
+
+	Allocation_Block_Typed(Allocation_Block_Typed &&block) noexcept = default;
+
 	~Allocation_Block_Typed() override = default;
+
+	[[nodiscard]] auto clone() const
+	    -> std::unique_ptr<Allocation_Block> override
+	{
+		auto copy = std::make_unique<Allocation_Block_Typed>(*this);
+		return std::move(copy);
+	}
 
 	[[nodiscard]] auto count() const -> size_t override
 	{
@@ -343,11 +397,9 @@ class Allocation_Block_Typed : public Allocation_Block
  private:
 	using Allocator    = dsa::Default_Allocator<Type>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
-	using Element      = std::unique_ptr<Allocation_Element>;
 
-	Allocation_Type      m_allocation_type;
-	Type		    *m_address;
-	std::vector<Element> m_elements;
+	Allocation_Type m_allocation_type;
+	Type           *m_address;
 
 	[[nodiscard]] auto element_index(uintptr_t address) const -> size_t
 	{
@@ -377,6 +429,20 @@ class Memory_Representation
 {
 	using Allocation  = std::unique_ptr<Allocation_Block>;
 	using Allocations = std::vector<Allocation>;
+
+ public:
+	Memory_Representation() = default;
+
+	Memory_Representation(Memory_Representation const &memory_representation)
+	{
+		m_allocations.reserve(memory_representation.m_allocations.size());
+		for (auto const &allocation : memory_representation.m_allocations)
+		{
+			m_allocations.emplace_back(allocation->clone());
+		}
+	}
+
+	Memory_Representation(Memory_Representation &&memory_representation) = default;
 
  public:
 	[[nodiscard]] Allocations const &allocations() const
