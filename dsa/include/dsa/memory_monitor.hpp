@@ -171,9 +171,10 @@ template<typename T>
 class Allocation_Event
 {
  public:
+	using Type = T;
 	using Event_Type = Allocation_Event_Type;
 
-	Allocation_Event(Allocation_Event_Type type, T *pointer, size_t count)
+	Allocation_Event(Allocation_Event_Type type, Type *pointer, size_t count)
 	    : m_type(type)
 	    , m_pointer(pointer)
 	    , m_count(count)
@@ -195,7 +196,7 @@ class Allocation_Event
 		return m_type;
 	}
 
-	auto address() -> T *
+	auto address() -> Type *
 	{
 		return m_pointer;
 	}
@@ -207,7 +208,7 @@ class Allocation_Event
 
  private:
 	Allocation_Event_Type m_type;
-	T		     *m_pointer;
+	Type		     *m_pointer;
 	size_t                m_count;
 };
 
@@ -217,14 +218,15 @@ template<typename T>
 class Object_Event
 {
  public:
+	using Type = T;
 	using Event_Type = Object_Event_Type;
 
-	Object_Event(Object_Event_Type type, T *destination)
+	Object_Event(Object_Event_Type type, Type *destination)
 	    : Object_Event(type, destination, nullptr)
 	{
 	}
 
-	Object_Event(Object_Event_Type type, T *destination, T const *source)
+	Object_Event(Object_Event_Type type, Type *destination, Type const *source)
 	    : m_type(type)
 	    , m_destination(destination)
 	    , m_source(source)
@@ -291,12 +293,12 @@ class Object_Event
 		return m_type;
 	}
 
-	auto destination() -> T *
+	auto destination() -> Type *
 	{
 		return m_destination;
 	}
 
-	auto source() -> T const *
+	auto source() -> Type const *
 	{
 		return m_source;
 	}
@@ -365,10 +367,15 @@ class Object_Event
 
  private:
 	Object_Event_Type m_type;
-	T		 *m_destination;
+	Type		 *m_destination;
 	T const          *m_source;
 	std::string       m_destination_value;
 };
+
+template<typename Event>
+concept Memory_Monitor_Event =
+    std::is_same_v<Event, Allocation_Event<typename Event::Type>>
+    || std::is_same_v<Event, Object_Event<typename Event::Type>>;
 
 template<typename Handler, typename Type>
 concept Memory_Monitor_Event_Handler = requires(

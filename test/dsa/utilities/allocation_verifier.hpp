@@ -132,7 +132,7 @@ class Allocation_Verifier
 	template<typename T>
 	static void process_allocation_event(dsa::Allocation_Event<T> event)
 	{
-		instance()->memory_representation.process_allocation_event(event);
+		instance()->memory_representation.process_event(event);
 	}
 
 	template<typename T>
@@ -202,7 +202,7 @@ class Allocation_Verifier
 			break;
 		}
 
-		memory_representation.process_object_event(event);
+		memory_representation.process_event(event);
 	}
 
 	void add_error(std::string &&error)

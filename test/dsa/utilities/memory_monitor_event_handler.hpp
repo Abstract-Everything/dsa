@@ -84,7 +84,7 @@ class Event_Handler
 		return instance()->m_events;
 	}
 
-	template<typename T>
+	template<dsa::Memory_Monitor_Event T>
 	[[nodiscard]] auto last_event(
 	    std::optional<typename T::Event_Type> const &type = std::nullopt) const
 	    -> Event_Type
