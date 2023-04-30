@@ -496,7 +496,7 @@ class Memory_Representation
 	}
 
 	template<typename T>
-	void process_allocation_event(dsa::Allocation_Event<T> event)
+	void process_event(dsa::Allocation_Event<T> event)
 	{
 		switch (event.type())
 		{
@@ -519,7 +519,7 @@ class Memory_Representation
 	}
 
 	template<typename T>
-	void process_object_event(dsa::Object_Event<T> event)
+	void process_event(dsa::Object_Event<T> event)
 	{
 		if (event.moving())
 		{
