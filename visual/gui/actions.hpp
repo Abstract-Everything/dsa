@@ -6,8 +6,10 @@
 #include <fmt/format.h>
 #include <imgui.h>
 
-#include <string>
+#include <algorithm>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace visual
 {
