@@ -3,6 +3,9 @@
 
 #include "id.hpp"
 
+namespace test
+{
+
 class Dummy_Pointer
 {
  public:
@@ -39,5 +42,7 @@ class Dummy_Pointer
  private:
 	Id m_id;
 };
+
+} // namespace test
 
 #endif

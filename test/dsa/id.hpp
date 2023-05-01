@@ -3,6 +3,9 @@
 
 #include <cstddef>
 
+namespace test
+{
+
 class Id
 {
  public:
@@ -32,5 +35,7 @@ class Id
  private:
 	std::size_t m_id;
 };
+
+} // namespace test
 
 #endif
