@@ -8,6 +8,9 @@
 
 #include <catch2/catch_all.hpp>
 
+namespace test
+{
+
 TEST_CASE(
     "Allocator_Traits exposes value, pointer and reference types",
     "[allocator_traits]")
@@ -206,3 +209,5 @@ TEST_CASE(
 		REQUIRE(allocator.destroyed == id);
 	}
 }
+
+} // namespace test

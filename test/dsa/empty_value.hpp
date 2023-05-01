@@ -3,6 +3,9 @@
 
 #include <ostream>
 
+namespace test
+{
+
 struct Empty_Value
 {
 	friend auto operator<<(std::ostream &stream, Empty_Value const & /*value*/)
@@ -11,5 +14,8 @@ struct Empty_Value
 		return stream << "{}";
 	}
 };
+
+
+} // namespace test
 
 #endif
