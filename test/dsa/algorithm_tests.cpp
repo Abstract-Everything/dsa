@@ -12,6 +12,15 @@
 namespace test
 {
 
+struct Smaller_By_Two
+{
+	auto operator()(int lhs, int rhs) const -> bool
+	{
+		int difference = lhs - rhs;
+		return difference >= 0 && difference <= 2;
+	}
+};
+
 TEST_CASE("Validate min heap stored in an array", "[algorithms]")
 {
 	auto is_min_heap = [](dsa::Dynamic_Array<int> const &array) -> bool
@@ -54,41 +63,118 @@ TEST_CASE("Validate min heap stored in an array", "[algorithms]")
 		    array{0, 10, 1000, 20, 30, 2000, 3000, 25, 30, 33, 32, 1999};
 		REQUIRE_FALSE(is_min_heap(array));
 	}
+
+	SECTION("Arbitrary comparators can be used")
+	{
+		SECTION(
+		    "A decreasing sequence is not a min heap but it is a max "
+		    "heap")
+		{
+			dsa::Dynamic_Array<int> array{0, -1, -2, -3};
+			REQUIRE_FALSE(
+			    dsa::is_heap(array.begin(), array.end(), std::less{}));
+			REQUIRE(dsa::is_heap(
+			    array.begin(),
+			    array.end(),
+			    std::greater{}));
+		}
+
+		SECTION(
+		    "Check that following elements are up to two units less")
+		{
+			SECTION("Valid sequence")
+			{
+				dsa::Dynamic_Array<int> array{10, 9, 8, 8, 7};
+				REQUIRE(dsa::is_heap(
+				    array.begin(),
+				    array.end(),
+				    Smaller_By_Two{}));
+			}
+
+			SECTION("Invalid last element")
+			{
+				dsa::Dynamic_Array<int> array{10, 9, 8, 6};
+				REQUIRE_FALSE(dsa::is_heap(
+				    array.begin(),
+				    array.end(),
+				    Smaller_By_Two{}));
+			}
+		}
+	}
 }
 
-TEST_CASE("Validate heap given a custom comparator", "[algorithms]")
+TEST_CASE("is_sorted validates that a range is sorted", "[algorithms]")
 {
-	SECTION("A decreasing sequence is not a min heap but it is a max heap")
+	SECTION("An empty array is sorted")
 	{
-		dsa::Dynamic_Array<int> array{0, -1, -2, -3};
-		REQUIRE_FALSE(
-		    dsa::is_heap(array.begin(), array.end(), std::less{}));
-		REQUIRE(dsa::is_heap(array.begin(), array.end(), std::greater{}));
+		dsa::Dynamic_Array<int> array;
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
 	}
 
-	SECTION("Check that following elements are up to two units less")
+	SECTION("A single element is sorted")
 	{
-		struct Comparator
+		dsa::Dynamic_Array array{0};
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("Two unsorted elements are unsorted")
+	{
+		dsa::Dynamic_Array array{1, 0};
+
+		REQUIRE_FALSE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("Two sorted elements are sorted")
+	{
+		dsa::Dynamic_Array array{0, 1};
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("An increasing sequence is sorted")
+	{
+		dsa::Dynamic_Array array{0, 3, 5, 11, 15, 20, 30};
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("Elements at the end boundary are checked")
+	{
+		dsa::Dynamic_Array array{0, 3, 5, 11, 15, 20, 30, 1};
+
+		REQUIRE_FALSE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("Arbitrary comparators can be used")
+	{
+		SECTION("Can check if array is sorted in descending order")
 		{
-			auto operator()(int lhs, int rhs) const -> bool
-			{
-				int difference = lhs - rhs;
-				return difference >= 0 && difference <= 2;
-			}
-		};
+			dsa::Dynamic_Array array{30, 25, 14, 4, 1};
+
+			REQUIRE(dsa::is_sorted(
+			    array.begin(),
+			    array.end(),
+			    std::greater{}));
+		}
 
 		SECTION("Valid sequence")
 		{
-			dsa::Dynamic_Array<int> array{10, 9, 8, 8, 7};
-			REQUIRE(
-			    dsa::is_heap(array.begin(), array.end(), Comparator{}));
+			dsa::Dynamic_Array<int> array{10, 9, 7, 5};
+			REQUIRE(dsa::is_sorted(
+			    array.begin(),
+			    array.end(),
+			    Smaller_By_Two{}));
 		}
 
 		SECTION("Invalid last element")
 		{
-			dsa::Dynamic_Array<int> array{10, 9, 8, 6};
-			REQUIRE_FALSE(
-			    dsa::is_heap(array.begin(), array.end(), Comparator{}));
+			dsa::Dynamic_Array<int> array{10, 9, 7, 4};
+			REQUIRE_FALSE(dsa::is_sorted(
+			    array.begin(),
+			    array.end(),
+			    Smaller_By_Two{}));
 		}
 	}
 }
