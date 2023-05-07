@@ -3,6 +3,8 @@
 
 namespace test
 {
+// TODO: Use EqualsRange from Catch2 (introduced in 3.3.0)
+// https://github.com/catchorg/Catch2/blob/devel/docs/matchers.md
 
 /// @brief Allows use to use Catch2 '_THAT' macros to check that elements of two
 /// ranges match element by element
