@@ -37,6 +37,8 @@ class Vector
 	using Const_Reference = typename Alloc_Traits::Const_Reference;
 	using Pointer         = typename Alloc_Traits::Pointer;
 	using Const_Pointer   = typename Alloc_Traits::Const_Pointer;
+	using Iterator        = Pointer;
+	using Const_Iterator  = Const_Pointer;
 
 	constexpr const Allocator &allocator() const
 	{
