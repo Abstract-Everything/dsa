@@ -1,6 +1,9 @@
 #ifndef DSA_ALGORITHMS_HPP
 #define DSA_ALGORITHMS_HPP
 
+#include <functional>
+#include <utility>
+
 namespace dsa
 {
 
@@ -52,6 +55,37 @@ bool is_heap(Iterator begin, Iterator end, const Comparator &comparator)
 		increment_parent = !increment_parent;
 	}
 	return true;
+}
+
+/**
+ *  @brief Checks if every pair in the given range satisfies
+ *  comparator(first, second)
+ */
+template<typename Iterator>
+bool is_sorted(Iterator begin, Iterator end, const auto &comparator)
+{
+	if (begin == end)
+	{
+		return true;
+	}
+
+	for (Iterator i = begin, j = begin + 1; j != end; ++i, ++j)
+	{
+		if (!comparator(*i, *j))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ *  @brief Checks if the given range is sorted in ascending order
+ */
+template<typename Iterator>
+bool is_sorted(Iterator begin, Iterator end)
+{
+	return dsa::is_sorted(begin, end, std::less{});
 }
 
 } // namespace dsa
