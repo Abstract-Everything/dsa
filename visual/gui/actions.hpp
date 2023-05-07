@@ -3,6 +3,9 @@
 
 #include "templates.hpp"
 
+#include <dsa/algorithms.hpp>
+#include <dsa/type_detector.hpp>
+
 #include <fmt/format.h>
 #include <imgui.h>
 
@@ -30,6 +33,18 @@ DEFINE_HAS_MEMBER(erase);
 DEFINE_HAS_MEMBER(contains);
 DEFINE_HAS_MEMBER(pop);
 DEFINE_HAS_OPERATOR_ACCESS();
+
+// TODO: Use std::random_access_iterator concepts
+template<typename T>
+concept Is_Random_Access_Iterator = requires(T i, T j, size_t n)
+{
+    { i + n };
+    { i - n };
+    { i == j };
+    { i != j };
+    { --i };
+    { ++i };
+};
 
 template<typename Container>
 class Actions_UI
@@ -106,6 +121,16 @@ class Actions_UI
 	// construct a Value from a size_t, this will result in a false positive
 	static constexpr bool has_indexed_erase   = has_member_erase_v<Container, std::size_t> && !has_value_erase;
 	static constexpr bool has_pop             = has_member_pop_v<Container>;
+
+	template<typename Allocator>
+	using Has_Iterator = typename Allocator::Iterator;
+
+	template<typename Default_Type, typename Allocator>
+	using Detect_Iterator_T =
+	    dsa::Detect_Default_T<Default_Type, Has_Iterator, Allocator>;
+
+	static constexpr bool has_random_access_iterators =
+	    Is_Random_Access_Iterator<Detect_Iterator_T<std::void_t<>, Container>>;
 };
 
 template<typename Container>
@@ -309,6 +334,20 @@ void Actions_UI<Container>::modifiers()
 		if (ImGui::Button("Pop"))
 		{
 			m_container.pop();
+			modified = true;
+		}
+	}
+
+	if constexpr (has_random_access_iterators)
+	{
+		ImGui::Text("Insertion sort");
+		ImGui::SameLine();
+		if (ImGui::Button("Insertion sort"))
+		{
+			dsa::insertion_sort(
+			    m_container.begin(),
+			    m_container.end(),
+			    std::less{});
 			modified = true;
 		}
 	}

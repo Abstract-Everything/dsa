@@ -61,7 +61,7 @@ Development:
 			User interface shows the current read value instead of what the visualisation shows (It pulls from the actual vector rather than the visual representation of it)
 			Viewport should not have rendering code + rename the class
 			Pop should not be clickable when there are no items in the heap
-
+			Use standard typenames and concepts: e.x. use pointer instead of Pointer and allocator_traits instead of Allocator_Traits (It was nice to learn making my own but it is too time consuming now)
 
 	Research:
 		Research about allocator best practices
