@@ -86,7 +86,7 @@ class Allocation_Verifier
 	{
 		for (auto const &allocation : memory_representation.allocations())
 		{
-			if (!allocation->all_heap_elements_destroyed())
+			if (allocation->owns_allocation() && !allocation->all_elements_destroyed())
 			{
 				add_error(object_leaked);
 			}
@@ -228,7 +228,7 @@ class Allocation_Verifier
 			return false;
 		}
 
-		if (!allocation.all_heap_elements_destroyed())
+		if (allocation.owns_allocation() && !allocation.all_elements_destroyed())
 		{
 			allocation.cleanup();
 			add_error(object_leaked);

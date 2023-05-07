@@ -286,7 +286,7 @@ class Allocation_Block
 
 	[[nodiscard]] virtual auto owns_allocation() const -> bool = 0;
 
-	[[nodiscard]] virtual auto all_heap_elements_destroyed() const
+	[[nodiscard]] virtual auto all_elements_destroyed() const
 	    -> bool = 0;
 
 	[[nodiscard]] std::vector<Element> const &fields() const
@@ -395,14 +395,13 @@ class Allocation_Block_Typed : public Allocation_Block
 		return m_allocation_type == Allocation_Type::Owned;
 	}
 
-	[[nodiscard]] auto all_heap_elements_destroyed() const -> bool override
+	[[nodiscard]] auto all_elements_destroyed() const -> bool override
 	{
-		return !owns_allocation()
-		       || std::none_of(
-			   m_elements.begin(),
-			   m_elements.end(),
-			   [](Element const &element)
-			   { return element->initialised(); });
+		return std::none_of(
+		    m_elements.begin(),
+		    m_elements.end(),
+		    [](Element const &element)
+		    { return element->initialised(); });
 	}
 
 	void cleanup() override
@@ -493,10 +492,9 @@ class Memory_Representation
 	[[nodiscard]] std::optional<std::reference_wrapper<Allocation_Block>> allocation_at(
 	    T *address)
 	{
-		uintptr_t raw_address = numeric_address(address);
 		for (auto &allocation : m_allocations)
 		{
-			if (allocation->match_address(raw_address))
+			if (allocation->match_address(numeric_address(address)))
 			{
 				return *allocation;
 			}
@@ -579,7 +577,7 @@ class Memory_Representation
 		{
 		case dsa::Object_Event_Type::Before_Construct:
 		{
-			if (!field_at(event.destination()).has_value())
+			if (!allocation_containing(numeric_address(event.destination())).has_value())
 			{
 				// If we do not find an allocation with this
 				// address we assume that this is a stack
@@ -620,6 +618,25 @@ class Memory_Representation
 
 		case dsa::Object_Event_Type::Destroy:
 			field.value().get().destroy();
+			{
+				auto allocation = allocation_containing(field.value().get().address());
+				assert(allocation.has_value());
+				Allocation_Block& a = allocation.value().get();
+				if (!a.owns_allocation()
+				    && a.all_elements_destroyed())
+				{
+					uintptr_t address = a.address();
+					m_allocations.erase(
+					    std::remove_if(
+						m_allocations.begin(),
+						m_allocations.end(),
+						[&](Allocation const &block) {
+							return block->match_address(
+							    address);
+						}),
+					    m_allocations.end());
+				}
+			}
 			break;
 		}
 	}
@@ -646,6 +663,19 @@ class Memory_Representation
 	{
 		m_allocations.emplace_back(
 		    std::make_unique<Allocation_Block_Typed<T>>(type, address, count));
+	}
+
+	[[nodiscard]] std::optional<std::reference_wrapper<Allocation_Block>> allocation_containing(
+	    uintptr_t raw_address)
+	{
+		for (auto &allocation : m_allocations)
+		{
+			if (allocation->contains(raw_address))
+			{
+				return *allocation;
+			}
+		}
+		return std::nullopt;
 	}
 };
 
