@@ -331,7 +331,7 @@ void Actions_UI<Container>::modifiers()
 	{
 		ImGui::Text("Remove the top element from the container");
 		ImGui::SameLine();
-		if (ImGui::Button("Pop"))
+		if (conditional_button("Pop", m_container.size() > 1))
 		{
 			m_container.pop();
 			modified = true;
