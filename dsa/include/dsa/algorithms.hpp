@@ -88,6 +88,38 @@ bool is_sorted(Iterator begin, Iterator end)
 	return dsa::is_sorted(begin, end, std::less{});
 }
 
+/**
+ *  @brief Uses insertion sort on the given range such that each pair satisfies
+ *  comparator(first, second)
+ */
+template<typename Iterator>
+void insertion_sort(Iterator begin, Iterator end, const auto &comparator)
+{
+	using std::swap;
+
+	if (begin == end)
+	{
+		return;
+	}
+
+	for (auto i = begin + 1; i != end; ++i)
+	{
+		for (auto j = i; j != begin && !comparator(*(j - 1), *j); --j)
+		{
+			swap(*(j - 1), *j);
+		}
+	}
+}
+
+/**
+ *  @brief Uses insertion sort to sort the given range in ascending order
+ */
+template<typename Iterator>
+void insertion_sort(Iterator begin, Iterator end)
+{
+	return insertion_sort(begin, end, std::less{});
+}
+
 } // namespace dsa
 
 #endif
