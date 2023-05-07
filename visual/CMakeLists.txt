@@ -7,7 +7,8 @@ add_executable(
 	gui/user_interface.cpp
 	main.cpp
 	main_window.cpp
-	viewport.cpp)
+	viewport.cpp
+	enable_event_registration_scope.cpp)
 
 target_include_directories(
 	visual

@@ -25,10 +25,19 @@ class Main_Window
 
 	const std::filesystem::path &executable_path();
 
+	static bool is_registering()
+	{
+		return instance().m_register_events;
+	}
+
+	static void registering(bool registering)
+	{
+		instance().m_register_events = registering;
+	}
+
 	static void add_event(dsa::Memory_Monitor_Event auto &&event)
 	{
-		instance().m_viewport.add_event(
-		    std::forward<decltype(event)>(event));
+		instance().add_event_impl(std::forward<decltype(event)>(event));
 	}
 
 	void initialise(const std::vector<std::string> &arguments);
@@ -42,8 +51,18 @@ class Main_Window
 
 	sf::RenderWindow m_window;
 
-	Viewport       m_viewport;
+	std::atomic_bool m_register_events = true;
+	Viewport         m_viewport;
+
 	std::unique_ptr<User_Interface> m_user_interface;
+
+	void add_event_impl(dsa::Memory_Monitor_Event auto &&event)
+	{
+		if (m_register_events)
+		{
+			m_viewport.add_event(std::forward<decltype(event)>(event));
+		}
+	}
 };
 
 } // namespace visual
