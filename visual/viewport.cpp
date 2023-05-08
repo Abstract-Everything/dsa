@@ -7,9 +7,9 @@
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
+#include <charconv>
 #include <exception>
 #include <map>
-#include <charconv>
 
 namespace
 {
@@ -38,18 +38,17 @@ const ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit
 				    | ImGuiTableFlags_BordersInnerV
 				    | ImGuiTableFlags_RowBg;
 
-ImU32 cell_background(bool initialised)
-{
+ImU32 cell_background(bool initialised) {
 	return initialised ? valid_background : invalid_background;
 }
 
-auto allocation_name(uintptr_t address) -> std::string
-{
+auto allocation_name(uintptr_t address) -> std::string {
 	return fmt::format("Allocation_{:0x}", address);
 }
 
-ImGuiWindow *allocation_window(dsa::Memory_Representation const &memory, uintptr_t address)
-{
+ImGuiWindow *allocation_window(
+    dsa::Memory_Representation const &memory,
+    uintptr_t                         address) {
 	uintptr_t source = 0;
 	for (auto const &allocation : memory.allocations())
 	{
@@ -75,8 +74,7 @@ ImGuiWindow *allocation_window(dsa::Memory_Representation const &memory, uintptr
 namespace visual
 {
 
-void Viewport::update(std::chrono::microseconds delta_time)
-{
+void Viewport::update(std::chrono::microseconds delta_time) {
 	if (m_memory_representaion.size() <= 1)
 	{
 		return;
@@ -92,20 +90,17 @@ void Viewport::update(std::chrono::microseconds delta_time)
 	m_memory_representaion.pop_front();
 }
 
-void Viewport::draw() const
-{
+void Viewport::draw() const {
 	draw_allocations();
 	draw_nullptr();
 	draw_pointers();
 }
 
-dsa::Memory_Representation const &Viewport::current() const
-{
+dsa::Memory_Representation const &Viewport::current() const {
 	return m_memory_representaion.front();
 }
 
-void Viewport::draw_allocations() const
-{
+void Viewport::draw_allocations() const {
 	for (auto const &allocation : current().allocations())
 	{
 		if (allocation->owns_allocation())
@@ -115,8 +110,7 @@ void Viewport::draw_allocations() const
 	}
 }
 
-void Viewport::draw_allocation(dsa::Allocation_Block const &block) const
-{
+void Viewport::draw_allocation(dsa::Allocation_Block const &block) const {
 	const std::string window_name = allocation_name(block.address());
 
 	ImGui::Begin(window_name.c_str(), nullptr, window_flags);
@@ -141,8 +135,7 @@ void Viewport::draw_allocation(dsa::Allocation_Block const &block) const
 	ImGui::End();
 }
 
-void Viewport::draw_value(dsa::Allocation_Element const &element)
-{
+void Viewport::draw_value(dsa::Allocation_Element const &element) {
 	if (!element.leaf())
 	{
 		for (auto const &field : element.fields())
@@ -166,8 +159,7 @@ void Viewport::draw_value(dsa::Allocation_Element const &element)
 	ImGui::Text("%s", element.value().c_str());
 }
 
-void Viewport::draw_nullptr()
-{
+void Viewport::draw_nullptr() {
 	const std::string window_name =
 	    allocation_name(dsa::numeric_address(static_cast<void *>(nullptr)));
 	ImGui::Begin(window_name.c_str(), nullptr, window_flags);
@@ -176,8 +168,7 @@ void Viewport::draw_nullptr()
 	ImGui::End();
 }
 
-void Viewport::draw_pointers() const
-{
+void Viewport::draw_pointers() const {
 	for (auto const &allocation : current().allocations())
 	{
 		if (allocation->owns_allocation())
@@ -190,8 +181,7 @@ void Viewport::draw_pointers() const
 	}
 }
 
-void Viewport::draw_pointer(dsa::Allocation_Element const &element) const
-{
+void Viewport::draw_pointer(dsa::Allocation_Element const &element) const {
 	if (!element.leaf())
 	{
 		for (auto const &field : element.fields())
@@ -221,8 +211,7 @@ void Viewport::draw_pointer(dsa::Allocation_Element const &element) const
 }
 
 auto Viewport::pointer_value_address(dsa::Allocation_Element const &element)
-    -> uintptr_t
-{
+    -> uintptr_t {
 	uintptr_t              address = 0;
 	std::string            string  = element.value();
 	std::from_chars_result result  = std::from_chars(

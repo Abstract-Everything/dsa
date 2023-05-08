@@ -3,7 +3,8 @@ Standard: c++20
 
 # Whitespace options
 ColumnLimit: 80
-UseCRLF: false
+LineEnding: LF
+InsertNewlineAtEOF: true
 UseTab: ForContinuationAndIndentation
 TabWidth: 8
 IndentWidth: 8
@@ -21,7 +22,8 @@ IndentCaseLabels: false
 IndentExternBlock: NoIndent
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
-IndentRequires: true
+IndentRequiresClause: false
+RequiresExpressionIndentation: OuterScope
 IndentWrappedFunctionNames: false
 LambdaBodyIndentation: Signature
 NamespaceIndentation: None
@@ -33,7 +35,6 @@ SpaceAfterTemplateKeyword: false
 SpaceAroundPointerQualifiers: Default
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
-# SpaceBeforeCpp11BracedList
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements
@@ -46,9 +47,9 @@ SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
 SpacesInConditionalStatement: false
 SpacesInContainerLiterals: false
-# SpacesInLineCommentPrefix: # clang-format 14
-#   Minimum: 1
-#   Maximum: 2
+SpacesInLineCommentPrefix: # clang-format 14
+  Minimum: 1
+  Maximum: 2
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 
@@ -65,7 +66,6 @@ AlignTrailingComments: false
 
 # Formatting by newlines
 AllowAllArgumentsOnNextLine: false
-AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
@@ -81,8 +81,26 @@ BinPackArguments: false
 BinPackParameters: false
 BitFieldColonSpacing: Both
 BreakBeforeBinaryOperators: NonAssignment
-BreakBeforeBraces: Allman
-# BraceWrapping: # Only set when BreakBeforeBraces is custom
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  # Without this require clauses indentation takes more space than it needs to
+  AfterFunction: false
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
 BreakBeforeConceptDeclarations: true
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
@@ -91,10 +109,13 @@ BreakStringLiterals: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 DeriveLineEnding: false
 EmptyLineBeforeAccessModifier: Always
+ExperimentalAutoDetectBinPacking: false
+InsertBraces: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 1
-# PackConstructorInitializers: NextLine # clang-format 14
-ExperimentalAutoDetectBinPacking: false
+PackConstructorInitializers: CurrentLine
+RequiresClausePosition: OwnLine
+SeparateDefinitionBlocks: Always
 
 # Macros
 StatementMacros: []
@@ -148,17 +169,21 @@ PenaltyIndentedWhitespace: 0
 PenaltyReturnTypeOnItsOwnLine: 999
 
 # Miscellaneous
+IntegerLiteralSeparator:
+  Decimal: 3
+  Binary: 4
+  Hex: 4
 DerivePointerAlignment: false
 PointerAlignment: Right
-# ReferenceAlignment: Pointer # clang-format 14
-# QualifierAlignment: Right # clang-format 14
-# QualifierOrder: ['inline', 'static', 'constexpr', 'type', 'const', 'volatile'] # clang-format 14
+ReferenceAlignment: Pointer
+QualifierAlignment: Custom
+QualifierOrder: ['inline', 'static', 'constexpr', 'type', 'const', 'volatile']
 
 Cpp11BracedListStyle: true
 
 ReflowComments: true
 FixNamespaceComments: true
-# ShortNamespaceLines: 0 # clang-format 14
+ShortNamespaceLines: 0
 
 SortUsingDeclarations: true
 

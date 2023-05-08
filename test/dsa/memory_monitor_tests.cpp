@@ -19,15 +19,13 @@ namespace test
 
 using Handler_Scope = Memory_Monitor_Handler_Scope<Event_Handler>;
 
-TEST_CASE("No event is received if no actions were performed", "[monitor]")
-{
+TEST_CASE("No event is received if no actions were performed", "[monitor]") {
 	Handler_Scope scope;
 
 	REQUIRE(Event_Handler::events().empty());
 }
 
-TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
-{
+TEST_CASE("Monitor notifies handler about allocations", "[monitor]") {
 	using Allocator    = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
@@ -37,8 +35,7 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 	const size_t count      = 5;
 	auto         allocation = Alloc_Traits::allocate(monitor, count);
 
-	SECTION("Monitor detects calls to allocate")
-	{
+	SECTION("Monitor detects calls to allocate") {
 		REQUIRE_THAT(
 		    Event_Handler::instance()
 			->last_event<Allocation_Event<Empty_Value>>(),
@@ -50,8 +47,7 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 		Alloc_Traits::deallocate(monitor, allocation, count);
 	}
 
-	SECTION("Monitor detects calls to deallocate")
-	{
+	SECTION("Monitor detects calls to deallocate") {
 		Alloc_Traits::deallocate(monitor, allocation, count);
 
 		REQUIRE_THAT(
@@ -63,8 +59,7 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 			count));
 	}
 
-	SECTION("The handler can signal the Monitor to block a deallocate")
-	{
+	SECTION("The handler can signal the Monitor to block a deallocate") {
 		Event_Handler::instance()->block_deallocate();
 		Alloc_Traits::deallocate(monitor, allocation, count);
 
@@ -81,8 +76,7 @@ TEST_CASE("Monitor notifies handler about allocations", "[monitor]")
 	}
 }
 
-TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
-{
+TEST_CASE("Monitor notifies handler about object construction", "[monitor]") {
 	using Allocator    = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
@@ -92,8 +86,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 	size_t count      = 1;
 	auto   allocation = Alloc_Traits::allocate(monitor, count);
 
-	SECTION("Monitor detects construction through allocation traits")
-	{
+	SECTION("Monitor detects construction through allocation traits") {
 		Alloc_Traits::construct(
 		    monitor,
 		    allocation,
@@ -105,8 +98,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		    EqualsEvent(Object_Event_Type::Construct, &allocation->base()));
 	}
 
-	SECTION("Monitor detects an uninitialised construct")
-	{
+	SECTION("Monitor detects an uninitialised construct") {
 		std::uninitialized_default_construct_n(allocation, 1);
 
 		REQUIRE_THAT(
@@ -115,8 +107,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 		    EqualsEvent(Object_Event_Type::Construct, &allocation->base()));
 	}
 
-	SECTION("Monitor detects copy construction")
-	{
+	SECTION("Monitor detects copy construction") {
 		Allocator::Value value;
 		std::uninitialized_fill_n(allocation, 1, value);
 
@@ -129,8 +120,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 			&value.base()));
 	}
 
-	SECTION("An uninitialized_move sends a notification to the handler")
-	{
+	SECTION("An uninitialized_move sends a notification to the handler") {
 		Allocator::Value value;
 		std::uninitialized_move_n(&value, 1, allocation);
 
@@ -147,8 +137,7 @@ TEST_CASE("Monitor notifies handler about object construction", "[monitor]")
 	Alloc_Traits::deallocate(monitor, allocation, count);
 }
 
-TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
-{
+TEST_CASE("Monitor notifies handler about object destruction", "[monitor]") {
 	using Allocator    = dsa::Memory_Monitor<Empty_Value, Event_Handler>;
 	using Alloc_Traits = dsa::Allocator_Traits<Allocator>;
 
@@ -160,8 +149,7 @@ TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
 	auto   allocation = Alloc_Traits::allocate(monitor, count);
 	Alloc_Traits::construct(monitor, allocation);
 
-	SECTION("Monitor detects destruction through allocation traits")
-	{
+	SECTION("Monitor detects destruction through allocation traits") {
 		Alloc_Traits::destroy(monitor, allocation);
 		REQUIRE_THAT(
 		    Event_Handler::instance()
@@ -169,8 +157,7 @@ TEST_CASE("Monitor notifies handler about object destruction", "[monitor]")
 		    EqualsEvent(Object_Event_Type::Destroy, &allocation->base()));
 	}
 
-	SECTION("Monitor detects destruction through destroy call")
-	{
+	SECTION("Monitor detects destruction through destroy call") {
 		std::destroy_n(allocation, 1);
 		REQUIRE_THAT(
 		    Event_Handler::instance()

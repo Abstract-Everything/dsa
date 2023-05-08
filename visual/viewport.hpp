@@ -16,8 +16,7 @@ namespace visual
 class Viewport
 {
  public:
-	void add_event(dsa::Memory_Monitor_Event auto &&event)
-	{
+	void add_event(dsa::Memory_Monitor_Event auto &&event) {
 		spdlog::trace("Added eventof type: {}", event);
 		m_memory_representaion.push_back(m_memory_representaion.back());
 		m_memory_representaion.back().process_event(

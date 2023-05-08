@@ -7,12 +7,10 @@
 
 template<typename T>
 struct fmt::formatter<dsa::Allocation_Event<T>> : ostream_formatter
-{
-};
+{};
 
 template<typename T>
 struct fmt::formatter<dsa::Object_Event<T>> : ostream_formatter
-{
-};
+{};
 
 #endif

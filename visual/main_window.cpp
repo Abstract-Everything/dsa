@@ -24,8 +24,7 @@ constexpr std::size_t frame_rate      = 60;
 namespace visual
 {
 
-Main_Window &Main_Window::instance()
-{
+Main_Window &Main_Window::instance() {
 	static Main_Window instance{};
 	return instance;
 }
@@ -40,18 +39,15 @@ Main_Window::Main_Window()
 	ImGui::SFML::Init(m_window, false);
 }
 
-Main_Window::~Main_Window()
-{
+Main_Window::~Main_Window() {
 	ImGui::SFML::Shutdown();
 }
 
-const fs::path &Main_Window::executable_path()
-{
+fs::path const &Main_Window::executable_path() {
 	return m_executable;
 }
 
-void Main_Window::initialise(const std::vector<std::string> &arguments)
-{
+void Main_Window::initialise(std::vector<std::string> const &arguments) {
 	constexpr std::string_view path_error =
 	    "Unable to figure out the path to the executable";
 
@@ -104,8 +100,7 @@ void Main_Window::initialise(const std::vector<std::string> &arguments)
 	ImGui::SFML::UpdateFontTexture();
 }
 
-void Main_Window::start()
-{
+void Main_Window::start() {
 	const sf::Color dark_grey{25, 25, 25};
 
 	sf::Clock delta_clock;
@@ -137,7 +132,7 @@ void Main_Window::start()
 					 | ImGuiWindowFlags_NoResize
 					 | ImGuiWindowFlags_NoSavedSettings;
 
-		const ImGuiViewport *viewport = ImGui::GetMainViewport();
+		ImGuiViewport const *viewport = ImGui::GetMainViewport();
 		const ImVec2         position = viewport->WorkPos;
 		const ImVec2         size     = viewport->WorkSize;
 		ImGui::SetNextWindowPos(

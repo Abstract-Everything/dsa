@@ -22,31 +22,31 @@
 namespace test
 {
 
-static constexpr const char *memory_leaked =
+static constexpr char const *memory_leaked =
     "Allocated memory was not deallocated\n";
 
-static constexpr const char *deallocating_unallocated_memory =
+static constexpr char const *deallocating_unallocated_memory =
     "Deallocate was called on an address which does not point to "
     "allocated memory\n";
 
-static constexpr const char *deallocating_count_mismatch =
+static constexpr char const *deallocating_count_mismatch =
     "Deallocate count does not match the allocation count\n";
 
-static constexpr const char *constructing_unallocated_memory =
+static constexpr char const *constructing_unallocated_memory =
     "Construct was called on an address which does not point to "
     "allocated memory\n";
 
-static constexpr const char *destroying_nonconstructed_memory =
+static constexpr char const *destroying_nonconstructed_memory =
     "Destroy was called on an address which does not point to "
     "constructed memory\n";
 
-static constexpr const char *object_leaked =
+static constexpr char const *object_leaked =
     "Constructed memory was not destroyed\n";
 
-static constexpr const char *assign_uninitialized_memory =
+static constexpr char const *assign_uninitialized_memory =
     "Assignment was made to uninitialised memory\n";
 
-static constexpr const char *assign_from_uninitialized_memory =
+static constexpr char const *assign_from_uninitialized_memory =
     "Assignment was made from an uninitialised value\n";
 
 namespace detail
@@ -63,12 +63,9 @@ class Alloc_Traits_Misuse : public std::runtime_error
 class Allocation_Verifier
 {
  public:
-	~Allocation_Verifier() noexcept(false)
-	{
+	~Allocation_Verifier() noexcept(false) {
 		try
-		{
-			cleanup();
-		}
+		{ cleanup(); }
 		catch (...)
 		{
 			std::cerr << "Allocation_Verifier's destructor was "
@@ -82,11 +79,11 @@ class Allocation_Verifier
 		}
 	}
 
-	void cleanup()
-	{
+	void cleanup() {
 		for (auto const &allocation : memory_representation.allocations())
 		{
-			if (allocation->owns_allocation() && !allocation->all_elements_destroyed())
+			if (allocation->owns_allocation()
+			    && !allocation->all_elements_destroyed())
 			{
 				add_error(object_leaked);
 			}
@@ -114,15 +111,13 @@ class Allocation_Verifier
 		throw detail::Alloc_Traits_Misuse(errors);
 	}
 
-	static auto instance() -> std::unique_ptr<Allocation_Verifier> &
-	{
+	static auto instance() -> std::unique_ptr<Allocation_Verifier> & {
 		static std::unique_ptr<Allocation_Verifier> instance = nullptr;
 		return instance;
 	}
 
 	template<typename T>
-	static auto before_deallocate(dsa::Allocation_Event<T> event) -> bool
-	{
+	static auto before_deallocate(dsa::Allocation_Event<T> event) -> bool {
 		assert(event.type() == dsa::Allocation_Event_Type::Deallocate);
 		return instance()->before_deallocate_impl(
 		    event.address(),
@@ -130,14 +125,12 @@ class Allocation_Verifier
 	}
 
 	template<typename T>
-	static void process_allocation_event(dsa::Allocation_Event<T> event)
-	{
+	static void process_allocation_event(dsa::Allocation_Event<T> event) {
 		instance()->memory_representation.process_event(event);
 	}
 
 	template<typename T>
-	static void process_object_event(dsa::Object_Event<T> event)
-	{
+	static void process_object_event(dsa::Object_Event<T> event) {
 		instance()->process_object_event_impl(event);
 	}
 
@@ -146,11 +139,10 @@ class Allocation_Verifier
 	std::set<std::string>      m_errors;
 
 	template<typename T>
-	void process_object_event_impl(dsa::Object_Event<T> event)
-	{
+	void process_object_event_impl(dsa::Object_Event<T> event) {
 		if (event.copying() || event.moving())
 		{
-			const auto source_field =
+			auto const source_field =
 			    memory_representation.field_at(event.source());
 
 			if (!source_field.has_value()
@@ -161,7 +153,7 @@ class Allocation_Verifier
 			}
 		}
 
-		const auto destination_field =
+		auto const destination_field =
 		    memory_representation.field_at(event.destination());
 
 		switch (event.type())
@@ -205,14 +197,12 @@ class Allocation_Verifier
 		memory_representation.process_event(event);
 	}
 
-	void add_error(std::string &&error)
-	{
+	void add_error(std::string &&error) {
 		m_errors.emplace(std::move(error));
 	}
 
 	template<typename T>
-	auto before_deallocate_impl(T *address, size_t count) -> bool
-	{
+	auto before_deallocate_impl(T *address, size_t count) -> bool {
 		auto result = memory_representation.allocation_at(address);
 		if (!result.has_value())
 		{
@@ -228,7 +218,8 @@ class Allocation_Verifier
 			return false;
 		}
 
-		if (allocation.owns_allocation() && !allocation.all_elements_destroyed())
+		if (allocation.owns_allocation()
+		    && !allocation.all_elements_destroyed())
 		{
 			allocation.cleanup();
 			add_error(object_leaked);

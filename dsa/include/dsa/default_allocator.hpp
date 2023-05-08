@@ -13,8 +13,8 @@ class Default_Allocator
 	Default_Allocator() = default;
 
 	template<typename T>
-	explicit Default_Allocator(Default_Allocator<T> const & /* allocator */)
-	{
+	explicit Default_Allocator(
+	    Default_Allocator<T> const & /* allocator */) {
 	}
 };
 

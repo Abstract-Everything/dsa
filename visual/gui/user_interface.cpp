@@ -5,22 +5,17 @@
 namespace
 {
 
-constexpr std::array structures{
-    "Empty",
-    "Array",
-    "Vector",
-    "List",
-    "Binary Tree",
-    "Heap"};
+constexpr std::array
+    structures{"Empty", "Array", "Vector", "List", "Binary Tree", "Heap"};
 
 } // namespace
 
 namespace visual
 {
 
-void User_Interface::draw()
-{
-	static_assert(structures.size() == std::variant_size_v<Structures_Actions>);
+void User_Interface::draw() {
+	static_assert(
+	    structures.size() == std::variant_size_v<Structures_Actions>);
 
 	if (!ImGui::CollapsingHeader(
 		"Data structure operations",
@@ -53,8 +48,7 @@ void User_Interface::draw()
 	}
 
 	std::visit(
-	    [](auto &&actions_ui)
-	    {
+	    [](auto &&actions_ui) {
 		    if constexpr (!std::is_same_v<
 				      std::decay_t<decltype(actions_ui)>,
 				      std::monostate>)

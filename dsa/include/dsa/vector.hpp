@@ -40,8 +40,7 @@ class Vector
 	using Iterator        = Pointer;
 	using Const_Iterator  = Const_Pointer;
 
-	constexpr const Allocator &allocator() const
-	{
+	constexpr Allocator const &allocator() const {
 		return m_allocator;
 	}
 
@@ -49,8 +48,7 @@ class Vector
 	 * @brief Constucts an empty vector
 	 */
 	explicit Vector(Allocator allocator = Allocator())
-	    : Vector(0, std::move(allocator))
-	{
+	    : Vector(0, std::move(allocator)) {
 	}
 
 	/**
@@ -58,8 +56,7 @@ class Vector
 	 * default initialised
 	 */
 	explicit Vector(std::size_t size, Allocator allocator)
-	    : Vector(size, Value{}, std::move(allocator))
-	{
+	    : Vector(size, Value{}, std::move(allocator)) {
 	}
 
 	/**
@@ -68,13 +65,12 @@ class Vector
 	 */
 	explicit Vector(
 	    std::size_t    size,
-	    const Value_t &value     = Value(),
+	    Value_t const &value     = Value(),
 	    Allocator      allocator = Allocator())
 	    : m_allocator(std::move(allocator))
 	    , m_size(size)
 	    , m_capacity(size)
-	    , m_storage(Alloc_Traits::allocate(m_allocator, size))
-	{
+	    , m_storage(Alloc_Traits::allocate(m_allocator, size)) {
 		std::uninitialized_fill(begin(), end(), value);
 	}
 
@@ -85,16 +81,14 @@ class Vector
 	    : m_allocator(std::move(allocator))
 	    , m_size(values.size())
 	    , m_capacity(values.size())
-	    , m_storage(Alloc_Traits::allocate(m_allocator, values.size()))
-	{
+	    , m_storage(Alloc_Traits::allocate(m_allocator, values.size())) {
 		std::uninitialized_copy(
 		    std::begin(values),
 		    std::end(values),
 		    begin());
 	}
 
-	~Vector()
-	{
+	~Vector() {
 		if (data() == nullptr)
 		{
 			return;
@@ -109,13 +103,11 @@ class Vector
 		Alloc_Traits::propogate_or_create_instance(vector.allocator()))
 	    , m_size(vector.size())
 	    , m_capacity(vector.capacity())
-	    , m_storage(Alloc_Traits::allocate(m_allocator, m_capacity))
-	{
+	    , m_storage(Alloc_Traits::allocate(m_allocator, m_capacity)) {
 		std::uninitialized_copy(vector.begin(), vector.end(), begin());
 	}
 
-	Vector &operator=(Vector const &vector)
-	{
+	Vector &operator=(Vector const &vector) {
 		using std::swap;
 
 		Vector copy(vector);
@@ -127,21 +119,18 @@ class Vector
 	    : m_allocator(std::move(vector.m_allocator))
 	    , m_size(vector.size())
 	    , m_capacity(vector.m_capacity)
-	    , m_storage(vector.m_storage)
-	{
+	    , m_storage(vector.m_storage) {
 		vector.m_storage = nullptr;
 	}
 
-	Vector &operator=(Vector &&vector) noexcept
-	{
+	Vector &operator=(Vector &&vector) noexcept {
 		using std::swap;
 
 		swap(*this, vector);
 		return *this;
 	}
 
-	friend void swap(Vector &lhs, Vector &rhs) noexcept
-	{
+	friend void swap(Vector &lhs, Vector &rhs) noexcept {
 		using std::swap;
 
 		swap(lhs.m_allocator, rhs.m_allocator);
@@ -153,8 +142,9 @@ class Vector
 	/**
 	 * @brief Checks if each element in both vectors is equal
 	 */
-	[[nodiscard]] friend bool operator==(Vector const &lhs, Vector const &rhs) noexcept
-	{
+	[[nodiscard]] friend bool operator==(
+	    Vector const &lhs,
+	    Vector const &rhs) noexcept {
 		return lhs.size() == rhs.size()
 		       && std::equal(lhs.begin(), lhs.end(), rhs.begin());
 	}
@@ -162,8 +152,9 @@ class Vector
 	/**
 	 * @brief Checks if any element in both vectors differs
 	 */
-	[[nodiscard]] friend bool operator!=(Vector const &lhs, Vector const &rhs) noexcept
-	{
+	[[nodiscard]] friend bool operator!=(
+	    Vector const &lhs,
+	    Vector const &rhs) noexcept {
 		return !(lhs == rhs);
 	}
 
@@ -171,8 +162,7 @@ class Vector
 	 * @brief Gets the first element in the vector. This is undefined
 	 * behaviour if the vector is empty
 	 */
-	[[nodiscard]] Reference front()
-	{
+	[[nodiscard]] Reference front() {
 		return *begin();
 	}
 
@@ -180,8 +170,7 @@ class Vector
 	 * @brief Gets the first element in the vector. This is undefined
 	 * behaviour if the vector is empty
 	 */
-	[[nodiscard]] Const_Reference front() const
-	{
+	[[nodiscard]] Const_Reference front() const {
 		return *begin();
 	}
 
@@ -189,8 +178,7 @@ class Vector
 	 * @brief Gets the last element in the vector. This is undefined
 	 * behaviour if the vector is empty
 	 */
-	[[nodiscard]] Reference back()
-	{
+	[[nodiscard]] Reference back() {
 		Pointer past_end = end();
 		return *(--past_end);
 	}
@@ -199,8 +187,7 @@ class Vector
 	 * @brief Gets the last element in the vector. This is undefined
 	 * behaviour if the vector is empty
 	 */
-	[[nodiscard]] Const_Reference back() const
-	{
+	[[nodiscard]] Const_Reference back() const {
 		Const_Pointer past_end = end();
 		return *(--past_end);
 	}
@@ -210,8 +197,7 @@ class Vector
 	 * Note that the capacity may still be larger than zero even if the
 	 * vector is empty
 	 */
-	[[nodiscard]] bool empty() const
-	{
+	[[nodiscard]] bool empty() const {
 		return size() == 0;
 	}
 
@@ -219,8 +205,7 @@ class Vector
 	 * @brief Returns the number of initialised elements that the vector
 	 * holds
 	 */
-	[[nodiscard]] std::size_t size() const
-	{
+	[[nodiscard]] std::size_t size() const {
 		return m_size;
 	}
 
@@ -228,43 +213,37 @@ class Vector
 	 * @brief Returns the maximum number of initialised elements that the
 	 * vector can hold without having to resize
 	 */
-	[[nodiscard]] std::size_t capacity() const
-	{
+	[[nodiscard]] std::size_t capacity() const {
 		return m_capacity;
 	}
 
-	[[nodiscard]] Pointer begin()
-	{
+	[[nodiscard]] Pointer begin() {
 		return m_storage;
 	}
 
-	[[nodiscard]] Const_Pointer begin() const
-	{
+	[[nodiscard]] Const_Pointer begin() const {
 		return m_storage;
 	}
 
-	[[nodiscard]] Pointer end()
-	{
+	[[nodiscard]] Pointer end() {
 		return begin() + m_size;
 	}
 
-	[[nodiscard]] Const_Pointer end() const
-	{
+	[[nodiscard]] Const_Pointer end() const {
 		return begin() + m_size;
 	}
 
-	[[nodiscard]] Reference operator[](std::integral auto index)
-	{
+	[[nodiscard]] Reference operator[](std::integral auto index) {
 		return m_storage[index];
 	}
 
-	[[nodiscard]] Const_Reference operator[](std::integral auto index) const
-	{
+	[[nodiscard]] Const_Reference operator[](std::integral auto index) const {
 		return m_storage[index];
 	}
 
-	friend std::ostream& operator<<(std::ostream &stream, Vector const& vector) noexcept
-	{
+	friend std::ostream &operator<<(
+	    std::ostream &stream,
+	    Vector const &vector) noexcept {
 		stream << "[";
 		for (Const_Pointer it = vector.begin(); it != vector.end(); ++it)
 		{
@@ -282,8 +261,7 @@ class Vector
 	 * @brief Returns a pointer to the underlying memory array where the
 	 * elements are held
 	 */
-	[[nodiscard]] Pointer data()
-	{
+	[[nodiscard]] Pointer data() {
 		return m_storage;
 	}
 
@@ -291,16 +269,14 @@ class Vector
 	 * @brief Returns a pointer to the underlying memory array where the
 	 * elements are held
 	 */
-	[[nodiscard]] Const_Pointer data() const
-	{
+	[[nodiscard]] Const_Pointer data() const {
 		return m_storage;
 	}
 
 	/**
 	 * @brief Clears all elements from the vector
 	 */
-	void clear()
-	{
+	void clear() {
 		std::destroy(begin(), end());
 		m_size = 0;
 	}
@@ -308,8 +284,7 @@ class Vector
 	/**
 	 * @brief Inserts the given value at the end of the vector
 	 */
-	void append(Value value)
-	{
+	void append(Value value) {
 		grow();
 		Alloc_Traits::construct(m_allocator, end(), std::move(value));
 		m_size++;
@@ -319,17 +294,20 @@ class Vector
 	 * @brief Inserts the given value at the given index. The behaviour is
 	 * undefined if the index is outside of the range: [0, size()]
 	 */
-	void insert(std::size_t index, Value value)
-	{
+	void insert(std::size_t index, Value value) {
 		using std::swap;
 
 		if (should_grow())
 		{
-			size_t capacity = grow_size();
-			Pointer storage = Alloc_Traits::allocate(m_allocator, capacity);
+			size_t  capacity = grow_size();
+			Pointer storage =
+			    Alloc_Traits::allocate(m_allocator, capacity);
 			Pointer insert_point = storage + index;
-			Pointer rest = insert_point + 1;
-			Alloc_Traits::construct(m_allocator, insert_point, std::move(value));
+			Pointer rest         = insert_point + 1;
+			Alloc_Traits::construct(
+			    m_allocator,
+			    insert_point,
+			    std::move(value));
 			std::uninitialized_move(begin(), begin() + index, storage);
 			std::uninitialized_move(begin() + index, end(), rest);
 			Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
@@ -357,8 +335,7 @@ class Vector
 	 * @brief Erases the value at the given index. The behaviour is
 	 * undefined if the index is outside of the vector size.
 	 */
-	void erase(std::size_t index)
-	{
+	void erase(std::size_t index) {
 		using std::swap;
 
 		Pointer erasing = begin() + index;
@@ -366,8 +343,9 @@ class Vector
 
 		if (should_shrink())
 		{
-			size_t capacity = shrink_size();
-			Pointer storage = Alloc_Traits::allocate(m_allocator, capacity);
+			size_t  capacity = shrink_size();
+			Pointer storage =
+			    Alloc_Traits::allocate(m_allocator, capacity);
 			std::uninitialized_move(begin(), erasing, storage);
 			std::uninitialized_move(erasing + 1, end(), storage + index);
 			Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
@@ -385,8 +363,7 @@ class Vector
 	 * @brief Shrinks the vector so that no memory is occuppied outside of
 	 * the elements held
 	 */
-	void shrink_to_fit()
-	{
+	void shrink_to_fit() {
 		using std::swap;
 
 		size_t  capacity = m_size;
@@ -402,8 +379,7 @@ class Vector
 	 * If the new size is larger than the old, new elements are default
 	 * initialised
 	 */
-	void resize(std::size_t new_size)
-	{
+	void resize(std::size_t new_size) {
 		if (new_size < size())
 		{
 			std::destroy(begin() + new_size, end());
@@ -426,8 +402,7 @@ class Vector
 	 * @brief Reallocates the underlying memory to hold at least the given
 	 * number of elements without having to resize
 	 */
-	void reserve(std::size_t new_capacity)
-	{
+	void reserve(std::size_t new_capacity) {
 		using std::swap;
 
 		if (capacity() >= new_capacity)
@@ -435,7 +410,8 @@ class Vector
 			return;
 		}
 
-		Pointer storage = Alloc_Traits::allocate(m_allocator, new_capacity);
+		Pointer storage =
+		    Alloc_Traits::allocate(m_allocator, new_capacity);
 		std::uninitialized_move(begin(), end(), storage);
 		Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
 		m_storage  = storage;
@@ -452,21 +428,18 @@ class Vector
 	 * @brief Returns whether the vector needs to grow in order to contain
 	 * an additional element
 	 */
-	[[nodiscard]] bool should_grow()
-	{
+	[[nodiscard]] bool should_grow() {
 		return size() >= capacity();
 	}
 
-	void grow()
-	{
+	void grow() {
 		if (should_grow())
 		{
 			reserve(grow_size());
 		}
 	}
 
-	[[nodiscard]] std::size_t grow_size()
-	{
+	[[nodiscard]] std::size_t grow_size() {
 		return std::max(1ULL, 2ULL * capacity());
 	}
 
@@ -474,13 +447,11 @@ class Vector
 	 * @brief Returns whether the vector should shrink after removing a
 	 * single element from it
 	 */
-	[[nodiscard]] bool should_shrink()
-	{
+	[[nodiscard]] bool should_shrink() {
 		return capacity() / 4ULL >= size() - 1;
 	}
 
-	[[nodiscard]] std::size_t shrink_size()
-	{
+	[[nodiscard]] std::size_t shrink_size() {
 		return capacity() / 2ULL;
 	}
 };

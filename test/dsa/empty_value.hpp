@@ -9,12 +9,10 @@ namespace test
 struct Empty_Value
 {
 	friend auto operator<<(std::ostream &stream, Empty_Value const & /*value*/)
-	    -> std::ostream &
-	{
+	    -> std::ostream & {
 		return stream << "{}";
 	}
 };
-
 
 } // namespace test
 

@@ -5,8 +5,7 @@
 #include <string>
 #include <vector>
 
-int main(int argc, const char *argv[])
-{
+int main(int argc, char const *argv[]) {
 	spdlog::set_level(spdlog::level::trace);
 
 	std::vector<std::string> arguments(static_cast<std::size_t>(argc));

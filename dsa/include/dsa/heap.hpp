@@ -18,7 +18,8 @@ namespace dsa
  * @ingroup containers
  *
  * @tparam Value_t: The type of element to store
- * @tparam Comparator_t: The type of a comparator for which comparator(x,y) holds
+ * @tparam Comparator_t: The type of a comparator for which comparator(x,y)
+ * holds
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
@@ -48,11 +49,8 @@ class Heap
 	/**
 	 * @brief Constructs a heap made up of the given elements
 	 */
-	Heap(
-	    std::initializer_list<Value_t> list,
-	    Comparator                     comparator = std::less{})
-	    : m_comparator(std::move(comparator))
-	{
+	Heap(std::initializer_list<Value_t> list, Comparator comparator = std::less{})
+	    : m_comparator(std::move(comparator)) {
 		m_storage.reserve(list.size());
 		for (auto const &value : list)
 		{
@@ -60,8 +58,7 @@ class Heap
 		}
 	}
 
-	friend void swap(Heap &lhs, Heap &rhs)
-	{
+	friend void swap(Heap &lhs, Heap &rhs) {
 		using std::swap;
 		swap(lhs.m_storage, rhs.m_storage);
 		swap(lhs.m_comparator, rhs.m_comparator);
@@ -70,16 +67,14 @@ class Heap
 	/**
 	 * @brief Returns the current number of elements in the heap
 	 */
-	[[nodiscard]] std::size_t size() const
-	{
+	[[nodiscard]] std::size_t size() const {
 		return m_storage.size();
 	}
 
 	/**
 	 * @brief Returns true if the heap contains no elements.
 	 */
-	[[nodiscard]] bool empty() const
-	{
+	[[nodiscard]] bool empty() const {
 		return size() == 0ULL;
 	}
 
@@ -87,8 +82,7 @@ class Heap
 	 * @brief Returns a reference to the underlying container storing the
 	 * heap
 	 */
-	[[nodiscard]] Storage &storage()
-	{
+	[[nodiscard]] Storage &storage() {
 		return m_storage;
 	}
 
@@ -96,8 +90,7 @@ class Heap
 	 * @brief Returns a const reference to the underlying container storing
 	 * the heap
 	 */
-	[[nodiscard]] const Storage &storage() const
-	{
+	[[nodiscard]] Storage const &storage() const {
 		return m_storage;
 	}
 
@@ -105,8 +98,7 @@ class Heap
 	 * @brief Returns a reference to the top element of the heap. This is
 	 * undefined behaviour if the heap is empty
 	 */
-	Value &top()
-	{
+	Value &top() {
 		return m_storage[0];
 	}
 
@@ -114,8 +106,7 @@ class Heap
 	 * @brief Returns a const reference to the top element of the heap. This
 	 * is undefined behaviour if the heap is empty
 	 */
-	const Value &top() const
-	{
+	Value const &top() const {
 		return m_storage[0];
 	}
 
@@ -123,8 +114,7 @@ class Heap
 	 * @brief Adds an element to the heap and does the work necessary to
 	 * maintain the heap property
 	 */
-	void push(Value value)
-	{
+	void push(Value value) {
 		using std::swap;
 
 		std::size_t index = m_storage.size();
@@ -145,8 +135,7 @@ class Heap
 	 * necessary to maintain the heap property. This is undefined behaviour
 	 * if the heap is empty
 	 */
-	void pop()
-	{
+	void pop() {
 		using std::swap;
 
 		if (size() == 1)
@@ -160,9 +149,8 @@ class Heap
 		m_storage.erase(last);
 
 		std::size_t parent = 0;
-		for (std::size_t left = 1;
-		     left < m_storage.size();
-		     left = child_index(parent))
+		for (std::size_t left = 1; left < m_storage.size();
+		     left             = child_index(parent))
 		{
 			const std::size_t right = left + 1;
 
@@ -196,8 +184,7 @@ class Heap
 	 * @brief Returns the index of the parent given an index of one of the
 	 * children.
 	 */
-	[[nodiscard]] std::size_t parent_index(std::size_t index) const
-	{
+	[[nodiscard]] std::size_t parent_index(std::size_t index) const {
 		return (index - 1) / 2;
 	}
 
@@ -205,8 +192,7 @@ class Heap
 	 * @brief Returns the index of the first child given an index of the
 	 * parent
 	 */
-	[[nodiscard]] std::size_t child_index(std::size_t index) const
-	{
+	[[nodiscard]] std::size_t child_index(std::size_t index) const {
 		return (index * 2) + 1;
 	}
 };

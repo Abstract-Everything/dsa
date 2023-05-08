@@ -8,11 +8,9 @@ namespace test
 {
 
 template<typename Handler>
-concept Memory_Monitor_Scope_Event_Handler =
-    requires()
-{
-	{Handler::instance()} -> std::same_as<std::unique_ptr<Handler> &>;
-	{Handler::instance()->cleanup()};
+concept Memory_Monitor_Scope_Event_Handler = requires() {
+	{ Handler::instance() } -> std::same_as<std::unique_ptr<Handler> &>;
+	{ Handler::instance()->cleanup() };
 };
 
 /// The Memory_Monitor class uses a global variable to handle the callbacks.
@@ -22,8 +20,7 @@ template<Memory_Monitor_Scope_Event_Handler Handler>
 class Memory_Monitor_Handler_Scope
 {
  public:
-	Memory_Monitor_Handler_Scope()
-	{
+	Memory_Monitor_Handler_Scope() {
 		if (Handler::instance() != nullptr)
 		{
 			std::cerr << "The handler's lifetime should only be "
@@ -34,8 +31,7 @@ class Memory_Monitor_Handler_Scope
 		Handler::instance() = std::make_unique<Handler>();
 	}
 
-	~Memory_Monitor_Handler_Scope()
-	{
+	~Memory_Monitor_Handler_Scope() {
 		if (Handler::instance() == nullptr)
 		{
 			std::cerr << "The handler's lifetime should only be "

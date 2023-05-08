@@ -9,26 +9,21 @@ namespace test
 class Id
 {
  public:
-	explicit constexpr Id() : m_id(0ULL)
-	{
+	explicit constexpr Id() : m_id(0ULL) {
 	}
 
-	explicit constexpr Id(std::size_t id) : m_id(id)
-	{
+	explicit constexpr Id(std::size_t id) : m_id(id) {
 	}
 
-	[[nodiscard]] constexpr std::size_t value() const
-	{
+	[[nodiscard]] constexpr std::size_t value() const {
 		return m_id;
 	}
 
-	[[nodiscard]] constexpr friend bool operator==(Id const &rhs, Id const &lhs)
-	{
+	[[nodiscard]] constexpr friend bool operator==(Id const &rhs, Id const &lhs) {
 		return lhs.m_id == rhs.m_id;
 	}
 
-	[[nodiscard]] constexpr friend bool operator!=(Id const &rhs, Id const &lhs)
-	{
+	[[nodiscard]] constexpr friend bool operator!=(Id const &rhs, Id const &lhs) {
 		return !(lhs == rhs);
 	}
 

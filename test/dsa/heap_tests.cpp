@@ -18,8 +18,7 @@ namespace test
 
 struct IsHeap : Catch::Matchers::MatcherGenericBase
 {
-	bool match(auto const &heap) const
-	{
+	bool match(auto const &heap) const {
 		using Comparator =
 		    typename std::decay_t<decltype(heap)>::Comparator;
 
@@ -29,8 +28,7 @@ struct IsHeap : Catch::Matchers::MatcherGenericBase
 		    Comparator{});
 	}
 
-	std::string describe() const override
-	{
+	std::string describe() const override {
 		return "Is a heap";
 	}
 };
@@ -40,20 +38,17 @@ using Allocator_Base = dsa::Memory_Monitor<T, Allocation_Verifier>;
 using Handler_Scope  = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
 using Heap           = dsa::Heap<int, decltype(std::less{}), Allocator_Base>;
 
-TEST_CASE("Various mechanisims to initialise binary tree", "[heap]")
-{
+TEST_CASE("Various mechanisims to initialise binary tree", "[heap]") {
 	Handler_Scope scope;
 
-	SECTION("Default initialised heap has no elements")
-	{
+	SECTION("Default initialised heap has no elements") {
 		Heap heap;
 
 		REQUIRE(heap.empty());
 		REQUIRE(heap.size() == 0);
 	}
 
-	SECTION("Constructed from an initializer list")
-	{
+	SECTION("Constructed from an initializer list") {
 		Heap heap{0, 1, 2};
 
 		REQUIRE(heap.size() == 3ULL);
@@ -62,20 +57,17 @@ TEST_CASE("Various mechanisims to initialise binary tree", "[heap]")
 	}
 }
 
-TEST_CASE("Heaps can be copied", "[heap]")
-{
+TEST_CASE("Heaps can be copied", "[heap]") {
 	Handler_Scope scope;
 	Heap          heap{0, 1, 2};
 
-	SECTION("Heaps can be copy constructed from one another")
-	{
+	SECTION("Heaps can be copy constructed from one another") {
 		Heap copy(heap);
 
 		REQUIRE(heap.storage() == copy.storage());
 	}
 
-	SECTION("Heaps can be copy assigned from one another")
-	{
+	SECTION("Heaps can be copy assigned from one another") {
 		Heap copy;
 		REQUIRE(heap.storage() != copy.storage());
 
@@ -84,21 +76,18 @@ TEST_CASE("Heaps can be copied", "[heap]")
 	}
 }
 
-TEST_CASE("Heaps can be moved", "[heap]")
-{
+TEST_CASE("Heaps can be moved", "[heap]") {
 	Handler_Scope              scope;
 	std::initializer_list<int> values{1, 2, 3};
 	Heap                       temporary(values);
 
-	SECTION("Heaps can be move constructed from one another")
-	{
+	SECTION("Heaps can be move constructed from one another") {
 		Heap heap(std::move(temporary));
 
 		REQUIRE_THAT(heap.storage(), EqualsRange(values));
 	}
 
-	SECTION("Heaps can be move assigned from one another")
-	{
+	SECTION("Heaps can be move assigned from one another") {
 		Heap heap;
 		REQUIRE(heap.storage() != temporary.storage());
 
@@ -107,8 +96,7 @@ TEST_CASE("Heaps can be moved", "[heap]")
 	}
 }
 
-TEST_CASE("Heaps can be swapped", "[heap]")
-{
+TEST_CASE("Heaps can be swapped", "[heap]") {
 	Handler_Scope scope;
 
 	std::initializer_list<int> values_a{1, 2, 3};
@@ -123,12 +111,10 @@ TEST_CASE("Heaps can be swapped", "[heap]")
 	REQUIRE_THAT(heap_b.storage(), EqualsRange(values_a));
 }
 
-TEST_CASE("Heaps can be inserted into", "[heap]")
-{
+TEST_CASE("Heaps can be inserted into", "[heap]") {
 	Handler_Scope scope;
 
-	SECTION("Inserting into an empty heap updates helper functions")
-	{
+	SECTION("Inserting into an empty heap updates helper functions") {
 		Heap heap;
 		heap.push(0);
 
@@ -138,8 +124,7 @@ TEST_CASE("Heaps can be inserted into", "[heap]")
 		REQUIRE_THAT(heap, IsHeap());
 	}
 
-	SECTION("Inserting multiple elements maintains min heap properties")
-	{
+	SECTION("Inserting multiple elements maintains min heap properties") {
 		Heap heap;
 		heap.push(1);
 		heap.push(3);
@@ -151,8 +136,7 @@ TEST_CASE("Heaps can be inserted into", "[heap]")
 		REQUIRE_THAT(heap, IsHeap());
 	}
 
-	SECTION("Inserting new smaller element maintains min heap properties")
-	{
+	SECTION("Inserting new smaller element maintains min heap properties") {
 		Heap heap{1, 3, 5};
 		heap.push(2);
 
@@ -161,8 +145,7 @@ TEST_CASE("Heaps can be inserted into", "[heap]")
 		REQUIRE_THAT(heap, IsHeap());
 	}
 
-	SECTION("Inserting new smallest element updates root")
-	{
+	SECTION("Inserting new smallest element updates root") {
 		Heap heap{1, 2, 3, 4, 5, 6};
 		heap.push(0);
 
@@ -172,12 +155,10 @@ TEST_CASE("Heaps can be inserted into", "[heap]")
 	}
 }
 
-TEST_CASE("Heaps can have their elements popped", "[heap]")
-{
+TEST_CASE("Heaps can have their elements popped", "[heap]") {
 	Handler_Scope scope;
 
-	SECTION("Heap with a single element becomes empty")
-	{
+	SECTION("Heap with a single element becomes empty") {
 		Heap heap{0};
 		heap.pop();
 
@@ -185,8 +166,7 @@ TEST_CASE("Heaps can have their elements popped", "[heap]")
 		REQUIRE(heap.size() == 0);
 	}
 
-	SECTION("Pop replaces the element at the top")
-	{
+	SECTION("Pop replaces the element at the top") {
 		Heap heap{0, 1};
 		heap.pop();
 
@@ -194,8 +174,7 @@ TEST_CASE("Heaps can have their elements popped", "[heap]")
 		REQUIRE(heap.top() == 1);
 	}
 
-	SECTION("Pop chooses smallest(first) child")
-	{
+	SECTION("Pop chooses smallest(first) child") {
 		Heap heap{0, 1, 2, 3};
 		heap.pop();
 
@@ -204,8 +183,7 @@ TEST_CASE("Heaps can have their elements popped", "[heap]")
 		REQUIRE_THAT(heap, IsHeap());
 	}
 
-	SECTION("Pop chooses smallest(second) child")
-	{
+	SECTION("Pop chooses smallest(second) child") {
 		Heap heap{0, 2, 1, 3};
 		heap.pop();
 
@@ -214,8 +192,7 @@ TEST_CASE("Heaps can have their elements popped", "[heap]")
 		REQUIRE_THAT(heap, IsHeap());
 	}
 
-	SECTION("Pop maintains min heap property in deeper levels")
-	{
+	SECTION("Pop maintains min heap property in deeper levels") {
 		Heap heap{0, 2, 1, 3, 5, 7, 9};
 		heap.pop();
 
@@ -227,8 +204,7 @@ TEST_CASE("Heaps can have their elements popped", "[heap]")
 	// When we pop we 'reinsert' the last element into the tree, we do not
 	// need to move this to the deepest level. We can stop when the property
 	// is satisfied
-	SECTION("'Reinserted' element can stop at a shallow level")
-	{
+	SECTION("'Reinserted' element can stop at a shallow level") {
 		Heap heap{0, 1, 2, 6, 4, 5, 3};
 		heap.pop();
 
