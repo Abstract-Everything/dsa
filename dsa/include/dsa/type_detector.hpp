@@ -10,8 +10,7 @@ namespace detail
 {
 
 struct No_Type
-{
-};
+{};
 
 template<typename Default_Value, typename Always_Void, template<typename...> typename Operator, typename... Arguments>
 struct Detector
@@ -30,19 +29,24 @@ struct Detector<Default_Value, std::void_t<Operator<Arguments...>>, Operator, Ar
 } // namespace detail
 
 template<template<typename...> typename Operator, typename... Arguments>
-using Detect_T = typename detail::Detector<detail::No_Type, void, Operator, Arguments...>::Type;
+using Detect_T =
+    typename detail::Detector<detail::No_Type, void, Operator, Arguments...>::Type;
 
 template<template<typename...> typename Operator, typename... Arguments>
-constexpr bool Detect_V = detail::Detector<detail::No_Type, void, Operator, Arguments...>::Value_t::value;
+constexpr bool Detect_V =
+    detail::Detector<detail::No_Type, void, Operator, Arguments...>::Value_t::value;
 
 template<typename Default_Value, template<typename...> typename Operator, typename... Arguments>
-using Detect_Default = detail::Detector<Default_Value, void, Operator, Arguments...>;
+using Detect_Default =
+    detail::Detector<Default_Value, void, Operator, Arguments...>;
 
 template<typename Default_Value, template<typename...> typename Operator, typename... Arguments>
-using Detect_Default_T = typename Detect_Default<Default_Value, Operator, Arguments...>::Type;
+using Detect_Default_T =
+    typename Detect_Default<Default_Value, Operator, Arguments...>::Type;
 
 template<typename Default_Value, template<typename...> typename Operator, typename... Arguments>
-constexpr bool Detect_Default_V = Detect_Default<Default_Value, Operator, Arguments...>::Value_t::value;
+constexpr bool Detect_Default_V =
+    Detect_Default<Default_Value, Operator, Arguments...>::Value_t::value;
 
 } // namespace dsa
 

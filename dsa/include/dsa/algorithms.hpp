@@ -37,8 +37,7 @@ namespace dsa
  * results in popping the top element invalidating the heap
  */
 template<typename Iterator, typename Comparator>
-bool is_heap(Iterator begin, Iterator end, const Comparator &comparator)
-{
+bool is_heap(Iterator begin, Iterator end, Comparator const &comparator) {
 	bool increment_parent = false;
 	for (Iterator parent = begin, child = begin + 1; child < end; ++child)
 	{
@@ -62,8 +61,7 @@ bool is_heap(Iterator begin, Iterator end, const Comparator &comparator)
  *  comparator(first, second)
  */
 template<typename Iterator>
-bool is_sorted(Iterator begin, Iterator end, const auto &comparator)
-{
+bool is_sorted(Iterator begin, Iterator end, auto const &comparator) {
 	if (begin == end)
 	{
 		return true;
@@ -83,8 +81,7 @@ bool is_sorted(Iterator begin, Iterator end, const auto &comparator)
  *  @brief Checks if the given range is sorted in ascending order
  */
 template<typename Iterator>
-bool is_sorted(Iterator begin, Iterator end)
-{
+bool is_sorted(Iterator begin, Iterator end) {
 	return dsa::is_sorted(begin, end, std::less{});
 }
 
@@ -93,8 +90,7 @@ bool is_sorted(Iterator begin, Iterator end)
  *  comparator(first, second)
  */
 template<typename Iterator>
-void insertion_sort(Iterator begin, Iterator end, const auto &comparator)
-{
+void insertion_sort(Iterator begin, Iterator end, auto const &comparator) {
 	using std::swap;
 
 	if (begin == end)
@@ -115,8 +111,7 @@ void insertion_sort(Iterator begin, Iterator end, const auto &comparator)
  *  @brief Uses insertion sort to sort the given range in ascending order
  */
 template<typename Iterator>
-void insertion_sort(Iterator begin, Iterator end)
-{
+void insertion_sort(Iterator begin, Iterator end) {
 	return insertion_sort(begin, end, std::less{});
 }
 

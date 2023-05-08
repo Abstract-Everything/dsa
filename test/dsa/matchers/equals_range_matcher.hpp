@@ -11,13 +11,11 @@ namespace test
 template<typename Range>
 struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase
 {
-	explicit EqualsRangeMatcher(Range const &range) : range{range}
-	{
+	explicit EqualsRangeMatcher(Range const &range) : range{range} {
 	}
 
 	template<typename OtherRange>
-	bool match(OtherRange const &other) const
-	{
+	bool match(OtherRange const &other) const {
 		return std::equal(
 		    std::begin(range),
 		    std::end(range),
@@ -25,8 +23,7 @@ struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase
 		    std::end(other));
 	}
 
-	std::string describe() const override
-	{
+	std::string describe() const override {
 		return "Equals: " + Catch::rangeToString(range);
 	}
 
@@ -35,15 +32,13 @@ struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase
 };
 
 template<typename Range>
-auto EqualsRange(const Range &range) -> EqualsRangeMatcher<Range>
-{
+auto EqualsRange(Range const &range) -> EqualsRangeMatcher<Range> {
 	return EqualsRangeMatcher<Range>{range};
 }
 
 template<typename T>
 auto EqualsRange(std::initializer_list<T> const &range)
-    -> EqualsRangeMatcher<std::initializer_list<T>>
-{
+    -> EqualsRangeMatcher<std::initializer_list<T>> {
 	return EqualsRangeMatcher<std::initializer_list<T>>{range};
 }
 

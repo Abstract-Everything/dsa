@@ -18,17 +18,20 @@ template<typename Satellite_t, template<typename> typename Allocator_Base>
 class List_Node
 {
  private:
+	// clang-format off
 	using Alloc_Traits  = Allocator_Traits<Allocator_Base<List_Node>>;
 	using Allocator     = typename Alloc_Traits::Allocator;
 	using Pointer       = typename Alloc_Traits::Pointer;
 	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
-	using Satellite_Traits = Allocator_Traits<Allocator_Base<Satellite_t>>;
+	using Satellite_Traits          = Allocator_Traits<Allocator_Base<Satellite_t>>;
 	using Satellite_Value           = typename Satellite_Traits::Value;
 	using Satellite_Reference       = typename Satellite_Traits::Reference;
 	using Satellite_Const_Reference = typename Satellite_Traits::Const_Reference;
 	using Satellite_Pointer         = typename Satellite_Traits::Pointer;
 	using Satellite_Const_Pointer   = typename Satellite_Traits::Const_Pointer;
+
+	// clang-format on
 
 	template<bool Is_Const>
 	class Iterator_Detail
@@ -52,12 +55,10 @@ class List_Node
 		using reference         = Reference;
 		using pointer           = Pointer;
 
-		explicit Iterator_Detail(Node_Pointer node) : m_node(node)
-		{
+		explicit Iterator_Detail(Node_Pointer node) : m_node(node) {
 		}
 
-		Iterator_Detail operator++()
-		{
+		Iterator_Detail operator++() {
 			m_node = m_node->m_next;
 			Iterator_Detail iterator(m_node);
 			return iterator;
@@ -66,13 +67,11 @@ class List_Node
 		auto operator<=>(Iterator_Detail const &iterator) const
 		    -> bool = default;
 
-		Reference operator*() const
-		{
+		Reference operator*() const {
 			return m_node->m_satellite;
 		}
 
-		Pointer operator->() const
-		{
+		Pointer operator->() const {
 			return m_node->m_satellite;
 		}
 
@@ -87,16 +86,14 @@ class List_Node
 	template<typename... Arguments>
 	explicit List_Node(Arguments &&...arguments)
 	    : m_satellite(std::forward<Arguments>(arguments)...)
-	    , m_next(nullptr)
-	{
+	    , m_next(nullptr) {
 	}
 
 	Satellite_Value m_satellite;
 	Pointer         m_next = nullptr;
 
 	friend auto operator<<(std::ostream &stream, List_Node const &node)
-	    -> std::ostream &
-	{
+	    -> std::ostream & {
 		// clang-format off
 		return stream << '{'
 				<< node.m_next
@@ -145,9 +142,8 @@ class List
 	/**
 	 * @brief Constructs an empty list
 	 */
-	explicit List(const Allocator &allocator = Allocator{})
-	    : m_allocator(allocator)
-	{
+	explicit List(Allocator const &allocator = Allocator{})
+	    : m_allocator(allocator) {
 	}
 
 	/**
@@ -155,9 +151,8 @@ class List
 	 */
 	List(
 	    std::initializer_list<Value_t> values,
-	    const Allocator               &allocator = Allocator())
-	    : m_allocator(allocator)
-	{
+	    Allocator const               &allocator = Allocator())
+	    : m_allocator(allocator) {
 		Node_Pointer *owner = &m_head;
 		for (auto const &value : values)
 		{
@@ -166,13 +161,11 @@ class List
 		}
 	}
 
-	~List()
-	{
+	~List() {
 		clear();
 	}
 
-	List(List const &list) : m_allocator(list.m_allocator)
-	{
+	List(List const &list) : m_allocator(list.m_allocator) {
 		Node_Pointer *owner = &m_head;
 		for (auto const &iterator : list)
 		{
@@ -182,8 +175,7 @@ class List
 		}
 	}
 
-	friend void swap(List &lhs, List &rhs)
-	{
+	friend void swap(List &lhs, List &rhs) {
 		using std::swap;
 		swap(lhs.m_allocator, rhs.m_allocator);
 		swap(lhs.m_head, rhs.m_head);
@@ -191,34 +183,28 @@ class List
 
 	List(List &&list) noexcept
 	    : m_allocator(std::move(list.m_allocator))
-	    , m_head(std::move(list.m_head))
-	{
+	    , m_head(std::move(list.m_head)) {
 		list.m_head = nullptr;
 	}
 
-	auto operator=(List list) noexcept -> List &
-	{
+	auto operator=(List list) noexcept -> List & {
 		swap(*this, list);
 		return *this;
 	}
 
-	[[nodiscard]] auto begin() -> Iterator
-	{
+	[[nodiscard]] auto begin() -> Iterator {
 		return Iterator(m_head);
 	}
 
-	[[nodiscard]] auto begin() const -> Const_Iterator
-	{
+	[[nodiscard]] auto begin() const -> Const_Iterator {
 		return Const_Iterator(m_head);
 	}
 
-	[[nodiscard]] auto end() -> Iterator
-	{
+	[[nodiscard]] auto end() -> Iterator {
 		return Iterator(nullptr);
 	}
 
-	[[nodiscard]] auto end() const -> Const_Iterator
-	{
+	[[nodiscard]] auto end() const -> Const_Iterator {
 		return Const_Iterator(nullptr);
 	}
 
@@ -226,8 +212,7 @@ class List
 	 * @brief Gets the number of elements currently in the list.
 	 * Note: This operation is not constant as the size is not cached
 	 */
-	[[nodiscard]] auto size() const -> std::size_t
-	{
+	[[nodiscard]] auto size() const -> std::size_t {
 		size_t list_size = 0;
 		for ([[maybe_unused]] auto const &iterator : *this)
 		{
@@ -240,8 +225,7 @@ class List
 	 * @brief Gets the first element in the list. This is undefined
 	 * behaviour if the list is empty
 	 */
-	[[nodiscard]] auto front() -> Reference
-	{
+	[[nodiscard]] auto front() -> Reference {
 		return m_head->m_satellite;
 	}
 
@@ -249,24 +233,21 @@ class List
 	 * @brief Gets the first element in the list. This is undefined
 	 * behaviour if the list is empty
 	 */
-	[[nodiscard]] auto front() const -> Const_Reference
-	{
+	[[nodiscard]] auto front() const -> Const_Reference {
 		return m_head->m_satellite;
 	}
 
 	/**
 	 * @brief Returns true if the list contains no elements
 	 */
-	[[nodiscard]] auto empty() const -> bool
-	{
+	[[nodiscard]] auto empty() const -> bool {
 		return m_head == nullptr;
 	}
 
 	/**
 	 * @brief Clears all elements from the list
 	 */
-	void clear()
-	{
+	void clear() {
 		Node_Pointer node = m_head;
 		while (node != nullptr)
 		{
@@ -280,8 +261,7 @@ class List
 	/**
 	 * @brief Inserts the given value at the front of the list
 	 */
-	void prepend(Value_t value)
-	{
+	void prepend(Value_t value) {
 		insert(0, std::move(value));
 	}
 
@@ -289,8 +269,7 @@ class List
 	 * @brief Inserts the given value at the given index. The behaviour is
 	 * undefined if the index is outside of the range: [0, size()]
 	 */
-	void insert(std::size_t index, Value_t value)
-	{
+	void insert(std::size_t index, Value_t value) {
 		Node_Pointer node = create_node(std::move(value));
 
 		Node_Pointer *owner = at(index);
@@ -302,8 +281,7 @@ class List
 	 * @brief Erases the value at the front of the list. The behaviour is
 	 * undefined if the list is empty
 	 */
-	void detatch_front()
-	{
+	void detatch_front() {
 		erase(0);
 	}
 
@@ -311,21 +289,18 @@ class List
 	 * @brief Erases the value at the given index. The behaviour is
 	 * undefined if the index is outside of the list size.
 	 */
-	void erase(std::size_t index)
-	{
+	void erase(std::size_t index) {
 		Node_Pointer *owner  = at(index);
 		Node_Pointer  remove = *owner;
 		*owner               = remove->m_next;
 		destroy_node(remove);
 	}
 
-	friend bool operator==(List const &lhs, List const &rhs) noexcept
-	{
+	friend bool operator==(List const &lhs, List const &rhs) noexcept {
 		return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 	}
 
-	friend bool operator!=(List const &lhs, List const &rhs) noexcept
-	{
+	friend bool operator!=(List const &lhs, List const &rhs) noexcept {
 		return !(lhs == rhs);
 	}
 
@@ -334,8 +309,7 @@ class List
 	Node_Pointer   m_head = nullptr;
 
 	template<typename... Arguments>
-	auto create_node(Arguments &&...arguments) -> Node_Pointer
-	{
+	auto create_node(Arguments &&...arguments) -> Node_Pointer {
 		Node_Pointer node = Node_Traits::allocate(m_allocator, 1);
 		Node_Traits::construct(
 		    m_allocator,
@@ -344,8 +318,7 @@ class List
 		return node;
 	}
 
-	void destroy_node(Node_Pointer node)
-	{
+	void destroy_node(Node_Pointer node) {
 		Node_Traits::destroy(m_allocator, node);
 		Node_Traits::deallocate(m_allocator, node, 1);
 	}
@@ -354,8 +327,7 @@ class List
 	 * @brief Gets the node at the given index. The behaviour is undefined
 	 * if the index is outside of the list range
 	 */
-	auto at(std::size_t index) -> Node_Pointer *
-	{
+	auto at(std::size_t index) -> Node_Pointer * {
 		Node_Pointer *node = &m_head;
 		for (std::size_t i = 0; i < index; ++i)
 		{

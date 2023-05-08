@@ -17,8 +17,7 @@ using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
 
 TEST_CASE(
     "Vector provides multiple constructors for easy initialisation",
-    "[vector]")
-{
+    "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
@@ -26,8 +25,7 @@ TEST_CASE(
 	constexpr int    default_value = int{};
 	constexpr int    value         = 5;
 
-	SECTION("Default initialisation set size and capacity to zero")
-	{
+	SECTION("Default initialisation set size and capacity to zero") {
 		Vector vector;
 
 		REQUIRE(vector.empty());
@@ -36,8 +34,7 @@ TEST_CASE(
 	}
 
 	SECTION(
-	    "Custom size initialised vector with default constructed values")
-	{
+	    "Custom size initialised vector with default constructed values") {
 		Vector vector(count);
 
 		REQUIRE_FALSE(vector.empty());
@@ -46,8 +43,7 @@ TEST_CASE(
 		REQUIRE_THAT(vector, EqualsRange({default_value, default_value}));
 	}
 
-	SECTION("Construct using custom size and custom value")
-	{
+	SECTION("Construct using custom size and custom value") {
 		Vector vector(count, value);
 
 		REQUIRE_FALSE(vector.empty());
@@ -55,8 +51,7 @@ TEST_CASE(
 		REQUIRE_THAT(vector, EqualsRange({value, value}));
 	}
 
-	SECTION("Construct using list initialisation")
-	{
+	SECTION("Construct using list initialisation") {
 		std::initializer_list<int> list{1, 2, 3};
 
 		Vector vector(list);
@@ -68,13 +63,11 @@ TEST_CASE(
 	}
 }
 
-TEST_CASE("Vectors can be compared", "[vectors]")
-{
+TEST_CASE("Vectors can be compared", "[vectors]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
-	SECTION("Empty vectors are equal")
-	{
+	SECTION("Empty vectors are equal") {
 		Vector lhs;
 		Vector rhs;
 
@@ -83,8 +76,7 @@ TEST_CASE("Vectors can be compared", "[vectors]")
 		REQUIRE_FALSE(lhs != rhs);
 	}
 
-	SECTION("Vectors differing is size are unequal")
-	{
+	SECTION("Vectors differing is size are unequal") {
 		Vector lhs(3ULL);
 		Vector rhs(5ULL);
 
@@ -92,8 +84,7 @@ TEST_CASE("Vectors can be compared", "[vectors]")
 		REQUIRE(lhs != rhs);
 	}
 
-	SECTION("Vector with a differing element are unequal")
-	{
+	SECTION("Vector with a differing element are unequal") {
 		Vector lhs{1, 2, 2};
 		Vector rhs{1, 2, 3};
 
@@ -101,8 +92,7 @@ TEST_CASE("Vectors can be compared", "[vectors]")
 		REQUIRE(lhs != rhs);
 	}
 
-	SECTION("Vectors with same size and element order are equal")
-	{
+	SECTION("Vectors with same size and element order are equal") {
 		Vector lhs{1, 2, 3};
 		Vector rhs{1, 2, 3};
 
@@ -110,8 +100,7 @@ TEST_CASE("Vectors can be compared", "[vectors]")
 		REQUIRE_FALSE(lhs != rhs);
 	}
 
-	SECTION("Vectors capacity does not affect equality")
-	{
+	SECTION("Vectors capacity does not affect equality") {
 		Vector lhs{1, 2, 3};
 		Vector rhs{1, 2, 3};
 
@@ -122,21 +111,18 @@ TEST_CASE("Vectors can be compared", "[vectors]")
 	}
 }
 
-TEST_CASE("Vectors can be copied", "[vector]")
-{
+TEST_CASE("Vectors can be copied", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 	Vector        vector{1, 2, 2};
 
-	SECTION("Vectors can be copy constructed")
-	{
+	SECTION("Vectors can be copy constructed") {
 		Vector copy(vector);
 
 		REQUIRE(vector == copy);
 	}
 
-	SECTION("Vectors can be copy assigned")
-	{
+	SECTION("Vectors can be copy assigned") {
 		Vector copy{0};
 		copy = vector;
 
@@ -144,16 +130,14 @@ TEST_CASE("Vectors can be copied", "[vector]")
 	}
 }
 
-TEST_CASE("Vectors can be moved", "[vector]")
-{
+TEST_CASE("Vectors can be moved", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> list{1, 2, 3};
 	Vector                     temporary{list};
 
-	SECTION("Vectors can be move constructed")
-	{
+	SECTION("Vectors can be move constructed") {
 		Vector vector(std::move(temporary));
 
 		REQUIRE(temporary.data() == nullptr);
@@ -162,8 +146,7 @@ TEST_CASE("Vectors can be moved", "[vector]")
 		REQUIRE_THAT(vector, EqualsRange(list));
 	}
 
-	SECTION("Vectors can be move assigned")
-	{
+	SECTION("Vectors can be move assigned") {
 		Vector vector{0};
 		vector = std::move(temporary);
 
@@ -172,8 +155,7 @@ TEST_CASE("Vectors can be moved", "[vector]")
 	}
 }
 
-TEST_CASE("Vectors can be swapped", "[vector]")
-{
+TEST_CASE("Vectors can be swapped", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
@@ -189,8 +171,7 @@ TEST_CASE("Vectors can be swapped", "[vector]")
 	REQUIRE_THAT(vector_b, EqualsRange(list_a));
 }
 
-TEST_CASE("Vector provides an interface to access its elements", "[vector]")
-{
+TEST_CASE("Vector provides an interface to access its elements", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
@@ -200,24 +181,20 @@ TEST_CASE("Vector provides an interface to access its elements", "[vector]")
 	std::initializer_list<int> list{front, mid, back};
 	Vector                     vector{list};
 
-	SECTION("Elements can be accessed through the subscript operator")
-	{
+	SECTION("Elements can be accessed through the subscript operator") {
 		REQUIRE_THAT(vector, EqualsRange(list));
 	}
 
-	SECTION("The underlying buffer can be accessed through data")
-	{
+	SECTION("The underlying buffer can be accessed through data") {
 		REQUIRE(vector.data() == &vector[0]);
 	}
 
-	SECTION("Iterators can be access through the begin and end functions")
-	{
+	SECTION("Iterators can be access through the begin and end functions") {
 		REQUIRE(vector.data() == vector.begin());
 		REQUIRE(vector.data() + vector.size() == vector.end());
 	}
 
-	SECTION("The first element can be accessed through a function")
-	{
+	SECTION("The first element can be accessed through a function") {
 		REQUIRE(vector.front() == front);
 
 		vector.erase(0);
@@ -225,8 +202,7 @@ TEST_CASE("Vector provides an interface to access its elements", "[vector]")
 		REQUIRE(vector.front() == mid);
 	}
 
-	SECTION("The last element can be accessed through a function")
-	{
+	SECTION("The last element can be accessed through a function") {
 		REQUIRE(vector.back() == back);
 
 		vector.erase(list.size() - 1);
@@ -235,8 +211,7 @@ TEST_CASE("Vector provides an interface to access its elements", "[vector]")
 	}
 }
 
-TEST_CASE("Elements can be appended to the vector", "[vector]")
-{
+TEST_CASE("Elements can be appended to the vector", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
@@ -249,15 +224,13 @@ TEST_CASE("Elements can be appended to the vector", "[vector]")
 	REQUIRE_THAT(vector, EqualsRange(expected));
 }
 
-TEST_CASE("Elements can be inserted into the vector", "[vector]")
-{
+TEST_CASE("Elements can be inserted into the vector", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Vector vector(4ULL, 2);
 
-	SECTION("Insertion at the front shifts buffer elements backwards")
-	{
+	SECTION("Insertion at the front shifts buffer elements backwards") {
 		std::initializer_list<int> expected{3, 2, 2, 2, 2};
 
 		vector.insert(0ULL, Vector::Value(3));
@@ -266,8 +239,7 @@ TEST_CASE("Elements can be inserted into the vector", "[vector]")
 		REQUIRE_THAT(vector, EqualsRange(expected));
 	}
 
-	SECTION("Insertion at the middle shifts later elements backwards")
-	{
+	SECTION("Insertion at the middle shifts later elements backwards") {
 		std::initializer_list<int> expected{2, 2, 3, 2, 2};
 
 		vector.insert(2ULL, Vector::Value(3));
@@ -276,8 +248,7 @@ TEST_CASE("Elements can be inserted into the vector", "[vector]")
 		REQUIRE_THAT(vector, EqualsRange(expected));
 	}
 
-	SECTION("Insertion at the end preserves earlier elements")
-	{
+	SECTION("Insertion at the end preserves earlier elements") {
 		std::initializer_list<int> expected{2, 2, 2, 2, 3};
 
 		vector.insert(vector.size(), Vector::Value(3));
@@ -287,15 +258,13 @@ TEST_CASE("Elements can be inserted into the vector", "[vector]")
 	}
 }
 
-TEST_CASE("Elements can be erased from the vector", "[vector]")
-{
+TEST_CASE("Elements can be erased from the vector", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Vector vector{1, 2, 3};
 
-	SECTION("Erasing the front element shifs buffer elements forward")
-	{
+	SECTION("Erasing the front element shifs buffer elements forward") {
 		std::initializer_list<int> expected{2, 3};
 
 		vector.erase(0ULL);
@@ -304,8 +273,7 @@ TEST_CASE("Elements can be erased from the vector", "[vector]")
 		REQUIRE_THAT(vector, EqualsRange(expected));
 	}
 
-	SECTION("Erasing a middle element shifts later elements forward")
-	{
+	SECTION("Erasing a middle element shifts later elements forward") {
 		std::initializer_list<int> expected{1, 3};
 
 		vector.erase(1ULL);
@@ -314,8 +282,7 @@ TEST_CASE("Elements can be erased from the vector", "[vector]")
 		REQUIRE_THAT(vector, EqualsRange(expected));
 	}
 
-	SECTION("Erasing at the end preserves earlier elements")
-	{
+	SECTION("Erasing at the end preserves earlier elements") {
 		std::initializer_list<int> expected{1, 2};
 
 		vector.erase(2ULL);
@@ -325,8 +292,7 @@ TEST_CASE("Elements can be erased from the vector", "[vector]")
 	}
 }
 
-TEST_CASE("Vectors can be shrunk to free unused memory", "[vector]")
-{
+TEST_CASE("Vectors can be shrunk to free unused memory", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
@@ -344,8 +310,7 @@ TEST_CASE("Vectors can be shrunk to free unused memory", "[vector]")
 	REQUIRE_THAT(vector, EqualsRange(list));
 }
 
-TEST_CASE("Vectors can be cleared of all the current elements", "[vector]")
-{
+TEST_CASE("Vectors can be cleared of all the current elements", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
@@ -356,15 +321,13 @@ TEST_CASE("Vectors can be cleared of all the current elements", "[vector]")
 	REQUIRE(vector.size() == 0);
 }
 
-TEST_CASE("Vectors can be resized", "[vector]")
-{
+TEST_CASE("Vectors can be resized", "[vector]") {
 	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Vector vector{1, 2, 3, 4};
 
-	SECTION("Choosing a smaller size trmis excess elements")
-	{
+	SECTION("Choosing a smaller size trmis excess elements") {
 		std::initializer_list<int> expected{1, 2};
 
 		vector.resize(expected.size());
@@ -373,8 +336,7 @@ TEST_CASE("Vectors can be resized", "[vector]")
 		REQUIRE_THAT(vector, EqualsRange(expected));
 	}
 
-	SECTION("Choosing the same size leaves the vector unchanged")
-	{
+	SECTION("Choosing the same size leaves the vector unchanged") {
 		std::initializer_list<int> expected{1, 2, 3, 4};
 
 		vector.resize(expected.size());
@@ -383,8 +345,7 @@ TEST_CASE("Vectors can be resized", "[vector]")
 		REQUIRE_THAT(vector, EqualsRange(expected));
 	}
 
-	SECTION("Chhosing a larger size default initialises new elements")
-	{
+	SECTION("Chhosing a larger size default initialises new elements") {
 		std::initializer_list<int> expected{1, 2, 3, 4, 0, 0};
 
 		vector.resize(expected.size());

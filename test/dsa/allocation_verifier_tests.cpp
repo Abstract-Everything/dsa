@@ -18,14 +18,12 @@ using Single_Field_Allocator =
 using Single_Field_Alloc_Traits = dsa::Allocator_Traits<Single_Field_Allocator>;
 using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
 
-TEST_CASE("Default construction reports no errors", "[allocation_verifier]")
-{
+TEST_CASE("Default construction reports no errors", "[allocation_verifier]") {
 	Handler_Scope scope;
 	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
 }
 
-TEST_CASE("Monitor detects memory leak", "[allocation_verifier]")
-{
+TEST_CASE("Monitor detects memory leak", "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -38,8 +36,7 @@ TEST_CASE("Monitor detects memory leak", "[allocation_verifier]")
 
 TEST_CASE(
     "Monitor verifies deallocate address matches previous allocate address",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -55,8 +52,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Monitor verifiers deallocate count matches previous allocate count",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -72,8 +68,7 @@ TEST_CASE(
 
 TEST_CASE(
     "An allocate followed by a valid deallocate raises no error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -85,8 +80,7 @@ TEST_CASE(
 	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
 }
 
-TEST_CASE("Allocations can only be deallocated once", "[allocation_verifier]")
-{
+TEST_CASE("Allocations can only be deallocated once", "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -105,15 +99,14 @@ TEST_CASE("Allocations can only be deallocated once", "[allocation_verifier]")
 
 TEST_CASE(
     "Multiple allocations each require a deallocation",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
 	size_t count_a = 1;
-	auto  memory_a = Single_Field_Alloc_Traits::allocate(verifier, count_a);
+	auto memory_a  = Single_Field_Alloc_Traits::allocate(verifier, count_a);
 	size_t count_b = 2;
-	auto  memory_b = Single_Field_Alloc_Traits::allocate(verifier, count_b);
+	auto memory_b  = Single_Field_Alloc_Traits::allocate(verifier, count_b);
 	size_t count_c = 3;
 	Single_Field_Alloc_Traits::allocate(verifier, count_c);
 
@@ -127,8 +120,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Deallocating constructed elements raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -145,8 +137,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Constructed elements left undestroyed raise an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -164,8 +155,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Calling construct on already constructed memory raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -185,8 +175,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Objects initialised through a copy also require destruction",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -205,8 +194,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Objects initialised through move construction also require destruction",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -225,8 +213,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Copy construct from uninitialised memory raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -246,8 +233,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Move construct from uninitialised memory raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -267,8 +253,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Copy assign from uninitialised memory raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -289,8 +274,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Move assign from uninitialised memory raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -311,8 +295,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Assign to uninitialized memory raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -331,8 +314,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Performing move assign on uninitialized memory raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -351,8 +333,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Values can be used to copy construct and assign multiple times",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -373,8 +354,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Values can be used to move construct only once",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -393,8 +373,9 @@ TEST_CASE(
 	    assign_from_uninitialized_memory);
 }
 
-TEST_CASE("Values can be used to move assign only once", "[allocation_verifier]")
-{
+TEST_CASE(
+    "Values can be used to move assign only once",
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -413,8 +394,7 @@ TEST_CASE("Values can be used to move assign only once", "[allocation_verifier]"
 	    assign_from_uninitialized_memory);
 }
 
-TEST_CASE("Construct can be called on moved values", "[allocation_verifier]")
-{
+TEST_CASE("Construct can be called on moved values", "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -431,8 +411,7 @@ TEST_CASE("Construct can be called on moved values", "[allocation_verifier]")
 	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
 }
 
-TEST_CASE("Moved memory can be reassigned", "[allocation_verifier]")
-{
+TEST_CASE("Moved memory can be reassigned", "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -449,8 +428,9 @@ TEST_CASE("Moved memory can be reassigned", "[allocation_verifier]")
 	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
 }
 
-TEST_CASE("Moved into memory is considered initialised", "[allocation_verifier]")
-{
+TEST_CASE(
+    "Moved into memory is considered initialised",
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -470,8 +450,7 @@ TEST_CASE("Moved into memory is considered initialised", "[allocation_verifier]"
 
 TEST_CASE(
     "Calling destroy on unconstructed memory raises an error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -489,8 +468,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Objects move constructed from allocated memory require no destruction",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -507,8 +485,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Objects move assigned from allocated memory require no destruction",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -526,8 +503,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Objects copied from allocated memory still require desturction",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -546,8 +522,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Objects created through move assignment still require destruction",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -567,8 +542,7 @@ TEST_CASE(
 
 TEST_CASE(
     "A construct followed by a destroy raises no error",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope          scope;
 	Single_Field_Allocator verifier;
 
@@ -588,17 +562,15 @@ TEST_CASE(
 
 TEST_CASE(
     "Objects allocated on the stack do not raise errors",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope scope;
-	{
-		Single_Field_Allocator::Value value;
-	}
+	{ Single_Field_Allocator::Value value; }
 	REQUIRE_NOTHROW(Allocation_Verifier::instance()->cleanup());
 }
 
-TEST_CASE("allocated on the stack do not raise errors", "[allocation_verifier]")
-{
+TEST_CASE(
+    "allocated on the stack do not raise errors",
+    "[allocation_verifier]") {
 	Handler_Scope scope;
 	{
 		Single_Field_Allocator::Value value_a;
@@ -615,8 +587,7 @@ struct Multiple_Field_Struct
 	Multiple_Field_Struct() = default;
 
 	friend auto operator<<(std::ostream &stream, Multiple_Field_Struct const &data)
-	    -> std::ostream &
-	{
+	    -> std::ostream & {
 		// clang-format off
 		return stream << '{'
 			          << data.field_a
@@ -634,8 +605,7 @@ using Multiple_Field_Alloc_Traits =
 
 TEST_CASE(
     "Complex structures can have overlapping construct calls",
-    "[allocation_verifier]")
-{
+    "[allocation_verifier]") {
 	Handler_Scope            scope;
 	Multiple_Field_Allocator verifier;
 

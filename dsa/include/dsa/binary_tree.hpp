@@ -17,6 +17,7 @@ template<typename Satellite_t, template<typename> typename Allocator_Base>
 class Binary_Tree_Node
 {
  private:
+	// clang-format off
 	using Alloc_Traits = Allocator_Traits<Allocator_Base<Binary_Tree_Node>>;
 	using Allocator    = typename Alloc_Traits::Allocator;
 	using Pointer      = typename Alloc_Traits::Pointer;
@@ -28,6 +29,8 @@ class Binary_Tree_Node
 	using Satellite_Const_Pointer   = typename Satellite_Alloc_Traits::Const_Reference;
 	using Satellite_Reference       = typename Satellite_Alloc_Traits::Reference;
 	using Satellite_Const_Reference = typename Satellite_Alloc_Traits::Const_Reference;
+
+	// clang-format on
 
 	template<bool Is_Const>
 	class Iterator_Detail
@@ -55,42 +58,35 @@ class Binary_Tree_Node
 		using reference         = Reference;
 		using pointer           = Pointer;
 
-		explicit Iterator_Detail(Node_Pointer node) : m_node(node)
-		{
+		explicit Iterator_Detail(Node_Pointer node) : m_node(node) {
 		}
 
-		Iterator_Detail operator++()
-		{
+		Iterator_Detail operator++() {
 			m_node = next(m_node);
 			Iterator_Detail iterator(m_node);
 			return iterator;
 		}
 
-		bool operator==(Iterator_Detail const &iterator) const
-		{
+		bool operator==(Iterator_Detail const &iterator) const {
 			return m_node == iterator.m_node;
 		}
 
-		bool operator!=(Iterator_Detail const &iterator) const
-		{
+		bool operator!=(Iterator_Detail const &iterator) const {
 			return !this->operator==(iterator);
 		}
 
-		Reference operator*() const
-		{
+		Reference operator*() const {
 			return m_node->m_satellite;
 		}
 
-		Pointer operator->() const
-		{
+		Pointer operator->() const {
 			return m_node->m_satellite;
 		}
 
 	 private:
 		Node_Pointer m_node;
 
-		Node_Pointer next(Node_Pointer node)
-		{
+		Node_Pointer next(Node_Pointer node) {
 			if (node == nullptr)
 			{
 				return nullptr;
@@ -139,13 +135,11 @@ class Binary_Tree_Node
 	    : m_parent(nullptr)
 	    , m_left(nullptr)
 	    , m_right(nullptr)
-	    , m_satellite(std::forward<Arguments>(arguments)...)
-	{
+	    , m_satellite(std::forward<Arguments>(arguments)...) {
 	}
 
 	friend auto operator<<(std::ostream &stream, Binary_Tree_Node const &node)
-	    -> std::ostream &
-	{
+	    -> std::ostream & {
 		// clang-format off
 		return stream << '{'
 				<< node.m_left
@@ -195,9 +189,8 @@ class Binary_Tree
 	/**
 	 * @brief Constructs an empty binary tree
 	 */
-	explicit Binary_Tree(const Allocator &allocator = Allocator{})
-	    : m_allocator(allocator)
-	{
+	explicit Binary_Tree(Allocator const &allocator = Allocator{})
+	    : m_allocator(allocator) {
 	}
 
 	/**
@@ -205,42 +198,36 @@ class Binary_Tree
 	 */
 	Binary_Tree(
 	    std::initializer_list<Value_t> values,
-	    const Allocator               &allocator = Allocator())
-	    : m_allocator(allocator)
-	{
+	    Allocator const               &allocator = Allocator())
+	    : m_allocator(allocator) {
 		for (auto value : values)
 		{
 			insert(value);
 		}
 	}
 
-	~Binary_Tree()
-	{
+	~Binary_Tree() {
 		clear();
 	}
 
 	Binary_Tree(Binary_Tree const &binary_tree)
 	    : m_allocator(binary_tree.m_allocator)
-	    , m_head(copy_subtree(nullptr, binary_tree.m_head))
-	{
+	    , m_head(copy_subtree(nullptr, binary_tree.m_head)) {
 	}
 
 	Binary_Tree(Binary_Tree &&binary_tree) noexcept
 	    : m_allocator(binary_tree.m_allocator)
-	    , m_head(binary_tree.m_head)
-	{
+	    , m_head(binary_tree.m_head) {
 		binary_tree.m_head = nullptr;
 	}
 
-	friend void swap(Binary_Tree &lhs, Binary_Tree &rhs)
-	{
+	friend void swap(Binary_Tree &lhs, Binary_Tree &rhs) {
 		using std::swap;
 		swap(lhs.m_allocator, rhs.m_allocator);
 		swap(lhs.m_head, rhs.m_head);
 	}
 
-	Binary_Tree &operator=(Binary_Tree binary_tree) noexcept
-	{
+	Binary_Tree &operator=(Binary_Tree binary_tree) noexcept {
 		swap(*this, binary_tree);
 		return *this;
 	}
@@ -248,13 +235,11 @@ class Binary_Tree
 	/**
 	 * @brief Returns true if the binary tree contains no elements
 	 */
-	[[nodiscard]] bool empty() const
-	{
+	[[nodiscard]] bool empty() const {
 		return m_head == nullptr;
 	}
 
-	[[nodiscard]] Iterator begin()
-	{
+	[[nodiscard]] Iterator begin() {
 		Node_Pointer node = m_head;
 		while (node != nullptr && node->m_left != nullptr)
 		{
@@ -263,8 +248,7 @@ class Binary_Tree
 		return Iterator(node);
 	}
 
-	[[nodiscard]] Const_Iterator begin() const
-	{
+	[[nodiscard]] Const_Iterator begin() const {
 		Node_Pointer node = m_head;
 		while (node != nullptr && node->m_left != nullptr)
 		{
@@ -273,13 +257,11 @@ class Binary_Tree
 		return Const_Iterator(node);
 	}
 
-	[[nodiscard]] Iterator end()
-	{
+	[[nodiscard]] Iterator end() {
 		return Iterator(nullptr);
 	}
 
-	[[nodiscard]] Const_Iterator end() const
-	{
+	[[nodiscard]] Const_Iterator end() const {
 		return Const_Iterator(nullptr);
 	}
 
@@ -287,16 +269,14 @@ class Binary_Tree
 	 * @brief Gets the number of elements currently in the binary tree.
 	 * Note: This operation is not constant as the size is not cached
 	 */
-	[[nodiscard]] std::size_t size() const
-	{
+	[[nodiscard]] std::size_t size() const {
 		return count_nodes(m_head);
 	}
 
 	/**
 	 * @brief Clears all elements from the binary tree
 	 */
-	void clear()
-	{
+	void clear() {
 		delete_node(m_head);
 		m_head = nullptr;
 	}
@@ -304,8 +284,7 @@ class Binary_Tree
 	/**
 	 * @brief Returns true if the binary tree contains the given element
 	 */
-	[[nodiscard]] bool contains(const Value_t &value) const
-	{
+	[[nodiscard]] bool contains(Value_t const &value) const {
 		Node_Const_Pointer node = m_head;
 		while (node != nullptr)
 		{
@@ -322,8 +301,7 @@ class Binary_Tree
 	/**
 	 * @brief Adds the given element into the binary tree
 	 */
-	void insert(Value_t value)
-	{
+	void insert(Value_t value) {
 		Node_Pointer insert = create_node(std::move(value));
 
 		Node_Pointer  parent   = nullptr;
@@ -345,8 +323,7 @@ class Binary_Tree
 	 * @brief Removes the given element from the binary tree. The behaviour
 	 * is undefined if the value is not present in the binary tree
 	 */
-	void erase(Value_t value)
-	{
+	void erase(Value_t value) {
 		Node_Pointer *pointer = &m_head;
 		while ((*pointer)->m_satellite != value)
 		{
@@ -365,7 +342,7 @@ class Binary_Tree
 		}
 		else if (node->m_right != nullptr)
 		{
-			*pointer = node->m_right;
+			*pointer             = node->m_right;
 			(*pointer)->m_parent = node->m_parent;
 
 			node->m_right = nullptr;
@@ -378,13 +355,11 @@ class Binary_Tree
 		}
 	}
 
-	friend bool operator==(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
-	{
+	friend bool operator==(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept {
 		return lhs.size() == rhs.size() && is_subset(lhs.m_head, rhs);
 	}
 
-	friend bool operator!=(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept
-	{
+	friend bool operator!=(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept {
 		return !(lhs == rhs);
 	}
 
@@ -394,8 +369,7 @@ class Binary_Tree
 	 */
 	[[nodiscard]] static bool same_structure(
 	    Binary_Tree const &lhs,
-	    Binary_Tree const &rhs) noexcept
-	{
+	    Binary_Tree const &rhs) noexcept {
 		return compare_structure(lhs.m_head, rhs.m_head);
 	}
 
@@ -404,8 +378,7 @@ class Binary_Tree
 
 	Node_Pointer m_head = nullptr;
 
-	std::size_t count_nodes(Node_Const_Pointer node) const
-	{
+	std::size_t count_nodes(Node_Const_Pointer node) const {
 		if (node == nullptr)
 		{
 			return 0;
@@ -415,16 +388,14 @@ class Binary_Tree
 
 	[[nodiscard]] static bool is_subset(
 	    Node_Pointer       node,
-	    Binary_Tree const &binary_tree)
-	{
+	    Binary_Tree const &binary_tree) {
 		return (node == nullptr)
 		       || (binary_tree.contains(node->m_satellite)
 			   && is_subset(node->m_left, binary_tree)
 			   && is_subset(node->m_right, binary_tree));
 	}
 
-	[[nodiscard]] static bool compare_structure(Node_Pointer lhs, Node_Pointer rhs)
-	{
+	[[nodiscard]] static bool compare_structure(Node_Pointer lhs, Node_Pointer rhs) {
 		return (lhs == rhs)
 		       || (lhs != nullptr && rhs != nullptr
 			   && lhs->m_satellite == rhs->m_satellite
@@ -432,23 +403,23 @@ class Binary_Tree
 			   && compare_structure(lhs->m_right, rhs->m_right));
 	}
 
-	[[nodiscard]] Node_Pointer copy_subtree(Node_Pointer parent, Node_Pointer subtree)
-	{
+	[[nodiscard]] Node_Pointer copy_subtree(
+	    Node_Pointer parent,
+	    Node_Pointer subtree) {
 		if (subtree == nullptr)
 		{
 			return nullptr;
 		}
 
 		Node_Pointer root = create_node(subtree->m_satellite);
-		root->m_parent = parent;
-		root->m_left   = copy_subtree(root, subtree->m_left);
-		root->m_right  = copy_subtree(root, subtree->m_right);
+		root->m_parent    = parent;
+		root->m_left      = copy_subtree(root, subtree->m_left);
+		root->m_right     = copy_subtree(root, subtree->m_right);
 		return root;
 	}
 
 	template<typename... Arguments>
-	Node_Pointer create_node(Arguments &&...arguments)
-	{
+	Node_Pointer create_node(Arguments &&...arguments) {
 		Node_Pointer pointer = Node_Traits::allocate(m_allocator, 1);
 		Node_Traits::construct(
 		    m_allocator,
@@ -457,14 +428,12 @@ class Binary_Tree
 		return pointer;
 	}
 
-	void destroy_node(Node_Pointer node)
-	{
+	void destroy_node(Node_Pointer node) {
 		Node_Traits::destroy(m_allocator, node);
 		Node_Traits::deallocate(m_allocator, node, 1);
 	}
 
-	void delete_node(Node_Pointer node)
-	{
+	void delete_node(Node_Pointer node) {
 		if (node == nullptr)
 		{
 			return;
@@ -476,8 +445,7 @@ class Binary_Tree
 		destroy_node(node);
 	}
 
-	Node_Pointer extract_previous_node(Node_Pointer node)
-	{
+	Node_Pointer extract_previous_node(Node_Pointer node) {
 		assert(node->m_left != nullptr && "");
 		if (node->m_left->m_right == nullptr)
 		{

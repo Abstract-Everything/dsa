@@ -7,8 +7,7 @@ namespace test
 {
 
 struct No_Default_Constructor_Value_Construct_Tag
-{
-};
+{};
 
 /// This class can only be constructed from the accompanying tag. This allows us
 /// to test that the object was constructed using the provided arguments and not
@@ -17,9 +16,9 @@ class No_Default_Constructor_Value
 {
  public:
 	constexpr explicit No_Default_Constructor_Value() = delete;
+
 	constexpr explicit No_Default_Constructor_Value(
-	    No_Default_Constructor_Value_Construct_Tag /* tag */)
-	{
+	    No_Default_Constructor_Value_Construct_Tag /* tag */) {
 	}
 
 	constexpr ~No_Default_Constructor_Value() = default;
@@ -35,8 +34,7 @@ class No_Default_Constructor_Value
 
 	friend auto operator<<(
 	    std::ostream &stream,
-	    No_Default_Constructor_Value const & /*value*/) -> std::ostream &
-	{
+	    No_Default_Constructor_Value const & /*value*/) -> std::ostream & {
 		return stream << "{}";
 	}
 };

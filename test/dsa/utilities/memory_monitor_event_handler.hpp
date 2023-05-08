@@ -24,8 +24,8 @@ using Event_Type = std::variant<
     dsa::Object_Event<No_Default_Constructor_Value>,
     dsa::Object_Event<No_Default_Constructor_Value *>>;
 
-inline auto operator<<(std::ostream &stream, Event_Type const &event) -> std::ostream &
-{
+inline auto operator<<(std::ostream &stream, Event_Type const &event)
+    -> std::ostream & {
 	std::visit(
 	    dsa::Overloaded_Lambda{
 		[&](std::monostate const &) { stream << "<not-found>"; },
@@ -40,58 +40,49 @@ inline auto operator<<(std::ostream &stream, Event_Type const &event) -> std::os
 class Event_Handler
 {
  public:
-	static auto instance() -> std::unique_ptr<Event_Handler> &
-	{
+	static auto instance() -> std::unique_ptr<Event_Handler> & {
 		static std::unique_ptr<Event_Handler> instance = nullptr;
 		return instance;
 	}
 
 	template<typename T>
 	static auto before_deallocate(dsa::Allocation_Event<T> /* event */)
-	    -> bool
-	{
+	    -> bool {
 		return instance()->m_allow_deallocate;
 	}
 
 	template<typename T>
-	static void process_allocation_event(dsa::Allocation_Event<T> event)
-	{
+	static void process_allocation_event(dsa::Allocation_Event<T> event) {
 		instance()->m_events.push_back(event);
 	}
 
 	template<typename T>
-	static void process_object_event(dsa::Object_Event<T> event)
-	{
+	static void process_object_event(dsa::Object_Event<T> event) {
 		instance()->m_events.push_back(event);
 	}
 
-	void cleanup()
-	{
+	void cleanup() {
 	}
 
-	void block_deallocate()
-	{
+	void block_deallocate() {
 		m_allow_deallocate = false;
 	}
 
-	void unblock_deallocate()
-	{
+	void unblock_deallocate() {
 		m_allow_deallocate = true;
 	}
 
-	[[nodiscard]] static auto events() -> std::vector<Event_Type> const &
-	{
+	[[nodiscard]] static auto events() -> std::vector<Event_Type> const & {
 		return instance()->m_events;
 	}
 
 	template<dsa::Memory_Monitor_Event T>
 	[[nodiscard]] auto last_event(
 	    std::optional<typename T::Event_Type> const &type = std::nullopt) const
-	    -> Event_Type
-	{
+	    -> Event_Type {
 		for (auto it = m_events.rbegin(); it != m_events.rend(); ++it)
 		{
-			const bool found = std::visit(
+			bool const found = std::visit(
 			    dsa::Overloaded_Lambda{
 				[](auto &&) -> bool { return false; },
 				[&](T const &instance) -> bool {

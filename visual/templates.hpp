@@ -38,7 +38,8 @@ constexpr bool is_detected_v = is_detected<Op, Args...>::value;
                                                                            \
 	template<typename T, typename... Params>                           \
 	constexpr bool has_##name##_v =                                    \
-	    tmpl::detail::is_detected_v<name##_t, T, Params...> // Intentionally ommitted ';'
+	    tmpl::detail::is_detected_v<name##_t, T, Params...> // Intentionally
+								// ommitted ';'
 
 #define DEFINE_HAS_MEMBER(name) DEFINE_HAS_OPERATION(member_##name, name)
 
@@ -49,8 +50,7 @@ constexpr bool is_detected_v = is_detected<Op, Args...>::value;
 	DEFINE_HAS_OPERATION(operator_dereference, operator*)
 
 template<typename Variant_Type, std::size_t variant_index = 0>
-constexpr void construct_variant_by_index(Variant_Type &variant, std::size_t index)
-{
+constexpr void construct_variant_by_index(Variant_Type &variant, std::size_t index) {
 	if constexpr (variant_index == std::variant_size_v<Variant_Type>)
 	{
 		return;

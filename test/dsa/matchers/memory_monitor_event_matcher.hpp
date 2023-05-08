@@ -11,20 +11,18 @@ namespace test
 struct EqualsMemoryMonitorEventMatcher : Catch::Matchers::MatcherGenericBase
 {
 	explicit EqualsMemoryMonitorEventMatcher(Event_Type event)
-	    : m_event(event)
-	{
+	    : m_event(event) {
 	}
 
-	bool match(Event_Type const &other) const
-	{
+	bool match(Event_Type const &other) const {
 		return other == m_event;
 	}
 
-	std::string describe() const override
-	{
+	std::string describe() const override {
 		std::stringstream stream;
-		stream << "\nEquals:\n" << m_event << "\n\nAll the events received:";
-		for (auto const& event : Event_Handler::events())
+		stream << "\nEquals:\n"
+		       << m_event << "\n\nAll the events received:";
+		for (auto const &event : Event_Handler::events())
 		{
 			stream << "\n" << event;
 		}
@@ -37,24 +35,21 @@ struct EqualsMemoryMonitorEventMatcher : Catch::Matchers::MatcherGenericBase
 
 template<typename T>
 auto EqualsEvent(dsa::Allocation_Event_Type type, T *pointer, size_t count)
-    -> EqualsMemoryMonitorEventMatcher
-{
+    -> EqualsMemoryMonitorEventMatcher {
 	return EqualsMemoryMonitorEventMatcher(
 	    Event_Type(dsa::Allocation_Event(type, pointer, count)));
 }
 
 template<typename T>
 auto EqualsEvent(dsa::Object_Event_Type type, T *destination)
-    -> EqualsMemoryMonitorEventMatcher
-{
+    -> EqualsMemoryMonitorEventMatcher {
 	return EqualsMemoryMonitorEventMatcher(
 	    Event_Type(dsa::Object_Event(type, destination)));
 }
 
 template<typename T>
 auto EqualsEvent(dsa::Object_Event_Type type, T *destination, T const *source)
-    -> EqualsMemoryMonitorEventMatcher
-{
+    -> EqualsMemoryMonitorEventMatcher {
 	return EqualsMemoryMonitorEventMatcher(
 	    Event_Type(dsa::Object_Event(type, destination, source)));
 }

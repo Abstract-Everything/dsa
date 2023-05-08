@@ -14,8 +14,7 @@ namespace dsa
 {
 
 template<typename T>
-auto numeric_address(T *pointer) -> uintptr_t
-{
+auto numeric_address(T *pointer) -> uintptr_t {
 	return reinterpret_cast<uintptr_t>(pointer);
 }
 
@@ -33,72 +32,60 @@ class Allocation_Element
 
 	[[nodiscard]] virtual auto address() const -> uintptr_t = 0;
 
-	[[nodiscard]] auto leaf() const -> bool
-	{
+	[[nodiscard]] auto leaf() const -> bool {
 		return m_fields.empty();
 	}
 
-	[[nodiscard]] auto initialised() const -> bool
-	{
+	[[nodiscard]] auto initialised() const -> bool {
 		return m_state == State::Initialised;
 	}
 
-	[[nodiscard]] auto assignable() const -> bool
-	{
+	[[nodiscard]] auto assignable() const -> bool {
 		return m_state == State::Initialised || m_state == State::Moved;
 	}
 
-	[[nodiscard]] auto destructable() const -> bool
-	{
+	[[nodiscard]] auto destructable() const -> bool {
 		return m_state == State::Initialised || m_state == State::Moved;
 	}
 
-	void move()
-	{
+	void move() {
 		m_state = State::Moved;
 	}
 
-	void assign(std::string value)
-	{
+	void assign(std::string value) {
 		m_state = State::Initialised;
 		update_value(std::move(value));
 	}
 
-	void construct(std::string value)
-	{
+	void construct(std::string value) {
 		m_state = State::Initialised;
 		update_value(std::move(value));
 	}
 
-	void destroy()
-	{
+	void destroy() {
 		m_state = State::Uninitialised;
 	}
 
-	[[nodiscard]] auto value() const -> std::string
-	{
+	[[nodiscard]] auto value() const -> std::string {
 		return initialised() ? m_value : "";
 	}
 
 	template<typename T>
 	void start_construction(T *address);
 
-	[[nodiscard]] std::vector<Element> const &fields() const
-	{
+	[[nodiscard]] std::vector<Element> const &fields() const {
 		return m_fields;
 	}
 
 	template<typename T>
 	[[nodiscard]] auto field_at(T const *address) const
-	    -> std::optional<std::reference_wrapper<const Allocation_Element>>
-	{
+	    -> std::optional<std::reference_wrapper<Allocation_Element const>> {
 		return field_at_impl(address);
 	}
 
 	template<typename T>
 	[[nodiscard]] auto field_at(T const *address)
-	    -> std::optional<std::reference_wrapper<Allocation_Element>>
-	{
+	    -> std::optional<std::reference_wrapper<Allocation_Element>> {
 		return field_at_impl(address);
 	}
 
@@ -107,8 +94,7 @@ class Allocation_Element
 
 	Allocation_Element(Allocation_Element const &element)
 	    : m_state(element.m_state)
-	    , m_value(element.m_value)
-	{
+	    , m_value(element.m_value) {
 		m_fields.reserve(element.m_fields.size());
 		for (auto const &field : element.m_fields)
 		{
@@ -145,8 +131,7 @@ class Allocation_Element
 
 	template<typename T>
 	[[nodiscard]] auto field_at_impl(T const *address)
-	    -> std::optional<std::reference_wrapper<Allocation_Element>>
-	{
+	    -> std::optional<std::reference_wrapper<Allocation_Element>> {
 		const uintptr_t raw_address = numeric_address(address);
 		assert(contains_address(raw_address));
 		if (match_address(address))
@@ -157,8 +142,9 @@ class Allocation_Element
 		auto element = std::find_if(
 		    m_fields.begin(),
 		    m_fields.end(),
-		    [&](auto const &element)
-		    { return element->contains_address(raw_address); });
+		    [&](auto const &element) {
+			    return element->contains_address(raw_address);
+		    });
 
 		if (element == m_fields.end())
 		{
@@ -168,8 +154,7 @@ class Allocation_Element
 		return (*element)->field_at_impl(address);
 	}
 
-	void update_value(std::string &&value)
-	{
+	void update_value(std::string &&value) {
 		m_value = std::move(value);
 	}
 };
@@ -180,35 +165,29 @@ class Allocation_Element_Typed : public Allocation_Element
  public:
 	explicit Allocation_Element_Typed(T *address)
 	    : Allocation_Element()
-	    , m_address(address)
-	{
+	    , m_address(address) {
 	}
 
 	Allocation_Element_Typed(Allocation_Element_Typed const &element)
 	    : Allocation_Element(element)
-	    , m_address(element.m_address)
-	{
+	    , m_address(element.m_address) {
 	}
 
 	[[nodiscard]] auto clone() const
-	    -> std::unique_ptr<Allocation_Element> override
-	{
+	    -> std::unique_ptr<Allocation_Element> override {
 		return std::make_unique<Allocation_Element_Typed>(*this);
 	}
 
-	[[nodiscard]] auto pointer() const -> bool override
-	{
+	[[nodiscard]] auto pointer() const -> bool override {
 		return std::is_pointer_v<T>;
 	}
 
-	[[nodiscard]] auto address() const -> uintptr_t override
-	{
+	[[nodiscard]] auto address() const -> uintptr_t override {
 		return numeric_address(m_address);
 	}
 
 	[[nodiscard]] auto match_address(std::any const &address) const
-	    -> bool override
-	{
+	    -> bool override {
 		if (auto *typed_address = std::any_cast<T *>(&address))
 		{
 			return *typed_address == m_address;
@@ -222,8 +201,7 @@ class Allocation_Element_Typed : public Allocation_Element
 	}
 
 	[[nodiscard]] auto contains_address(uintptr_t address) const
-	    -> bool override
-	{
+	    -> bool override {
 		uintptr_t base = numeric_address(m_address);
 		return address >= base && address < base + sizeof(*m_address);
 	}
@@ -233,8 +211,7 @@ class Allocation_Element_Typed : public Allocation_Element
 };
 
 template<typename T>
-void Allocation_Element::start_construction(T *address)
-{
+void Allocation_Element::start_construction(T *address) {
 	assert(contains_address(numeric_address(address)));
 	if (match_address(address))
 	{
@@ -245,8 +222,9 @@ void Allocation_Element::start_construction(T *address)
 	auto element = std::find_if(
 	    m_fields.begin(),
 	    m_fields.end(),
-	    [&](std::unique_ptr<Allocation_Element> const &element)
-	    { return element->contains_address(numeric_address(address)); });
+	    [&](std::unique_ptr<Allocation_Element> const &element) {
+		    return element->contains_address(numeric_address(address));
+	    });
 	if (element == m_fields.end())
 	{
 		auto pointer =
@@ -286,31 +264,26 @@ class Allocation_Block
 
 	[[nodiscard]] virtual auto owns_allocation() const -> bool = 0;
 
-	[[nodiscard]] virtual auto all_elements_destroyed() const
-	    -> bool = 0;
+	[[nodiscard]] virtual auto all_elements_destroyed() const -> bool = 0;
 
-	[[nodiscard]] std::vector<Element> const &fields() const
-	{
+	[[nodiscard]] std::vector<Element> const &fields() const {
 		return m_elements;
 	}
 
 	template<typename T>
-	[[nodiscard]] auto field_at(const T *address) const
-	    -> std::optional<std::reference_wrapper<const Allocation_Element>>
-	{
+	[[nodiscard]] auto field_at(T const *address) const
+	    -> std::optional<std::reference_wrapper<Allocation_Element const>> {
 		return element(numeric_address(address)).field_at(address);
 	}
 
 	template<typename T>
-	[[nodiscard]] auto field_at(const T *address)
-	    -> std::optional<std::reference_wrapper<Allocation_Element>>
-	{
+	[[nodiscard]] auto field_at(T const *address)
+	    -> std::optional<std::reference_wrapper<Allocation_Element>> {
 		return element(numeric_address(address)).field_at(address);
 	}
 
 	template<typename T>
-	void start_construction(T *address)
-	{
+	void start_construction(T *address) {
 		element(numeric_address(address)).start_construction(address);
 	}
 
@@ -335,8 +308,7 @@ class Allocation_Block_Typed : public Allocation_Block
 	Allocation_Block_Typed(Allocation_Type allocation_type, Type *address, size_t count)
 	    : Allocation_Block()
 	    , m_allocation_type(allocation_type)
-	    , m_address(address)
-	{
+	    , m_address(address) {
 		m_elements.reserve(count);
 		for (size_t i = 0; i < count; ++i)
 		{
@@ -349,8 +321,7 @@ class Allocation_Block_Typed : public Allocation_Block
 	Allocation_Block_Typed(Allocation_Block_Typed const &block)
 	    : Allocation_Block()
 	    , m_allocation_type(block.m_allocation_type)
-	    , m_address(block.m_address)
-	{
+	    , m_address(block.m_address) {
 		m_elements.reserve(block.m_elements.size());
 		for (auto const &element : block.m_elements)
 		{
@@ -363,49 +334,40 @@ class Allocation_Block_Typed : public Allocation_Block
 	~Allocation_Block_Typed() override = default;
 
 	[[nodiscard]] auto clone() const
-	    -> std::unique_ptr<Allocation_Block> override
-	{
+	    -> std::unique_ptr<Allocation_Block> override {
 		auto copy = std::make_unique<Allocation_Block_Typed>(*this);
 		return std::move(copy);
 	}
 
-	[[nodiscard]] auto count() const -> size_t override
-	{
+	[[nodiscard]] auto count() const -> size_t override {
 		return m_elements.size();
 	}
 
-	[[nodiscard]]  auto address() const -> uintptr_t override
-	{
+	[[nodiscard]] auto address() const -> uintptr_t override {
 		return numeric_address(m_address);
 	}
 
-	[[nodiscard]] auto match_address(uintptr_t target) const -> bool override
-	{
+	[[nodiscard]] auto match_address(uintptr_t target) const -> bool override {
 		return address() == target;
 	}
 
-	[[nodiscard]] auto contains(uintptr_t target) const -> bool override
-	{
+	[[nodiscard]] auto contains(uintptr_t target) const -> bool override {
 		return target >= numeric_address(m_address)
 		       && target < numeric_address(m_address + count());
 	}
 
-	[[nodiscard]] auto owns_allocation() const -> bool override
-	{
+	[[nodiscard]] auto owns_allocation() const -> bool override {
 		return m_allocation_type == Allocation_Type::Owned;
 	}
 
-	[[nodiscard]] auto all_elements_destroyed() const -> bool override
-	{
+	[[nodiscard]] auto all_elements_destroyed() const -> bool override {
 		return std::none_of(
 		    m_elements.begin(),
 		    m_elements.end(),
-		    [](Element const &element)
-		    { return element->initialised(); });
+		    [](Element const &element) { return element->initialised(); });
 	}
 
-	void cleanup() override
-	{
+	void cleanup() override {
 		if (!owns_allocation())
 		{
 			return;
@@ -421,8 +383,7 @@ class Allocation_Block_Typed : public Allocation_Block
 		}
 	}
 
-	void deallocate() override
-	{
+	void deallocate() override {
 		if (!owns_allocation())
 		{
 			return;
@@ -439,8 +400,7 @@ class Allocation_Block_Typed : public Allocation_Block
 	Allocation_Type m_allocation_type;
 	Type           *m_address;
 
-	[[nodiscard]] auto element_index(uintptr_t address) const -> size_t
-	{
+	[[nodiscard]] auto element_index(uintptr_t address) const -> size_t {
 		assert(
 		    contains(address)
 		    && "Expected the address to be inside of the allocation");
@@ -451,14 +411,12 @@ class Allocation_Block_Typed : public Allocation_Block
 	}
 
 	[[nodiscard]] auto element(uintptr_t address)
-	    -> Allocation_Element & override
-	{
+	    -> Allocation_Element & override {
 		return *m_elements[element_index(address)];
 	}
 
 	[[nodiscard]] auto element(uintptr_t address) const
-	    -> Allocation_Element const & override
-	{
+	    -> Allocation_Element const & override {
 		return *m_elements[element_index(address)];
 	}
 };
@@ -471,8 +429,7 @@ class Memory_Representation
  public:
 	Memory_Representation() = default;
 
-	Memory_Representation(Memory_Representation const &memory_representation)
-	{
+	Memory_Representation(Memory_Representation const &memory_representation) {
 		m_allocations.reserve(memory_representation.m_allocations.size());
 		for (auto const &allocation : memory_representation.m_allocations)
 		{
@@ -483,15 +440,13 @@ class Memory_Representation
 	Memory_Representation(Memory_Representation &&memory_representation) = default;
 
  public:
-	[[nodiscard]] Allocations const &allocations() const
-	{
+	[[nodiscard]] Allocations const &allocations() const {
 		return m_allocations;
 	}
 
 	template<typename T>
 	[[nodiscard]] std::optional<std::reference_wrapper<Allocation_Block>> allocation_at(
-	    T *address)
-	{
+	    T *address) {
 		for (auto &allocation : m_allocations)
 		{
 			if (allocation->match_address(numeric_address(address)))
@@ -503,9 +458,8 @@ class Memory_Representation
 	}
 
 	template<typename T>
-	auto field_at(const T *address) const
-	    -> std::optional<std::reference_wrapper<Allocation_Element>>
-	{
+	auto field_at(T const *address) const
+	    -> std::optional<std::reference_wrapper<Allocation_Element>> {
 		for (auto const &allocation : m_allocations)
 		{
 			if (allocation->contains(numeric_address(address)))
@@ -518,9 +472,8 @@ class Memory_Representation
 	}
 
 	template<typename T>
-	auto field_at(const T *address)
-	    -> std::optional<std::reference_wrapper<Allocation_Element>>
-	{
+	auto field_at(T const *address)
+	    -> std::optional<std::reference_wrapper<Allocation_Element>> {
 		for (auto &allocation : m_allocations)
 		{
 			if (allocation->contains(numeric_address(address)))
@@ -533,8 +486,7 @@ class Memory_Representation
 	}
 
 	template<typename T>
-	void process_event(dsa::Allocation_Event<T> event)
-	{
+	void process_event(dsa::Allocation_Event<T> event) {
 		switch (event.type())
 		{
 		case dsa::Allocation_Event_Type::Allocate:
@@ -545,19 +497,16 @@ class Memory_Representation
 			break;
 
 		case dsa::Allocation_Event_Type::Deallocate:
-			std::erase_if(
-			    m_allocations,
-			    [&](auto const &allocation) {
-				    return allocation->match_address(
-					numeric_address(event.address()));
-			    });
+			std::erase_if(m_allocations, [&](auto const &allocation) {
+				return allocation->match_address(
+				    numeric_address(event.address()));
+			});
 			break;
 		}
 	}
 
 	template<typename T>
-	void process_event(dsa::Object_Event<T> event)
-	{
+	void process_event(dsa::Object_Event<T> event) {
 		if (event.moving())
 		{
 			auto result = field_at(event.source());
@@ -567,17 +516,20 @@ class Memory_Representation
 			result.value().get().move();
 		}
 
-		const auto field = field_at(event.destination());
+		auto const field = field_at(event.destination());
 		assert(
 		    (field.has_value()
 		     || event.type() == dsa::Object_Event_Type::Before_Construct)
-		    && "Field should only be absent when we first construct it");
+		    && "Field should only be absent when we first construct "
+		       "it");
 
 		switch (event.type())
 		{
 		case dsa::Object_Event_Type::Before_Construct:
 		{
-			if (!allocation_containing(numeric_address(event.destination())).has_value())
+			if (!allocation_containing(
+				 numeric_address(event.destination()))
+				 .has_value())
 			{
 				// If we do not find an allocation with this
 				// address we assume that this is a stack
@@ -619,9 +571,10 @@ class Memory_Representation
 		case dsa::Object_Event_Type::Destroy:
 			field.value().get().destroy();
 			{
-				auto allocation = allocation_containing(field.value().get().address());
+				auto allocation = allocation_containing(
+				    field.value().get().address());
 				assert(allocation.has_value());
-				Allocation_Block& a = allocation.value().get();
+				Allocation_Block &a = allocation.value().get();
 				if (!a.owns_allocation()
 				    && a.all_elements_destroyed())
 				{
@@ -641,33 +594,29 @@ class Memory_Representation
 		}
 	}
 
-	void free_heap_allocations()
-	{
+	void free_heap_allocations() {
 		for (auto &allocation : m_allocations)
 		{
 			allocation->cleanup();
 			allocation->deallocate();
 		}
 
-		std::erase_if(
-		    m_allocations,
-		    [](auto const &allocation)
-		    { return allocation->owns_allocation(); });
+		std::erase_if(m_allocations, [](auto const &allocation) {
+			return allocation->owns_allocation();
+		});
 	}
 
  private:
 	Allocations m_allocations;
 
 	template<typename T>
-	void add_allocation(Allocation_Type type, T *address, size_t count)
-	{
+	void add_allocation(Allocation_Type type, T *address, size_t count) {
 		m_allocations.emplace_back(
 		    std::make_unique<Allocation_Block_Typed<T>>(type, address, count));
 	}
 
 	[[nodiscard]] std::optional<std::reference_wrapper<Allocation_Block>> allocation_containing(
-	    uintptr_t raw_address)
-	{
+	    uintptr_t raw_address) {
 		for (auto &allocation : m_allocations)
 		{
 			if (allocation->contains(raw_address))

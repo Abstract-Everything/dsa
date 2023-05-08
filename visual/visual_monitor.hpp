@@ -15,20 +15,17 @@ class Visual_Monitor
  public:
 	template<typename T>
 	static auto before_deallocate(dsa::Allocation_Event<T> /* event */)
-	    -> bool
-	{
+	    -> bool {
 		return true;
 	}
 
 	template<typename T>
-	static void process_allocation_event(dsa::Allocation_Event<T> event)
-	{
+	static void process_allocation_event(dsa::Allocation_Event<T> event) {
 		Main_Window::add_event(std::move(event));
 	}
 
 	template<typename T>
-	static void process_object_event(dsa::Object_Event<T> event)
-	{
+	static void process_object_event(dsa::Object_Event<T> event) {
 		Main_Window::add_event(std::move(event));
 	}
 };

@@ -36,14 +36,13 @@ DEFINE_HAS_OPERATOR_ACCESS();
 
 // TODO: Use std::random_access_iterator concepts
 template<typename T>
-concept Is_Random_Access_Iterator = requires(T i, T j, size_t n)
-{
-    { i + n };
-    { i - n };
-    { i == j };
-    { i != j };
-    { --i };
-    { ++i };
+concept Is_Random_Access_Iterator = requires(T i, T j, size_t n) {
+	{ i + n };
+	{ i - n };
+	{ i == j };
+	{ i != j };
+	{ --i };
+	{ ++i };
 };
 
 template<typename Container>
@@ -80,12 +79,13 @@ class Actions_UI
 	bool is_in_range(std::size_t index);
 	bool is_last_index(std::size_t index);
 
-	void section(const char *label, void (Actions_UI::*interface)());
-	void index_input(const char *label, int &value, bool allow_end_index);
-	bool conditional_button(const char *label, bool enabled);
+	void section(char const *label, void (Actions_UI::*interface)());
+	void index_input(char const *label, int &value, bool allow_end_index);
+	bool conditional_button(char const *label, bool enabled);
 
 	std::string element_value(typename Container::Const_Reference value);
 
+	// clang-format off
 	static constexpr bool has_empty           = has_member_empty_v<Container>;
 	static constexpr bool has_size            = has_member_size_v<Container>;
 	static constexpr bool has_capacity        = has_member_capacity_v<Container>;
@@ -107,6 +107,7 @@ class Actions_UI
 	// construct a Value from a size_t, this will result in a false positive
 	static constexpr bool has_indexed_erase   = has_member_erase_v<Container, std::size_t> && !has_value_erase;
 	static constexpr bool has_pop             = has_member_pop_v<Container>;
+	// clang-format on
 
 	template<typename Allocator>
 	using Has_Iterator = typename Allocator::Iterator;
@@ -120,8 +121,7 @@ class Actions_UI
 };
 
 template<typename Container>
-void Actions_UI<Container>::draw()
-{
+void Actions_UI<Container>::draw() {
 	Enable_Event_Registration_Scope::block_events();
 	section("Properties", &Actions_UI::properties);
 	section("Accessors", &Actions_UI::accessors);
@@ -129,8 +129,7 @@ void Actions_UI<Container>::draw()
 }
 
 template<typename Container>
-void Actions_UI<Container>::properties()
-{
+void Actions_UI<Container>::properties() {
 	if constexpr (has_empty)
 	{
 		ImGui::LabelText("Is empty", m_container.empty() ? "true" : "false");
@@ -148,8 +147,7 @@ void Actions_UI<Container>::properties()
 }
 
 template<typename Container>
-void Actions_UI<Container>::accessors()
-{
+void Actions_UI<Container>::accessors() {
 	if constexpr (has_front)
 	{
 		ImGui::LabelText(
@@ -165,8 +163,9 @@ void Actions_UI<Container>::accessors()
 		ImGui::LabelText(
 		    "Back element",
 		    "%s",
-		    m_container.empty() ? "Container is empty"
-					: element_value(m_container.back()).c_str());
+		    m_container.empty()
+			? "Container is empty"
+			: element_value(m_container.back()).c_str());
 	}
 
 	if constexpr (has_top)
@@ -174,15 +173,16 @@ void Actions_UI<Container>::accessors()
 		ImGui::LabelText(
 		    "Top element",
 		    "%s",
-		    m_container.empty() ? "Container is empty"
-					: element_value(m_container.top()).c_str());
+		    m_container.empty()
+			? "Container is empty"
+			: element_value(m_container.top()).c_str());
 	}
 
 	if constexpr (has_operator_access)
 	{
 		ImGui::Separator();
 		index_input("Index to read", m_read, false);
-		const auto  read  = static_cast<std::size_t>(m_read);
+		auto const read = static_cast<std::size_t>(m_read);
 		ImGui::LabelText(
 		    "Value read",
 		    "%s",
@@ -192,8 +192,7 @@ void Actions_UI<Container>::accessors()
 }
 
 template<typename Container>
-void Actions_UI<Container>::modifiers()
-{
+void Actions_UI<Container>::modifiers() {
 	if constexpr (has_clear)
 	{
 		ImGui::Text("Remove all the elements from the container");
@@ -224,7 +223,7 @@ void Actions_UI<Container>::modifiers()
 		if (ImGui::Button("Resize"))
 		{
 			Enable_Event_Registration_Scope scope;
-			const auto size = static_cast<std::size_t>(m_resize);
+			auto const size = static_cast<std::size_t>(m_resize);
 			m_container.resize(size);
 		}
 	}
@@ -235,7 +234,7 @@ void Actions_UI<Container>::modifiers()
 		index_input("Index of element to write", m_write, false);
 		ImGui::InputInt("Value to write", &m_write_value);
 
-		const auto write = static_cast<std::size_t>(m_write);
+		auto const write = static_cast<std::size_t>(m_write);
 		if (conditional_button("Write", is_in_range(write)))
 		{
 			Enable_Event_Registration_Scope scope;
@@ -260,7 +259,7 @@ void Actions_UI<Container>::modifiers()
 		index_input("Index of element to insert", m_insert, true);
 		ImGui::InputInt("Insert Value", &m_insert_value);
 
-		const auto insert = static_cast<std::size_t>(m_insert);
+		auto const insert = static_cast<std::size_t>(m_insert);
 		if (conditional_button(
 			"Indexed Insert",
 			is_in_range(insert) || is_last_index(insert)))
@@ -300,7 +299,7 @@ void Actions_UI<Container>::modifiers()
 
 		index_input("Index of element to erase", m_erase, false);
 
-		const auto erase = static_cast<std::size_t>(m_erase);
+		auto const erase = static_cast<std::size_t>(m_erase);
 		if (conditional_button("Erase", is_in_range(erase)))
 		{
 			Enable_Event_Registration_Scope scope;
@@ -348,20 +347,19 @@ void Actions_UI<Container>::modifiers()
 }
 
 template<typename Container>
-bool Actions_UI<Container>::is_in_range(std::size_t index)
-{
+bool Actions_UI<Container>::is_in_range(std::size_t index) {
 	return m_container.size() > index;
 }
 
 template<typename Container>
-bool Actions_UI<Container>::is_last_index(std::size_t index)
-{
+bool Actions_UI<Container>::is_last_index(std::size_t index) {
 	return m_container.size() == index;
 }
 
 template<typename Container>
-void Actions_UI<Container>::section(const char *label, void (Actions_UI::*interface)())
-{
+void Actions_UI<Container>::section(
+    char const *label,
+    void (Actions_UI::*interface)()) {
 	if (!ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		return;
@@ -373,17 +371,18 @@ void Actions_UI<Container>::section(const char *label, void (Actions_UI::*interf
 }
 
 template<typename Container>
-void Actions_UI<Container>::index_input(const char *label, int &value, bool allow_end_index)
-{
-	const auto size      = static_cast<int>(m_container.size());
-	const auto max_index = std::max(0, allow_end_index ? size : size - 1);
+void Actions_UI<Container>::index_input(
+    char const *label,
+    int        &value,
+    bool        allow_end_index) {
+	auto const size      = static_cast<int>(m_container.size());
+	auto const max_index = std::max(0, allow_end_index ? size : size - 1);
 	value                = std::clamp(value, 0, max_index);
 	ImGui::SliderInt(label, &value, 0, max_index);
 }
 
 template<typename Container>
-bool Actions_UI<Container>::conditional_button(const char *label, bool enabled)
-{
+bool Actions_UI<Container>::conditional_button(char const *label, bool enabled) {
 	if (!enabled)
 	{
 		ImGui::BeginDisabled();
@@ -401,8 +400,7 @@ bool Actions_UI<Container>::conditional_button(const char *label, bool enabled)
 
 template<typename Container>
 std::string Actions_UI<Container>::element_value(
-    typename Container::Const_Reference value)
-{
+    typename Container::Const_Reference value) {
 	std::stringstream stream;
 	stream << value;
 	return stream.str();

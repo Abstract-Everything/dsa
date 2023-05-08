@@ -11,8 +11,7 @@ namespace test
 class Memory_Monitor_Event_Handler_Fixture
 {
  public:
-	Memory_Monitor_Event_Handler_Fixture()
-	{
+	Memory_Monitor_Event_Handler_Fixture() {
 		if (Event_Handler::instance() != nullptr)
 		{
 			std::cerr << "The handler's lifetime should "
@@ -23,8 +22,7 @@ class Memory_Monitor_Event_Handler_Fixture
 		Event_Handler::instance() = std::make_unique<Event_Handler>();
 	}
 
-	~Memory_Monitor_Event_Handler_Fixture()
-	{
+	~Memory_Monitor_Event_Handler_Fixture() {
 		if (Event_Handler::instance() == nullptr)
 		{
 			std::cerr << "The handler's lifetime should only be "
@@ -49,6 +47,6 @@ class Memory_Monitor_Event_Handler_Fixture
 	    Memory_Monitor_Event_Handler_Fixture &&) = delete;
 };
 
-}
+} // namespace test
 
 #endif
