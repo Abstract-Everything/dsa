@@ -1,5 +1,6 @@
 #include "allocation_verifier.hpp"
 #include "memory_monitor_handler_scope.hpp"
+#include "incomparable_value.hpp"
 
 #include <dsa/algorithms.hpp>
 #include <dsa/dynamic_array.hpp>
@@ -243,6 +244,80 @@ TEST_CASE("Insertion sort correctly sorts an array", "[algorithms]") {
 			    array.end(),
 			    Smaller_By_Two{}));
 		}
+	}
+}
+
+TEST_CASE("Linear search finds first occurence of element", "[algorithms]") {
+	SECTION("Search does not find element in empty array") {
+		dsa::Dynamic_Array<int> array;
+
+		auto element = dsa::linear_search(array.begin(), array.end(), 0);
+
+		REQUIRE_FALSE(element.has_value());
+	}
+
+	SECTION("Search does not find absent element in a single element array") {
+		dsa::Dynamic_Array array{0};
+
+		auto element = dsa::linear_search(array.begin(), array.end(), 1);
+
+		REQUIRE_FALSE(element.has_value());
+	}
+
+	SECTION("Search finds element in a single element array") {
+		dsa::Dynamic_Array array{0};
+
+		auto element = dsa::linear_search(array.begin(), array.end(), 0);
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.begin());
+	}
+
+	SECTION("Search does not find absent element in a multi-element array") {
+		dsa::Dynamic_Array array{53, 31, 45, 21, 33};
+
+		auto element = dsa::linear_search(array.begin(), array.end(), 44);
+
+		REQUIRE_FALSE(element.has_value());
+	}
+
+	SECTION("Search finds element in a multi-element array") {
+		dsa::Dynamic_Array array{53, 31, 45, 21, 33};
+
+		auto element = dsa::linear_search(array.begin(), array.end(), 21);
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.end() - 2);
+	}
+
+	SECTION("Search finds last element in a multi-element array") {
+		dsa::Dynamic_Array array{53, 31, 45, 21, 33};
+
+		auto element = dsa::linear_search(array.begin(), array.end(), 33);
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.end() - 1);
+	}
+
+	SECTION("Search supports a predicate argument") {
+		dsa::Dynamic_Array array{
+		    Incomparable_Value(9),
+		    Incomparable_Value(3),
+		    Incomparable_Value(10),
+		    Incomparable_Value(7),
+		    Incomparable_Value(2),
+		    Incomparable_Value(6),
+		};
+
+		auto element = dsa::linear_search(
+		    array.begin(),
+		    array.end(),
+		    [](Incomparable_Value const &value) {
+			    return value.compare(Incomparable_Value(9));
+		    });
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.begin());
 	}
 }
 

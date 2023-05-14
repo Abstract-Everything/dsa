@@ -27,6 +27,7 @@ Development:
 			Multithreading
 
 		Visual:
+			Visualise linear search
 			Drag viewport
 			Zoom In/ Out in viewport
 			Animate actions such as move and copy assignments
