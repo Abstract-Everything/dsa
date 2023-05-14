@@ -2,6 +2,7 @@
 #define DSA_ALGORITHMS_HPP
 
 #include <functional>
+#include <optional>
 #include <utility>
 
 namespace dsa
@@ -113,6 +114,38 @@ void insertion_sort(Iterator begin, Iterator end, auto const &comparator) {
 template<typename Iterator>
 void insertion_sort(Iterator begin, Iterator end) {
 	return insertion_sort(begin, end, std::less{});
+}
+
+/**
+ *  @brief Uses linear search to find an element that satisfies the condition in
+ *  the given range
+ *  @return An empty std::optional if no element is found, otherwise it contains
+ *  the iterator of the value in the range
+ */
+template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
+auto linear_search(Iterator begin, Iterator end, auto const& predicate)
+    -> std::optional<Iterator> {
+	for (auto i = begin; i != end; ++i)
+	{
+		if (std::is_eq(predicate(*i)))
+		{
+			return i;
+		}
+	}
+	return {};
+}
+
+/**
+ *  @brief Uses linear search to find an element in the given range
+ *  @return An empty std::optional if no element is found, otherwise it contains
+ *  the iterator of the value in the range
+ */
+template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
+auto linear_search(Iterator begin, Iterator end, typename Traits::value_type const &value)
+    -> std::optional<Iterator> {
+	return linear_search(begin, end, [&](typename Traits::value_type const &other) {
+		return other <=> value;
+	});
 }
 
 } // namespace dsa
