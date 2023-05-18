@@ -483,4 +483,87 @@ TEST_CASE("Linear search finds first occurence of element", "[algorithms]") {
 	}
 }
 
+TEST_CASE("Binary search searches an array for an element", "[algorithms]") {
+	SECTION("Search does not find element in empty array") {
+		dsa::Dynamic_Array<int> array;
+
+		auto element = dsa::binary_search(array.begin(), array.end(), 0);
+
+		REQUIRE_FALSE(element.has_value());
+	}
+
+	SECTION("Search does not find absent element in a single element array") {
+		dsa::Dynamic_Array array{0};
+
+		auto element = dsa::binary_search(array.begin(), array.end(), 1);
+
+		REQUIRE_FALSE(element.has_value());
+	}
+
+	SECTION("Search finds element in a single element array") {
+		dsa::Dynamic_Array array{0};
+
+		auto element = dsa::binary_search(array.begin(), array.end(), 0);
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.begin());
+	}
+
+	SECTION("Search does not find absent element in a multi-element array") {
+		dsa::Dynamic_Array array{21, 31, 33, 45, 53};
+
+		auto element = dsa::binary_search(array.begin(), array.end(), 44);
+
+		REQUIRE_FALSE(element.has_value());
+	}
+
+	SECTION("Search finds element in a multi-element array") {
+		dsa::Dynamic_Array array{21, 31, 33, 45, 53};
+
+		auto element = dsa::binary_search(array.begin(), array.end(), 45);
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.end() - 2);
+	}
+
+	SECTION("Search finds last element in a multi-element array") {
+		dsa::Dynamic_Array array{21, 31, 33, 45, 53};
+
+		auto element = dsa::binary_search(array.begin(), array.end(), 53);
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.end() - 1);
+	}
+
+	SECTION("Search finds first element in a multi-element array") {
+		dsa::Dynamic_Array array{21, 31, 33, 45, 53};
+
+		auto element = dsa::binary_search(array.begin(), array.end(), 21);
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.begin());
+	}
+
+	SECTION("Search supports a predicate argument") {
+		dsa::Dynamic_Array array{
+		    Incomparable_Value(2),
+		    Incomparable_Value(3),
+		    Incomparable_Value(6),
+		    Incomparable_Value(7),
+		    Incomparable_Value(9),
+		    Incomparable_Value(10),
+		};
+
+		auto element = dsa::binary_search(
+		    array.begin(),
+		    array.end(),
+		    [](Incomparable_Value const &value) {
+			    return value.compare(Incomparable_Value(2));
+		    });
+
+		REQUIRE(element.has_value());
+		REQUIRE(element.value() == array.begin());
+	}
+}
+
 } // namespace test

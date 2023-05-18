@@ -258,6 +258,51 @@ auto linear_search(Iterator begin, Iterator end, typename Traits::value_type con
 	});
 }
 
+/**
+ *  @brief Uses binary search to find an element in the given range
+ *  @return An empty std::optional if no element is found, otherwise it contains
+ *  the iterator of the value in the range
+ */
+template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
+auto binary_search(Iterator begin, Iterator end, auto const &predicate)
+    -> std::optional<Iterator> {
+	while (begin != end)
+	{
+		// We want to round down so that we stay in the begin, end - 1
+		// range
+		auto                 distance = (end - begin) & (~1U);
+		Iterator             mid      = begin + (distance / 2);
+		std::strong_ordering order    = predicate(*mid);
+		if (std::is_eq(order))
+		{
+			return mid;
+		}
+
+		if (std::is_gt(order))
+		{
+			end = mid;
+		}
+		else
+		{
+			begin = mid + 1;
+		}
+	}
+	return {};
+}
+
+/**
+ *  @brief Uses binary search to find an element in the given range
+ *  @return An empty std::optional if no element is found, otherwise it contains
+ *  the iterator of the value in the range
+ */
+template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
+auto binary_search(Iterator begin, Iterator end, typename Traits::value_type const &value)
+    -> std::optional<Iterator> {
+	return binary_search(begin, end, [&](typename Traits::value_type const &other) {
+		return other <=> value;
+	});
+}
+
 } // namespace dsa
 
 #endif
