@@ -233,7 +233,7 @@ void merge_sort(Iterator begin, Iterator end) {
  *  the iterator of the value in the range
  */
 template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
-auto linear_search(Iterator begin, Iterator end, auto const& predicate)
+auto linear_search(Iterator begin, Iterator end, auto const &predicate)
     -> std::optional<Iterator> {
 	for (auto i = begin; i != end; ++i)
 	{
@@ -301,6 +301,46 @@ auto binary_search(Iterator begin, Iterator end, typename Traits::value_type con
 	return binary_search(begin, end, [&](typename Traits::value_type const &other) {
 		return other <=> value;
 	});
+}
+
+/**
+ *  @brief Uses sort and binary search in order to find two elements that add up
+ *  the the given sum
+ *  @return An empty std::optional if no such elements are found, otherwise it
+ *  contains a pair of two iterators whose sum add up to the given value
+ *
+ *  TODO: This can be done with a Hashmap, but since we did not implement it
+ *  yet we use the sort + binary search version
+ */
+template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
+auto sum_components_search(
+    Iterator                           begin,
+    Iterator                           end,
+    typename Traits::value_type const &value)
+    -> std::optional<std::pair<Iterator, Iterator>> {
+	dsa::Vector<Iterator> sorted_iterators;
+	sorted_iterators.reserve(static_cast<size_t>(end - begin));
+	for (auto i = begin; i != end; ++i)
+	{
+		sorted_iterators.append(i);
+	}
+	merge_sort(
+	    sorted_iterators.begin(),
+	    sorted_iterators.end(),
+	    [](Iterator const &lhs, Iterator const &rhs) { return *lhs < *rhs; });
+
+	for (auto i = sorted_iterators.begin(); i != sorted_iterators.end(); ++i)
+	{
+		auto complement = binary_search(
+		    i + 1,
+		    sorted_iterators.end(),
+		    [&](Iterator const &it) { return **i + *it <=> value; });
+		if (complement.has_value())
+		{
+			return std::pair{*i, *complement.value()};
+		}
+	}
+	return {};
 }
 
 } // namespace dsa
