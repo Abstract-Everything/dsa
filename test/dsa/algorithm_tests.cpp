@@ -566,4 +566,97 @@ TEST_CASE("Binary search searches an array for an element", "[algorithms]") {
 	}
 }
 
+TEST_CASE(
+    "Sum components search find two elements adding up to a sum",
+    "[algorithms]") {
+	SECTION("Sufficient elements must be present within the array") {
+		SECTION("Empty array") {
+			dsa::Dynamic_Array<int> array;
+
+			auto pair = dsa::sum_components_search(
+			    array.begin(),
+			    array.end(),
+			    0);
+
+			REQUIRE_FALSE(pair.has_value());
+		}
+
+		SECTION("Single element array") {
+			dsa::Dynamic_Array array{1};
+
+			auto pair = dsa::sum_components_search(
+			    array.begin(),
+			    array.end(),
+			    0);
+
+			REQUIRE_FALSE(pair.has_value());
+		}
+	}
+
+	SECTION("Two distinct elements must add up to the value") {
+		SECTION("Two distinct element satisfy the condition")
+		{
+			dsa::Dynamic_Array array{1, 1};
+
+			auto pair = dsa::sum_components_search(
+			    array.begin(),
+			    array.end(),
+			    2);
+
+			REQUIRE(pair.has_value());
+			REQUIRE(
+			    ((pair.value().first == array.begin()
+			      && pair.value().second == array.begin() + 1)
+			     || (pair.value().first == array.begin() + 1
+				 && pair.value().second == array.begin())));
+		}
+
+		SECTION("Sum requires two distinct elements")
+		{
+			dsa::Dynamic_Array array{2};
+
+			auto pair = dsa::sum_components_search(
+			    array.begin(),
+			    array.end(),
+			    2);
+
+			REQUIRE_FALSE(pair.has_value());
+		}
+
+		SECTION("Elements must add up to the required sum")
+		{
+			dsa::Dynamic_Array array{1, 1};
+
+			auto pair = dsa::sum_components_search(
+			    array.begin(),
+			    array.end(),
+			    3);
+
+			REQUIRE_FALSE(pair.has_value());
+		}
+	}
+
+	SECTION("A sum is found in a multi-element array")
+	{
+		dsa::Dynamic_Array array{7, 4, 3, 9};
+
+		auto pair =
+		    dsa::sum_components_search(array.begin(), array.end(), 7);
+
+		REQUIRE(pair.has_value());
+		REQUIRE(pair.value().first == array.begin() + 2);
+		REQUIRE(pair.value().second == array.begin() + 1);
+	}
+
+	SECTION("No sum is found in a multi-element array")
+	{
+		dsa::Dynamic_Array array{7, 4, 3, 9};
+
+		auto pair =
+		    dsa::sum_components_search(array.begin(), array.end(), 14);
+
+		REQUIRE_FALSE(pair.has_value());
+	}
+}
+
 } // namespace test
