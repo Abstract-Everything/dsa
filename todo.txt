@@ -28,6 +28,7 @@ Development:
 
 		Visual:
 			Visualise linear search
+			Visualise binary search
 			Drag viewport
 			Zoom In/ Out in viewport
 			Animate actions such as move and copy assignments
