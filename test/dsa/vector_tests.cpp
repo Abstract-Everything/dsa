@@ -10,15 +10,15 @@
 namespace test
 {
 
-template<typename T>
-using Allocator_Base = dsa::Memory_Monitor<T, Allocation_Verifier>;
+using Value     = int;
+using Allocator = dsa::Memory_Monitor<Value, Allocation_Verifier>;
+using Vector    = dsa::Vector<Value, Allocator>;
 
 using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
 
 TEST_CASE(
     "Vector provides multiple constructors for easy initialisation",
     "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	constexpr size_t count         = 2;
@@ -64,7 +64,6 @@ TEST_CASE(
 }
 
 TEST_CASE("Vectors can be compared", "[vectors]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	SECTION("Empty vectors are equal") {
@@ -112,7 +111,6 @@ TEST_CASE("Vectors can be compared", "[vectors]") {
 }
 
 TEST_CASE("Vectors can be copied", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 	Vector        vector{1, 2, 2};
 
@@ -131,7 +129,6 @@ TEST_CASE("Vectors can be copied", "[vector]") {
 }
 
 TEST_CASE("Vectors can be moved", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> list{1, 2, 3};
@@ -156,7 +153,6 @@ TEST_CASE("Vectors can be moved", "[vector]") {
 }
 
 TEST_CASE("Vectors can be swapped", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> list_a{1, 2, 3};
@@ -172,7 +168,6 @@ TEST_CASE("Vectors can be swapped", "[vector]") {
 }
 
 TEST_CASE("Vector provides an interface to access its elements", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	constexpr int              front = 1;
@@ -212,7 +207,6 @@ TEST_CASE("Vector provides an interface to access its elements", "[vector]") {
 }
 
 TEST_CASE("Elements can be appended to the vector", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> expected{3, 3, 2};
@@ -225,7 +219,6 @@ TEST_CASE("Elements can be appended to the vector", "[vector]") {
 }
 
 TEST_CASE("Elements can be inserted into the vector", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Vector vector(4ULL, 2);
@@ -259,7 +252,6 @@ TEST_CASE("Elements can be inserted into the vector", "[vector]") {
 }
 
 TEST_CASE("Elements can be erased from the vector", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Vector vector{1, 2, 3};
@@ -293,7 +285,6 @@ TEST_CASE("Elements can be erased from the vector", "[vector]") {
 }
 
 TEST_CASE("Vectors can be shrunk to free unused memory", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> list{1, 2, 3};
@@ -311,7 +302,6 @@ TEST_CASE("Vectors can be shrunk to free unused memory", "[vector]") {
 }
 
 TEST_CASE("Vectors can be cleared of all the current elements", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Vector vector{0, 1};
@@ -322,7 +312,6 @@ TEST_CASE("Vectors can be cleared of all the current elements", "[vector]") {
 }
 
 TEST_CASE("Vectors can be resized", "[vector]") {
-	using Vector = dsa::Vector<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Vector vector{1, 2, 3, 4};

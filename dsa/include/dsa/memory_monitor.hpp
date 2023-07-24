@@ -755,6 +755,9 @@ class Memory_Monitor
 	using Underlying_Pointer = Value_t *;
 
  public:
+	template<typename T>
+	using rebind = Memory_Monitor<T, Handler>;
+
 	// clang-format off
 	using Value         = Element_Monitor<Underlying_Value, Handler>;
 	using Pointer       = Element_Monitor_Pointer<false, Underlying_Value, Handler>;

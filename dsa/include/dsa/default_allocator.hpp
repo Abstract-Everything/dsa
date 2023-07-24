@@ -8,6 +8,9 @@ template<typename Value_t>
 class Default_Allocator
 {
  public:
+	template<typename T>
+	using rebind = Default_Allocator<T>;
+
 	using Value = Value_t;
 
 	Default_Allocator() = default;

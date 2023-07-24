@@ -10,12 +10,12 @@
 namespace test
 {
 
-template<typename T>
-using Allocator_Base = dsa::Memory_Monitor<T, Allocation_Verifier>;
-using Handler_Scope  = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
+using Value         = int;
+using Allocator     = dsa::Memory_Monitor<Value, Allocation_Verifier>;
+using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
+using Binary_Tree = dsa::Binary_Tree<Value, Allocator>;
 
 TEST_CASE("Various mechanisims to initialise binary tree", "[binary_tree]") {
-	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	SECTION("Default initialised binary tree has no elements") {
@@ -36,7 +36,6 @@ TEST_CASE("Various mechanisims to initialise binary tree", "[binary_tree]") {
 }
 
 TEST_CASE("Binary trees can be compared", "[binary_tree]") {
-	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	SECTION("Empty Binary trees are equal") {
@@ -97,7 +96,6 @@ TEST_CASE("Binary trees can be compared", "[binary_tree]") {
 }
 
 TEST_CASE("Binary trees can be copied", "[binary_tree]") {
-	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Binary_Tree binary_tree{0, -1, 1};
@@ -118,7 +116,6 @@ TEST_CASE("Binary trees can be copied", "[binary_tree]") {
 }
 
 TEST_CASE("Binary trees can be moved", "[binary_tree]") {
-	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> values{1, 2, 3};
@@ -140,7 +137,6 @@ TEST_CASE("Binary trees can be moved", "[binary_tree]") {
 }
 
 TEST_CASE("Binary trees can be swapped", "[binary_tree]") {
-	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> values_a{1, 2, 3};
@@ -158,7 +154,6 @@ TEST_CASE("Binary trees can be swapped", "[binary_tree]") {
 TEST_CASE(
     "Binary trees can be queried for element containment",
     "[binary_tree]") {
-	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Binary_Tree binary_tree{0, -1, 1};
@@ -173,7 +168,6 @@ TEST_CASE(
 }
 
 TEST_CASE("Elements can be inserted into the binary tree", "[binary_tree]") {
-	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	SECTION("Inserting an element adds it to the binary tree") {
@@ -205,7 +199,6 @@ TEST_CASE("Elements can be inserted into the binary tree", "[binary_tree]") {
 }
 
 TEST_CASE("Elements can be erased from the binary tree", "[binary_tree]") {
-	using Binary_Tree = dsa::Binary_Tree<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	SECTION("Erasing last element empties the binary tree") {

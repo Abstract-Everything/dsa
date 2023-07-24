@@ -22,11 +22,11 @@ namespace dsa
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
-template<typename Value_t, template<typename> typename Allocator_Base = Default_Allocator>
+template<typename Value_t, typename Allocator_t = Default_Allocator<Value_t>>
 class Dynamic_Array
 {
  private:
-	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
+	using Alloc_Traits = Allocator_Traits<Allocator_t>;
 
  public:
 	using Allocator       = typename Alloc_Traits::Allocator;

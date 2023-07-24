@@ -11,12 +11,12 @@
 namespace test
 {
 
-template<typename T>
-using Allocator_Base = dsa::Memory_Monitor<T, Allocation_Verifier>;
-using Handler_Scope  = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
+using Value         = int;
+using Allocator     = dsa::Memory_Monitor<Value, Allocation_Verifier>;
+using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
+using Dynamic_Array = dsa::Dynamic_Array<Value, Allocator>;
 
 TEST_CASE("Various mechanisims to initialise dynamic array", "[dynamic_array]") {
-	using Dynamic_Array = dsa::Dynamic_Array<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	SECTION("Default initialisation sets size to zero") {
@@ -56,7 +56,6 @@ TEST_CASE("Various mechanisims to initialise dynamic array", "[dynamic_array]") 
 }
 
 TEST_CASE("Dynamic arrays can be compared", "[dynamic_array]") {
-	using Dynamic_Array = dsa::Dynamic_Array<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	SECTION("Empty arrays are equal") {
@@ -89,7 +88,6 @@ TEST_CASE("Dynamic arrays can be compared", "[dynamic_array]") {
 }
 
 TEST_CASE("Dynamic arrays can be copied", "[dynamic_array]") {
-	using Dynamic_Array = dsa::Dynamic_Array<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	Dynamic_Array array{1, 2, 2};
@@ -107,7 +105,6 @@ TEST_CASE("Dynamic arrays can be copied", "[dynamic_array]") {
 }
 
 TEST_CASE("Dynamic arrays can be moved", "[dynamic_array]") {
-	using Dynamic_Array = dsa::Dynamic_Array<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> list{1, 2, 3};
@@ -129,7 +126,6 @@ TEST_CASE("Dynamic arrays can be moved", "[dynamic_array]") {
 }
 
 TEST_CASE("Dynamic arrays can be swapped", "[dynamic_array]") {
-	using Dynamic_Array = dsa::Dynamic_Array<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> list_a{1, 2, 3};
@@ -147,7 +143,6 @@ TEST_CASE("Dynamic arrays can be swapped", "[dynamic_array]") {
 TEST_CASE(
     "Dynamic array provides an interface to access its elements",
     "[dynamic_array]") {
-	using Dynamic_Array = dsa::Dynamic_Array<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	std::initializer_list<int> list{1, 2, 3};
@@ -168,7 +163,6 @@ TEST_CASE(
 }
 
 TEST_CASE("Dynamic arrays can be resized at runtime", "[dynamic_array]") {
-	using Dynamic_Array = dsa::Dynamic_Array<int, Allocator_Base>;
 	Handler_Scope scope;
 
 	SECTION("Reducing array size preserves the kept elements") {
