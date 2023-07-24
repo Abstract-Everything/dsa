@@ -14,17 +14,17 @@ namespace dsa
 namespace detail
 {
 
-template<typename Satellite_t, template<typename> typename Allocator_Base>
+template<typename Satellite_t, typename Allocator_t>
 class List_Node
 {
  private:
 	// clang-format off
-	using Alloc_Traits  = Allocator_Traits<Allocator_Base<List_Node>>;
+	using Alloc_Traits  = Allocator_Traits<typename Allocator_t::template rebind<List_Node>>;
 	using Allocator     = typename Alloc_Traits::Allocator;
 	using Pointer       = typename Alloc_Traits::Pointer;
 	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
-	using Satellite_Traits          = Allocator_Traits<Allocator_Base<Satellite_t>>;
+	using Satellite_Traits          = Allocator_Traits<typename Allocator_t::template rebind<Satellite_t>>;
 	using Satellite_Value           = typename Satellite_Traits::Value;
 	using Satellite_Reference       = typename Satellite_Traits::Reference;
 	using Satellite_Const_Reference = typename Satellite_Traits::Const_Reference;
@@ -117,17 +117,17 @@ class List_Node
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
-template<typename Value_t, template<typename> typename Allocator_Base = Default_Allocator>
+template<typename Value_t, typename Allocator_t = Default_Allocator<Value_t>>
 class List
 {
  private:
-	using Node               = detail::List_Node<Value_t, Allocator_Base>;
-	using Node_Traits        = Allocator_Traits<Allocator_Base<Node>>;
+	using Node               = detail::List_Node<Value_t, Allocator_t>;
+	using Node_Traits        = Allocator_Traits<typename Allocator_t::template rebind<Node>>;
 	using Node_Allocator     = typename Node_Traits::Allocator;
 	using Node_Pointer       = typename Node_Traits::Pointer;
 	using Node_Const_Pointer = typename Node_Traits::Const_Pointer;
 
-	using Alloc_Traits = Allocator_Traits<Allocator_Base<Value_t>>;
+	using Alloc_Traits = Allocator_Traits<Allocator_t>;
 
  public:
 	using Allocator       = typename Alloc_Traits::Allocator;

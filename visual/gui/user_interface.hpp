@@ -20,8 +20,7 @@ class User_Interface
 {
 	using Value = int;
 
-	template<typename T>
-	using Allocator = dsa::Memory_Monitor<T, Visual_Monitor>;
+	using Allocator = dsa::Memory_Monitor<Value, Visual_Monitor>;
 
 	using Array       = dsa::Dynamic_Array<Value, Allocator>;
 	using Vector      = dsa::Vector<Value, Allocator>;

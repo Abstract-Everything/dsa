@@ -33,10 +33,10 @@ struct IsHeap : Catch::Matchers::MatcherGenericBase
 	}
 };
 
-template<typename T>
-using Allocator_Base = dsa::Memory_Monitor<T, Allocation_Verifier>;
-using Handler_Scope  = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
-using Heap           = dsa::Heap<int, decltype(std::less{}), Allocator_Base>;
+using Value         = int;
+using Allocator     = dsa::Memory_Monitor<Value, Allocation_Verifier>;
+using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
+using Heap          = dsa::Heap<Value, decltype(std::less{}), Allocator>;
 
 TEST_CASE("Various mechanisims to initialise binary tree", "[heap]") {
 	Handler_Scope scope;

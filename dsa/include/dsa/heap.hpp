@@ -25,12 +25,12 @@ namespace dsa
  */
 template<
     typename Value_t,
-    typename Comparator_t                      = decltype(std::less{}),
-    template<typename> typename Allocator_Base = Default_Allocator>
+    typename Comparator_t = decltype(std::less{}),
+    typename Allocator_t  = Default_Allocator<Value_t>>
 class Heap
 {
  private:
-	using Storage = dsa::Vector<Value_t, Allocator_Base>;
+	using Storage = dsa::Vector<Value_t, Allocator_t>;
 
  public:
 	using Comparator      = Comparator_t;

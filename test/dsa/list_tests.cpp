@@ -10,10 +10,10 @@
 namespace test
 {
 
-template<typename T>
-using Allocator_Base = dsa::Memory_Monitor<T, Allocation_Verifier>;
-using Handler_Scope  = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
-using List           = dsa::List<int, Allocator_Base>;
+using Value         = int;
+using Allocator     = dsa::Memory_Monitor<Value, Allocation_Verifier>;
+using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
+using List          = dsa::List<Value, Allocator>;
 
 TEST_CASE("Various mechanisims to initialise list", "[list]") {
 	Handler_Scope scope;
