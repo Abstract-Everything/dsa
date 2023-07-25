@@ -11,6 +11,7 @@
 #include <imgui.h>
 
 #include <algorithm>
+#include <random>
 #include <sstream>
 #include <vector>
 
@@ -71,6 +72,9 @@ class Actions_UI
 
 	int m_erase_value = 0;
 	int m_erase       = 0;
+
+	int          m_random_size = 0;
+	std::mt19937 m_rng{std::random_device{}()};
 
 	void properties();
 	void accessors();
@@ -328,6 +332,39 @@ void Actions_UI<Container>::modifiers() {
 		{
 			Enable_Event_Registration_Scope scope;
 			m_container.pop();
+		}
+	}
+
+	if constexpr (has_append || has_insert || has_push)
+	{
+		ImGui::Separator();
+
+		ImGui::InputInt(
+		    "Fill the container with random elements",
+		    &m_random_size);
+		if (ImGui::Button("Fill"))
+		{
+			m_random_size = std::max(0, m_random_size);
+			std::uniform_int_distribution<int> distribution(
+			    -m_random_size,
+			    m_random_size);
+			for (int i = 0; i < m_random_size; ++i)
+			{
+				Enable_Event_Registration_Scope scope;
+				Value value{distribution(m_rng)};
+				if constexpr (has_append)
+				{
+					m_container.append(value);
+				}
+				else if constexpr (has_insert)
+				{
+					m_container.insert(value);
+				}
+				else if constexpr (has_push)
+				{
+					m_container.push(value);
+				}
+			}
 		}
 	}
 
