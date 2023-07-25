@@ -338,10 +338,7 @@ void Actions_UI<Container>::modifiers() {
 		if (ImGui::Button("Insertion sort"))
 		{
 			Enable_Event_Registration_Scope scope;
-			dsa::insertion_sort(
-			    m_container.begin(),
-			    m_container.end(),
-			    std::less{});
+			dsa::insertion_sort(m_container.begin(), m_container.end());
 		}
 
 		ImGui::Text("Selection sort");
