@@ -1,6 +1,8 @@
 #ifndef DSA_ALGORITHMS_HPP
 #define DSA_ALGORITHMS_HPP
 
+#include <dsa/vector.hpp>
+
 #include <functional>
 #include <optional>
 #include <utility>
@@ -155,8 +157,78 @@ void selection_sort(Iterator begin, Iterator end) {
 }
 
 /**
- *  @brief Uses linear search to find an element that satisfies the condition in
- *  the given range
+ *  @brief Uses merge sort on the given range such that each pair satisfies
+ *  comparator(first, second)
+ */
+template<
+    typename Iterator,
+    typename Allocator =
+	Default_Allocator<typename std::iterator_traits<Iterator>::value_type>>
+void merge_sort(Iterator begin, Iterator end, auto const &comparator) {
+	using Traits = std::iterator_traits<Iterator>;
+	using std::swap;
+
+	auto const difference = end - begin;
+	if (difference < 2)
+	{
+		return;
+	}
+
+	if (difference == 2)
+	{
+		if (!comparator(*begin, *(begin + 1)))
+		{
+			swap(*begin, *(begin + 1));
+		}
+		return;
+	}
+
+	auto const     half   = difference / 2;
+	Iterator const middle = begin + half;
+
+	// TODO: implement inplace merge sort
+	dsa::Vector<typename Traits::value_type, Allocator> first_half;
+	first_half.reserve(static_cast<size_t>(half));
+	for (auto i = begin; i != middle; ++i)
+	{
+		first_half.append(std::move(*i));
+	}
+
+	merge_sort<Iterator, Allocator>(
+	    first_half.begin(),
+	    first_half.end(),
+	    comparator);
+	merge_sort<Iterator, Allocator>(middle, end, comparator);
+
+	auto     first  = first_half.begin();
+	Iterator second = middle;
+	for (Iterator i = begin; i != end; ++i)
+	{
+		if (second == end
+		    || (first != first_half.end() && comparator(*first, *second)))
+		{
+			swap(*i, *first++);
+		}
+		else
+		{
+			swap(*i, *second++);
+		}
+	}
+}
+
+/**
+ *  @brief Uses merge sort to sort the given range in ascending order
+ */
+template<
+    typename Iterator,
+    typename Allocator =
+	Default_Allocator<typename std::iterator_traits<Iterator>::value_type>>
+void merge_sort(Iterator begin, Iterator end) {
+	return merge_sort<Iterator, Allocator>(begin, end, std::less{});
+}
+
+/**
+ *  @brief Uses linear search to find an element in the given range
  *  @return An empty std::optional if no element is found, otherwise it contains
  *  the iterator of the value in the range
  */
