@@ -343,6 +343,14 @@ void Actions_UI<Container>::modifiers() {
 			    m_container.end(),
 			    std::less{});
 		}
+
+		ImGui::Text("Selection sort");
+		ImGui::SameLine();
+		if (ImGui::Button("Selection sort"))
+		{
+			Enable_Event_Registration_Scope scope;
+			dsa::selection_sort(m_container.begin(), m_container.end());
+		}
 	}
 }
 
