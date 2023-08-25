@@ -117,6 +117,44 @@ void insertion_sort(Iterator begin, Iterator end) {
 }
 
 /**
+ *  @brief Uses selection sort on the given range such that each pair satisfies
+ *  comparator(first, second)
+ */
+template<typename Iterator>
+void selection_sort(Iterator begin, Iterator end, auto const &comparator) {
+	using std::swap;
+
+	if (begin == end)
+	{
+		return;
+	}
+
+	// We do not need to find the smallest element when only one element is
+	// left to be sorted
+	auto const last = end - 1;
+	for (auto i = begin; i != last; ++i)
+	{
+		Iterator smallest = i;
+		for (auto j = i + 1; j != end; ++j)
+		{
+			if (!comparator(*smallest, *j))
+			{
+				smallest = j;
+			}
+		}
+		swap(*smallest, *i);
+	}
+}
+
+/**
+ *  @brief Uses selection sort to sort the given range in ascending order
+ */
+template<typename Iterator>
+void selection_sort(Iterator begin, Iterator end) {
+	return selection_sort(begin, end, std::less{});
+}
+
+/**
  *  @brief Uses linear search to find an element that satisfies the condition in
  *  the given range
  *  @return An empty std::optional if no element is found, otherwise it contains

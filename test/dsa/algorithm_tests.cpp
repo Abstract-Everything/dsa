@@ -13,6 +13,8 @@
 namespace test
 {
 
+// TODO: Stop using this for sort algorithms as this does not provide a total
+// order
 struct Smaller_By_Two
 {
 	auto operator()(int lhs, int rhs) const -> bool {
@@ -227,6 +229,86 @@ TEST_CASE("Insertion sort correctly sorts an array", "[algorithms]") {
 			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
 
 			dsa::insertion_sort(
+			    array.begin(),
+			    array.end(),
+			    std::greater{});
+
+			REQUIRE(dsa::is_sorted(
+			    array.begin(),
+			    array.end(),
+			    Smaller_By_Two{}));
+		}
+
+		SECTION("Invalid last element") {
+			dsa::Dynamic_Array<int> array{10, 9, 7, 4};
+			REQUIRE_FALSE(dsa::is_sorted(
+			    array.begin(),
+			    array.end(),
+			    Smaller_By_Two{}));
+		}
+	}
+}
+
+TEST_CASE("Selection sort correctly sorts an array", "[algorithms]") {
+	SECTION("An empty array is already sorted") {
+		dsa::Dynamic_Array<int> array;
+
+		dsa::selection_sort(array.begin(), array.end());
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("A single element is already sorted") {
+		dsa::Dynamic_Array array{0};
+
+		dsa::selection_sort(array.begin(), array.end());
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("Two sorted elements are unmodified") {
+		dsa::Dynamic_Array array{0, 1};
+
+		dsa::selection_sort(array.begin(), array.end());
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("Two unsorted elements is sorted") {
+		dsa::Dynamic_Array array{1, 0};
+
+		dsa::selection_sort(array.begin(), array.end());
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("Multiple elements are correctly sorted") {
+		dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
+
+		dsa::selection_sort(array.begin(), array.end());
+
+		REQUIRE(dsa::is_sorted(array.begin(), array.end()));
+	}
+
+	SECTION("Arbitrary comparators can be used") {
+		SECTION("Can sort an array in descending order") {
+			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
+
+			dsa::selection_sort(
+			    array.begin(),
+			    array.end(),
+			    std::greater{});
+
+			REQUIRE(dsa::is_sorted(
+			    array.begin(),
+			    array.end(),
+			    std::greater{}));
+		}
+
+		SECTION("Subsequent elements are two units less") {
+			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
+
+			dsa::selection_sort(
 			    array.begin(),
 			    array.end(),
 			    std::greater{});
