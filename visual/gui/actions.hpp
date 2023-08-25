@@ -351,6 +351,18 @@ void Actions_UI<Container>::modifiers() {
 			Enable_Event_Registration_Scope scope;
 			dsa::selection_sort(m_container.begin(), m_container.end());
 		}
+
+		ImGui::Text("Merge sort");
+		ImGui::SameLine();
+		if (ImGui::Button("Merge sort"))
+		{
+			Enable_Event_Registration_Scope scope;
+			dsa::merge_sort<
+			    decltype(m_container.begin()),
+			    typename Container::Allocator>(
+			    m_container.begin(),
+			    m_container.end());
+		}
 	}
 }
 
