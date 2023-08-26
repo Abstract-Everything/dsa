@@ -310,8 +310,8 @@ class Vector
 			    m_allocator,
 			    insert_point,
 			    std::move(value));
-			std::uninitialized_move(begin(), begin() + index, storage);
-			std::uninitialized_move(begin() + index, end(), rest);
+			uninitialized_move(begin(), begin() + index, storage);
+			uninitialized_move(begin() + index, end(), rest);
 			Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
 			m_storage  = storage;
 			m_capacity = capacity;
@@ -345,15 +345,15 @@ class Vector
 			size_t  capacity = shrink_size();
 			Pointer storage =
 			    Alloc_Traits::allocate(m_allocator, capacity);
-			std::uninitialized_move(begin(), erasing, storage);
-			std::uninitialized_move(erasing + 1, end(), storage + index);
+			uninitialized_move(begin(), erasing, storage);
+			uninitialized_move(erasing + 1, end(), storage + index);
 			Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
 			m_storage  = storage;
 			m_capacity = capacity;
 		}
 		else
 		{
-			std::uninitialized_move(erasing + 1, end(), erasing);
+			uninitialized_shift(erasing + 1, end(), -1);
 		}
 		m_size--;
 	}
@@ -367,7 +367,7 @@ class Vector
 
 		size_t  capacity = m_size;
 		Pointer storage = Alloc_Traits::allocate(m_allocator, capacity);
-		std::uninitialized_move(begin(), end(), storage);
+		uninitialized_move(begin(), end(), storage);
 		Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
 		m_storage  = storage;
 		m_capacity = capacity;
@@ -411,7 +411,7 @@ class Vector
 
 		Pointer storage =
 		    Alloc_Traits::allocate(m_allocator, new_capacity);
-		std::uninitialized_move(begin(), end(), storage);
+		uninitialized_move(begin(), end(), storage);
 		Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
 		m_storage  = storage;
 		m_capacity = new_capacity;

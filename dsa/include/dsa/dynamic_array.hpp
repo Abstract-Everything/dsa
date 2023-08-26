@@ -3,6 +3,7 @@
 
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
+#include <dsa/memory.hpp>
 
 #include <concepts>
 #include <cstddef>
@@ -204,7 +205,7 @@ class Dynamic_Array
 
 		Pointer storage = Alloc_Traits::allocate(m_allocator, new_size);
 		std::uninitialized_fill(storage + count, storage + new_size, value);
-		std::uninitialized_move(begin(), begin() + count, storage);
+		uninitialized_move(begin(), begin() + count, storage);
 		std::destroy(begin() + count, end());
 		Alloc_Traits::deallocate(m_allocator, m_storage, m_size);
 
