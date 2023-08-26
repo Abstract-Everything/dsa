@@ -221,33 +221,68 @@ TEST_CASE("Elements can be appended to the vector", "[vector]") {
 TEST_CASE("Elements can be inserted into the vector", "[vector]") {
 	Handler_Scope scope;
 
-	Vector vector(4ULL, 2);
+	SECTION("Insertion with reallocation preserves previous elements") {
+		Vector vector(4ULL, 2);
 
-	SECTION("Insertion at the front shifts buffer elements backwards") {
-		std::initializer_list<int> expected{3, 2, 2, 2, 2};
+		SECTION(
+		    "Insertion at the front shifts buffer elements backwards") {
+			std::initializer_list<int> expected{3, 2, 2, 2, 2};
 
-		vector.insert(0ULL, Vector::Value(3));
+			vector.insert(0ULL, Vector::Value(3));
 
-		REQUIRE(vector.size() == 5ULL);
-		REQUIRE_THAT(vector, EqualsRange(expected));
+			REQUIRE_THAT(vector, EqualsRange(expected));
+		}
+
+		SECTION(
+		    "Insertion at the middle shifts later elements backwards") {
+			std::initializer_list<int> expected{2, 2, 3, 2, 2};
+
+			vector.insert(2ULL, Vector::Value(3));
+
+			REQUIRE_THAT(vector, EqualsRange(expected));
+		}
+
+		SECTION("Insertion at the end preserves earlier elements") {
+			std::initializer_list<int> expected{2, 2, 2, 2, 3};
+
+			vector.insert(vector.size(), Vector::Value(3));
+
+			REQUIRE_THAT(vector, EqualsRange(expected));
+		}
 	}
 
-	SECTION("Insertion at the middle shifts later elements backwards") {
-		std::initializer_list<int> expected{2, 2, 3, 2, 2};
+	SECTION("Insertion without reallocation correctly shifts elements") {
+		Vector vector;
+		vector.reserve(4);
+		vector.append(0);
+		vector.append(1);
+		vector.append(2);
 
-		vector.insert(2ULL, Vector::Value(3));
+		SECTION(
+		    "Insertion at the front shifts buffer elements backwards") {
+			std::initializer_list<int> expected{3, 0, 1, 2};
 
-		REQUIRE(vector.size() == 5ULL);
-		REQUIRE_THAT(vector, EqualsRange(expected));
-	}
+			vector.insert(0ULL, Vector::Value(3));
 
-	SECTION("Insertion at the end preserves earlier elements") {
-		std::initializer_list<int> expected{2, 2, 2, 2, 3};
+			REQUIRE_THAT(vector, EqualsRange(expected));
+		}
 
-		vector.insert(vector.size(), Vector::Value(3));
+		SECTION(
+		    "Insertion at the middle shifts later elements backwards") {
+			std::initializer_list<int> expected{0, 1, 3, 2};
 
-		REQUIRE(vector.size() == 5ULL);
-		REQUIRE_THAT(vector, EqualsRange(expected));
+			vector.insert(2ULL, Vector::Value(3));
+
+			REQUIRE_THAT(vector, EqualsRange(expected));
+		}
+
+		SECTION("Insertion at the end preserves earlier elements") {
+			std::initializer_list<int> expected{0, 1, 2, 3};
+
+			vector.insert(vector.size(), Vector::Value(3));
+
+			REQUIRE_THAT(vector, EqualsRange(expected));
+		}
 	}
 }
 

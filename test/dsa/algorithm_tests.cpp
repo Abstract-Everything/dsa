@@ -1,12 +1,14 @@
 #include "allocation_verifier.hpp"
-#include "memory_monitor_handler_scope.hpp"
 #include "incomparable_value.hpp"
+#include "memory_monitor_handler_scope.hpp"
 
 #include <dsa/algorithms.hpp>
+#include <dsa/memory.hpp>
 #include <dsa/dynamic_array.hpp>
 #include <dsa/memory_monitor.hpp>
 
 #include <compare>
+#include <memory>
 
 #include <catch2/catch_all.hpp>
 
@@ -657,6 +659,52 @@ TEST_CASE(
 
 		REQUIRE_FALSE(pair.has_value());
 	}
+}
+
+TEST_CASE("Checks if two iterator ranges overlap", "[algorithms]") {
+	dsa::Dynamic_Array range{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	SECTION("No overlap for destination range before source range") {
+		REQUIRE_FALSE(dsa::iterators_overlap(range.begin() + 5, range.end(), range.begin()));
+	}
+
+	SECTION("Overlap if destination range end with source begin") {
+		REQUIRE(dsa::iterators_overlap(range.begin() + 5, range.end(), range.begin() + 1));
+	}
+
+	SECTION("Overlap if destination range starts inside source range") {
+		REQUIRE(dsa::iterators_overlap(range.begin() + 5, range.end(), range.begin() + 6));
+	}
+
+	SECTION("No overlap for destination range after source range") {
+		REQUIRE(dsa::iterators_overlap(range.begin(), range.begin() + 5, range.begin() + 5));
+	}
+}
+
+TEST_CASE("Shift memory block onto overlapping partly uninitialized memory", "[algorithms]") {
+	std::allocator<int> allocator;
+
+	size_t count = 7;
+	auto memory = allocator.allocate(count);
+
+	memory[3] = 1;
+	memory[4] = 2;
+	memory[5] = 3;
+
+	SECTION("negative count shifs elements to the left") {
+		dsa::uninitialized_shift(&memory[3], &memory[5], -2);
+		REQUIRE(memory[1] == 1);
+		REQUIRE(memory[2] == 2);
+		REQUIRE(memory[5] == 3);
+	}
+
+	SECTION("positive count shifs elements to the right") {
+		dsa::uninitialized_shift(&memory[4], &memory[6], 2);
+		REQUIRE(memory[3] == 1);
+		REQUIRE(memory[6] == 2);
+		REQUIRE(memory[7] == 3);
+	}
+
+	allocator.deallocate(memory, count);
 }
 
 } // namespace test

@@ -3,8 +3,10 @@
 
 #include <dsa/allocator_traits.hpp>
 #include <dsa/default_allocator.hpp>
+#include <dsa/memory.hpp>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <ostream>
 #include <utility>
@@ -317,10 +319,7 @@ class Vector
 		else
 		{
 			Pointer insert_point = begin() + index;
-			std::uninitialized_move(
-			    std::reverse_iterator(end() - 1),
-			    std::reverse_iterator(insert_point - 1),
-			    std::reverse_iterator(end()));
+			uninitialized_shift(insert_point, end());
 
 			Alloc_Traits::construct(
 			    m_allocator,
