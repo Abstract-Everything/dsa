@@ -84,8 +84,7 @@ enum class Allocation_Event_Type
 	Deallocate,
 };
 
-inline auto operator<<(std::ostream &stream, Allocation_Event_Type type)
-    -> std::ostream & {
+inline auto operator<<(std::ostream &stream, Allocation_Event_Type type) -> std::ostream & {
 	switch (type)
 	{
 	case Allocation_Event_Type::Allocate:
@@ -112,8 +111,7 @@ enum class Object_Event_Type
 	Destroy,
 };
 
-inline auto operator<<(std::ostream &stream, Object_Event_Type type)
-    -> std::ostream & {
+inline auto operator<<(std::ostream &stream, Object_Event_Type type) -> std::ostream & {
 	switch (type)
 	{
 	case Object_Event_Type::Before_Construct:
@@ -171,10 +169,9 @@ class Allocation_Event
 
 	auto operator==(Allocation_Event const &event) const -> bool = default;
 
-	friend auto operator<<(std::ostream &stream, Allocation_Event const &event)
-	    -> std::ostream & {
-		stream << event.m_type << " at address " << event.m_pointer
-		       << " with count " << event.m_count;
+	friend auto operator<<(std::ostream &stream, Allocation_Event const &event) -> std::ostream & {
+		stream << event.m_type << " at address " << event.m_pointer << " with count "
+		       << event.m_count;
 		return stream;
 	}
 
@@ -242,8 +239,7 @@ class Object_Event
 
 	auto operator==(Object_Event const &event) const -> bool = default;
 
-	friend auto operator<<(std::ostream &stream, Object_Event const &event)
-	    -> std::ostream & {
+	friend auto operator<<(std::ostream &stream, Object_Event const &event) -> std::ostream & {
 		stream << event.m_type << " at address " << event.m_destination;
 
 		if (event.m_source != nullptr)
@@ -347,21 +343,17 @@ class Object_Event
 };
 
 template<typename Event>
-concept Memory_Monitor_Event =
-    std::is_same_v<Event, Allocation_Event<typename Event::Type>>
-    || std::is_same_v<Event, Object_Event<typename Event::Type>>;
+concept Memory_Monitor_Event = std::is_same_v<Event, Allocation_Event<typename Event::Type>>
+			       || std::is_same_v<Event, Object_Event<typename Event::Type>>;
 
 template<typename Handler, typename Type>
-concept Memory_Monitor_Event_Handler = requires(
-    Allocation_Event<Type> allocation_event,
-    Object_Event<Type>     object_event) {
-	{
-		Handler::before_deallocate(std::move(allocation_event))
-	} -> std::same_as<bool>;
+concept Memory_Monitor_Event_Handler =
+    requires(Allocation_Event<Type> allocation_event, Object_Event<Type> object_event) {
+	    { Handler::before_deallocate(std::move(allocation_event)) } -> std::same_as<bool>;
 
-	{ Handler::process_allocation_event(std::move(allocation_event)) };
-	{ Handler::process_object_event(std::move(object_event)) };
-};
+	    { Handler::process_allocation_event(std::move(allocation_event)) };
+	    { Handler::process_object_event(std::move(object_event)) };
+    };
 
 /// @brief Wraps around a value in order to monitor its lifetime
 template<typename Base, Memory_Monitor_Event_Handler<Base> Handler>
@@ -378,15 +370,13 @@ class Element_Monitor
 		 && !Is_Same_v<Element_Monitor, Arguments...>)
 	    : Pre_Construct([this]() { before_construct(); })
 	    , Base_Wrapper(std::forward<Arguments>(arguments)...) {
-		Handler::process_object_event(Object_Event(
-		    Object_Event_Type::Construct,
-		    &Base_Wrapper::base()));
+		Handler::process_object_event(
+		    Object_Event(Object_Event_Type::Construct, &Base_Wrapper::base()));
 	}
 
 	~Element_Monitor() {
-		Handler::process_object_event(Object_Event(
-		    Object_Event_Type::Destroy,
-		    &Base_Wrapper::base()));
+		Handler::process_object_event(
+		    Object_Event(Object_Event_Type::Destroy, &Base_Wrapper::base()));
 	}
 
 	Element_Monitor(Element_Monitor const &element)
@@ -414,9 +404,8 @@ class Element_Monitor
 	requires std::is_copy_assignable_v<Base>
 	{
 		Base_Wrapper::base() = value;
-		Handler::process_object_event(Object_Event(
-		    Object_Event_Type::Underlying_Copy_Assign,
-		    &Base_Wrapper::base()));
+		Handler::process_object_event(
+		    Object_Event(Object_Event_Type::Underlying_Copy_Assign, &Base_Wrapper::base()));
 		return *this;
 	}
 
@@ -445,9 +434,8 @@ class Element_Monitor
 	requires std::is_move_assignable_v<Base>
 	{
 		Base_Wrapper::base() = value;
-		Handler::process_object_event(Object_Event(
-		    Object_Event_Type::Underlying_Move_Assign,
-		    &Base_Wrapper::base()));
+		Handler::process_object_event(
+		    Object_Event(Object_Event_Type::Underlying_Move_Assign, &Base_Wrapper::base()));
 		return *this;
 	}
 
@@ -458,9 +446,8 @@ class Element_Monitor
 
  private:
 	void before_construct() {
-		Handler::process_object_event(Object_Event(
-		    Object_Event_Type::Before_Construct,
-		    &Base_Wrapper::base()));
+		Handler::process_object_event(
+		    Object_Event(Object_Event_Type::Before_Construct, &Base_Wrapper::base()));
 	}
 };
 
@@ -470,7 +457,6 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 {
 	friend class Element_Monitor_Pointer<!IsConst, Base, Handler>;
 
-	// clang-format off
 	using Value               = Element_Monitor<Base, Handler>;
 	using Base_Pointer        = Base *;
 	using Reference           = Value &;
@@ -479,7 +465,6 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 	using Pointer             = Value *;
 	using Const_Pointer       = Value const *;
 	using Interface_Pointer   = std::conditional_t<IsConst, Const_Pointer, Pointer>;
-	// clang-format on
 
  public:
 	using iterator_category = std::random_access_iterator_tag;
@@ -515,8 +500,7 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 		    &element.m_base_pointer));
 	}
 
-	Element_Monitor_Pointer(
-	    Element_Monitor_Pointer<false, Base, Handler> const &element)
+	Element_Monitor_Pointer(Element_Monitor_Pointer<false, Base, Handler> const &element)
 	requires IsConst
 	    : Pre_Construct([this]() { before_construct(); })
 	    , m_pointer(element.m_pointer)
@@ -532,8 +516,7 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 		return *this;
 	}
 
-	Element_Monitor_Pointer &operator=(
-	    Element_Monitor_Pointer<false, Base, Handler> const &element)
+	Element_Monitor_Pointer &operator=(Element_Monitor_Pointer<false, Base, Handler> const &element)
 	requires IsConst
 	{
 		assign(Object_Event_Type::Copy_Assign, element);
@@ -548,9 +531,8 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 	auto operator=(Pointer pointer) noexcept -> Element_Monitor_Pointer & {
 		m_pointer      = pointer;
 		m_base_pointer = base_pointer(pointer);
-		Handler::process_object_event(Object_Event(
-		    Object_Event_Type::Underlying_Copy_Assign,
-		    &m_base_pointer));
+		Handler::process_object_event(
+		    Object_Event(Object_Event_Type::Underlying_Copy_Assign, &m_base_pointer));
 		return *this;
 	}
 
@@ -564,8 +546,7 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 		    &element.m_base_pointer));
 	}
 
-	Element_Monitor_Pointer(
-	    Element_Monitor_Pointer<false, Base, Handler> &&element) noexcept
+	Element_Monitor_Pointer(Element_Monitor_Pointer<false, Base, Handler> &&element) noexcept
 	requires IsConst
 	    : Pre_Construct([this]() { before_construct(); })
 	    , m_pointer(element.m_pointer)
@@ -581,8 +562,7 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 		return *this;
 	}
 
-	Element_Monitor_Pointer &operator=(
-	    Element_Monitor_Pointer<false, Base, Handler> &&element) noexcept
+	Element_Monitor_Pointer &operator=(Element_Monitor_Pointer<false, Base, Handler> &&element) noexcept
 	requires IsConst
 	{
 		assign(Object_Event_Type::Move_Assign, element);
@@ -615,9 +595,8 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 		return element;
 	}
 
-	friend auto operator+(
-	    Element_Monitor_Pointer const &element,
-	    std::integral auto             offset) -> Element_Monitor_Pointer {
+	friend auto operator+(Element_Monitor_Pointer const &element, std::integral auto offset)
+	    -> Element_Monitor_Pointer {
 		return Element_Monitor_Pointer(element.m_pointer + offset);
 	}
 
@@ -630,14 +609,12 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 	template<bool ParameterConst>
 	friend auto operator-(
 	    Element_Monitor_Pointer const &element,
-	    Element_Monitor_Pointer<ParameterConst, Base, Handler> const &offset)
-	    -> difference_type {
+	    Element_Monitor_Pointer<ParameterConst, Base, Handler> const &offset) -> difference_type {
 		return element.m_pointer - offset.m_pointer;
 	}
 
-	friend auto operator-(
-	    Element_Monitor_Pointer const &element,
-	    std::integral auto             offset) -> Element_Monitor_Pointer {
+	friend auto operator-(Element_Monitor_Pointer const &element, std::integral auto offset)
+	    -> Element_Monitor_Pointer {
 		return Element_Monitor_Pointer(element.m_pointer - offset);
 	}
 
@@ -648,8 +625,7 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 	}
 
 	template<bool ParameterConst>
-	auto operator==(
-	    Element_Monitor_Pointer<ParameterConst, Base, Handler> const &element) const
+	auto operator==(Element_Monitor_Pointer<ParameterConst, Base, Handler> const &element) const
 	    -> bool {
 		return this->operator==(element.m_pointer);
 	}
@@ -659,8 +635,7 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 	}
 
 	template<bool ParameterConst>
-	auto operator!=(
-	    Element_Monitor_Pointer<ParameterConst, Base, Handler> const &element) const
+	auto operator!=(Element_Monitor_Pointer<ParameterConst, Base, Handler> const &element) const
 	    -> bool {
 		return !this->operator==(element.m_pointer);
 	}
@@ -674,8 +649,7 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 	}
 
 	template<bool ParameterConst>
-	auto operator<(
-	    Element_Monitor_Pointer<ParameterConst, Base, Handler> const &element) const
+	auto operator<(Element_Monitor_Pointer<ParameterConst, Base, Handler> const &element) const
 	    -> bool {
 		return this->operator<(element.m_pointer);
 	}
@@ -700,9 +674,8 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 		return m_base_pointer;
 	}
 
-	friend auto operator<<(
-	    std::ostream                  &stream,
-	    Element_Monitor_Pointer const &pointer) -> std::ostream & {
+	friend auto operator<<(std::ostream &stream, Element_Monitor_Pointer const &pointer)
+	    -> std::ostream & {
 		return stream << pointer.get();
 	}
 
@@ -711,9 +684,8 @@ class Element_Monitor_Pointer : private detail::Pre_Construct
 	Base_Pointer m_base_pointer = nullptr;
 
 	void before_construct() {
-		Handler::process_object_event(Object_Event(
-		    Object_Event_Type::Before_Construct,
-		    &m_base_pointer));
+		Handler::process_object_event(
+		    Object_Event(Object_Event_Type::Before_Construct, &m_base_pointer));
 	}
 
 	Base_Pointer base_pointer(Pointer pointer) {
@@ -758,17 +730,14 @@ class Memory_Monitor
 	template<typename T>
 	using rebind = Memory_Monitor<T, Handler>;
 
-	// clang-format off
 	using Value         = Element_Monitor<Underlying_Value, Handler>;
 	using Pointer       = Element_Monitor_Pointer<false, Underlying_Value, Handler>;
 	using Const_Pointer = Element_Monitor_Pointer<true, Underlying_Value, Handler>;
-	// clang-format on
 
 	explicit Memory_Monitor() = default;
 
 	template<typename T>
-	explicit Memory_Monitor(Memory_Monitor<T, Handler> /* monitor */)
-	    : Memory_Monitor() {
+	explicit Memory_Monitor(Memory_Monitor<T, Handler> /* monitor */) : Memory_Monitor() {
 	}
 
 	~Memory_Monitor() = default;
@@ -776,20 +745,15 @@ class Memory_Monitor
 	auto allocate(std::size_t count) -> Pointer {
 		Allocator allocator;
 		Pointer   address = Alloc_Traits::allocate(allocator, count);
-		Handler::process_allocation_event(Allocation_Event(
-		    Allocation_Event_Type::Allocate,
-		    &address->base(),
-		    count));
+		Handler::process_allocation_event(
+		    Allocation_Event(Allocation_Event_Type::Allocate, &address->base(), count));
 		return address;
 	}
 
 	template<typename... Arguments>
 	constexpr void construct(Pointer address, Arguments &&...arguments) {
 		Allocator allocator;
-		Alloc_Traits::construct(
-		    allocator,
-		    address.get(),
-		    std::forward<Arguments>(arguments)...);
+		Alloc_Traits::construct(allocator, address.get(), std::forward<Arguments>(arguments)...);
 	}
 
 	constexpr void destroy(Pointer address) {
@@ -798,10 +762,7 @@ class Memory_Monitor
 	}
 
 	void deallocate(Pointer address, std::size_t count) {
-		Allocation_Event event(
-		    Allocation_Event_Type::Deallocate,
-		    &address->base(),
-		    count);
+		Allocation_Event event(Allocation_Event_Type::Deallocate, &address->base(), count);
 
 		Allocator allocator;
 		if (Handler::before_deallocate(event))

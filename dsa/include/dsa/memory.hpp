@@ -67,7 +67,9 @@ void uninitialized_shift(Iterator begin, Iterator end, int count = 1) {
  */
 template<class Iterator>
 void uninitialized_move(Iterator begin, Iterator end, Iterator destination) {
-	assert(!iterators_overlap(begin, end, destination) && "std::uninitialized_move is undefined if the source and destination ranges overlap");
+	assert(
+	    !iterators_overlap(begin, end, destination)
+	    && "std::uninitialized_move is undefined if the source and destination ranges overlap");
 	std::uninitialized_move(begin, end, destination);
 }
 

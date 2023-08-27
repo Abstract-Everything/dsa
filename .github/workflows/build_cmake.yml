@@ -45,6 +45,16 @@ jobs:
       shell: bash
       run: cmake -E make_directory "${{ runner.workspace }}/build"
 
+    - name: Update llvm tools
+      shell: bash
+      run: |
+        sudo apt install software-properties-common
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main"
+        sudo add-apt-repository "deb-src http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main"
+        sudo apt update && sudo apt upgrade
+        sudo apt install clang-format-16
+
     - name: Install conan
       shell: bash
       run: |
@@ -56,6 +66,13 @@ jobs:
         conan profile update conf.tools.system.package_manager:sudo=True default
         # Without this clear reruns on different machines sometimes fail
         conan remove --system-reqs '*'
+
+    - name: Format
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        cpp_files=$(git ls-files | grep -E "(h|c)pp$" | xargs)
+        clang-format-16 --dry-run -Werror -ferror-limit=1 ${cpp_files}
 
     - name: Configure CMake
       shell: bash

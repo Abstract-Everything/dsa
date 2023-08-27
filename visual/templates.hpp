@@ -30,24 +30,21 @@ constexpr bool is_detected_v = is_detected<Op, Args...>::value;
 
 } // namespace detail
 
-#define DEFINE_HAS_OPERATION(name, member)                                 \
-                                                                           \
-	template<typename T, typename... Params>                           \
-	using name##_t =                                                   \
-	    decltype(std::declval<T>().member(std::declval<Params>()...)); \
-                                                                           \
-	template<typename T, typename... Params>                           \
-	constexpr bool has_##name##_v =                                    \
+#define DEFINE_HAS_OPERATION(name, member)                                              \
+                                                                                        \
+	template<typename T, typename... Params>                                        \
+	using name##_t = decltype(std::declval<T>().member(std::declval<Params>()...)); \
+                                                                                        \
+	template<typename T, typename... Params>                                        \
+	constexpr bool has_##name##_v =                                                 \
 	    tmpl::detail::is_detected_v<name##_t, T, Params...> // Intentionally
 								// ommitted ';'
 
 #define DEFINE_HAS_MEMBER(name) DEFINE_HAS_OPERATION(member_##name, name)
 
-#define DEFINE_HAS_OPERATOR_ACCESS() \
-	DEFINE_HAS_OPERATION(operator_access, operator[])
+#define DEFINE_HAS_OPERATOR_ACCESS() DEFINE_HAS_OPERATION(operator_access, operator[])
 
-#define DEFINE_HAS_OPERATOR_DEREFERENCE() \
-	DEFINE_HAS_OPERATION(operator_dereference, operator*)
+#define DEFINE_HAS_OPERATOR_DEREFERENCE() DEFINE_HAS_OPERATION(operator_dereference, operator*)
 
 template<typename Variant_Type, std::size_t variant_index = 0>
 constexpr void construct_variant_by_index(Variant_Type &variant, std::size_t index) {
@@ -59,14 +56,11 @@ constexpr void construct_variant_by_index(Variant_Type &variant, std::size_t ind
 	{
 		if (index == variant_index)
 		{
-			variant =
-			    std::variant_alternative_t<variant_index, Variant_Type>{};
+			variant = std::variant_alternative_t<variant_index, Variant_Type>{};
 		}
 		else
 		{
-			construct_variant_by_index<Variant_Type, variant_index + 1>(
-			    variant,
-			    index);
+			construct_variant_by_index<Variant_Type, variant_index + 1>(variant, index);
 		}
 	}
 }

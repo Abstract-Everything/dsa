@@ -8,8 +8,7 @@ namespace test
 
 struct Empty_Value
 {
-	friend auto operator<<(std::ostream &stream, Empty_Value const & /*value*/)
-	    -> std::ostream & {
+	friend auto operator<<(std::ostream &stream, Empty_Value const & /*value*/) -> std::ostream & {
 		return stream << "{}";
 	}
 };

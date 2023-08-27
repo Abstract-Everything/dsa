@@ -49,8 +49,7 @@ class Vector
 	/**
 	 * @brief Constucts an empty vector
 	 */
-	explicit Vector(Allocator allocator = Allocator())
-	    : Vector(0, std::move(allocator)) {
+	explicit Vector(Allocator allocator = Allocator()) : Vector(0, std::move(allocator)) {
 	}
 
 	/**
@@ -65,10 +64,7 @@ class Vector
 	 * @brief Constructs a vector of the given size whose elements are
 	 * initalised to the given value
 	 */
-	explicit Vector(
-	    std::size_t    size,
-	    Value_t const &value     = Value(),
-	    Allocator      allocator = Allocator())
+	explicit Vector(std::size_t size, Value_t const &value = Value(), Allocator allocator = Allocator())
 	    : m_allocator(std::move(allocator))
 	    , m_size(size)
 	    , m_capacity(size)
@@ -84,10 +80,7 @@ class Vector
 	    , m_size(values.size())
 	    , m_capacity(values.size())
 	    , m_storage(Alloc_Traits::allocate(m_allocator, values.size())) {
-		std::uninitialized_copy(
-		    std::begin(values),
-		    std::end(values),
-		    begin());
+		std::uninitialized_copy(std::begin(values), std::end(values), begin());
 	}
 
 	~Vector() {
@@ -101,8 +94,7 @@ class Vector
 	}
 
 	Vector(Vector const &vector)
-	    : m_allocator(
-		Alloc_Traits::propogate_or_create_instance(vector.allocator()))
+	    : m_allocator(Alloc_Traits::propogate_or_create_instance(vector.allocator()))
 	    , m_size(vector.size())
 	    , m_capacity(vector.capacity())
 	    , m_storage(Alloc_Traits::allocate(m_allocator, m_capacity)) {
@@ -144,19 +136,14 @@ class Vector
 	/**
 	 * @brief Checks if each element in both vectors is equal
 	 */
-	[[nodiscard]] friend bool operator==(
-	    Vector const &lhs,
-	    Vector const &rhs) noexcept {
-		return lhs.size() == rhs.size()
-		       && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+	[[nodiscard]] friend bool operator==(Vector const &lhs, Vector const &rhs) noexcept {
+		return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
 	}
 
 	/**
 	 * @brief Checks if any element in both vectors differs
 	 */
-	[[nodiscard]] friend bool operator!=(
-	    Vector const &lhs,
-	    Vector const &rhs) noexcept {
+	[[nodiscard]] friend bool operator!=(Vector const &lhs, Vector const &rhs) noexcept {
 		return !(lhs == rhs);
 	}
 
@@ -243,9 +230,7 @@ class Vector
 		return m_storage[index];
 	}
 
-	friend std::ostream &operator<<(
-	    std::ostream &stream,
-	    Vector const &vector) noexcept {
+	friend std::ostream &operator<<(std::ostream &stream, Vector const &vector) noexcept {
 		stream << "[";
 		for (Const_Pointer it = vector.begin(); it != vector.end(); ++it)
 		{
@@ -301,15 +286,11 @@ class Vector
 
 		if (should_grow())
 		{
-			size_t  capacity = grow_size();
-			Pointer storage =
-			    Alloc_Traits::allocate(m_allocator, capacity);
+			size_t  capacity     = grow_size();
+			Pointer storage      = Alloc_Traits::allocate(m_allocator, capacity);
 			Pointer insert_point = storage + index;
 			Pointer rest         = insert_point + 1;
-			Alloc_Traits::construct(
-			    m_allocator,
-			    insert_point,
-			    std::move(value));
+			Alloc_Traits::construct(m_allocator, insert_point, std::move(value));
 			uninitialized_move(begin(), begin() + index, storage);
 			uninitialized_move(begin() + index, end(), rest);
 			Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
@@ -321,10 +302,7 @@ class Vector
 			Pointer insert_point = begin() + index;
 			uninitialized_shift(insert_point, end());
 
-			Alloc_Traits::construct(
-			    m_allocator,
-			    insert_point,
-			    std::move(value));
+			Alloc_Traits::construct(m_allocator, insert_point, std::move(value));
 		}
 
 		m_size++;
@@ -343,8 +321,7 @@ class Vector
 		if (should_shrink())
 		{
 			size_t  capacity = shrink_size();
-			Pointer storage =
-			    Alloc_Traits::allocate(m_allocator, capacity);
+			Pointer storage  = Alloc_Traits::allocate(m_allocator, capacity);
 			uninitialized_move(begin(), erasing, storage);
 			uninitialized_move(erasing + 1, end(), storage + index);
 			Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
@@ -366,7 +343,7 @@ class Vector
 		using std::swap;
 
 		size_t  capacity = m_size;
-		Pointer storage = Alloc_Traits::allocate(m_allocator, capacity);
+		Pointer storage  = Alloc_Traits::allocate(m_allocator, capacity);
 		uninitialized_move(begin(), end(), storage);
 		Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
 		m_storage  = storage;
@@ -409,8 +386,7 @@ class Vector
 			return;
 		}
 
-		Pointer storage =
-		    Alloc_Traits::allocate(m_allocator, new_capacity);
+		Pointer storage = Alloc_Traits::allocate(m_allocator, new_capacity);
 		uninitialized_move(begin(), end(), storage);
 		Alloc_Traits::deallocate(m_allocator, m_storage, m_capacity);
 		m_storage  = storage;

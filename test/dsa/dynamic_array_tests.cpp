@@ -25,8 +25,7 @@ TEST_CASE("Various mechanisims to initialise dynamic array", "[dynamic_array]") 
 		REQUIRE(array.size() == 0);
 	}
 
-	SECTION(
-	    "Custom size initialises array with default constructed values") {
+	SECTION("Custom size initialises array with default constructed values") {
 		constexpr size_t count = 2;
 
 		Dynamic_Array array(count);
@@ -140,9 +139,7 @@ TEST_CASE("Dynamic arrays can be swapped", "[dynamic_array]") {
 	REQUIRE_THAT(array_b, EqualsRange(list_a));
 }
 
-TEST_CASE(
-    "Dynamic array provides an interface to access its elements",
-    "[dynamic_array]") {
+TEST_CASE("Dynamic array provides an interface to access its elements", "[dynamic_array]") {
 	Handler_Scope scope;
 
 	std::initializer_list<int> list{1, 2, 3};
@@ -177,11 +174,7 @@ TEST_CASE("Dynamic arrays can be resized at runtime", "[dynamic_array]") {
 
 	SECTION("Increasing array size default initialises new elements") {
 		std::initializer_list<int> list{1, 2};
-		std::initializer_list<int> expected{
-		    data(list)[0],
-		    data(list)[1],
-		    int{},
-		    int{}};
+		std::initializer_list<int> expected{data(list)[0], data(list)[1], int{}, int{}};
 
 		Dynamic_Array array{list};
 		array.resize(expected.size());
@@ -189,15 +182,10 @@ TEST_CASE("Dynamic arrays can be resized at runtime", "[dynamic_array]") {
 		REQUIRE_THAT(array, EqualsRange(expected));
 	}
 
-	SECTION(
-	    "Increasing array size initialises new elements to given value") {
+	SECTION("Increasing array size initialises new elements to given value") {
 		Dynamic_Array::Value       value(10);
 		std::initializer_list<int> list{1, 2};
-		std::initializer_list<int> expected{
-		    data(list)[0],
-		    data(list)[1],
-		    value,
-		    value};
+		std::initializer_list<int> expected{data(list)[0], data(list)[1], value, value};
 
 		Dynamic_Array array{list};
 		array.resize(expected.size(), value);

@@ -9,8 +9,7 @@ class Incomparable_Value
 	explicit Incomparable_Value(int value) : m_value(value) {
 	}
 
-	[[nodiscard]] std::strong_ordering compare(
-	    Incomparable_Value const &value) const {
+	[[nodiscard]] std::strong_ordering compare(Incomparable_Value const &value) const {
 		return m_value <=> value.m_value;
 	}
 

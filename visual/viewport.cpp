@@ -30,13 +30,11 @@ constexpr ImU32 line_colour    = IM_COL32(255, 255, 255, 100);
 constexpr ImU32 valid_background   = IM_COL32(0, 150, 255, 255);
 constexpr ImU32 invalid_background = IM_COL32(255, 50, 50, 255);
 
-const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
-				      | ImGuiWindowFlags_AlwaysAutoResize
-				      | ImGuiWindowFlags_NoNav;
+const ImGuiWindowFlags window_flags =
+    ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav;
 
-const ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit
-				    | ImGuiTableFlags_BordersInnerV
-				    | ImGuiTableFlags_RowBg;
+const ImGuiTableFlags table_flags =
+    ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg;
 
 ImU32 cell_background(bool initialised) {
 	return initialised ? valid_background : invalid_background;
@@ -46,9 +44,7 @@ auto allocation_name(uintptr_t address) -> std::string {
 	return fmt::format("Allocation_{:0x}", address);
 }
 
-ImGuiWindow *allocation_window(
-    dsa::Memory_Representation const &memory,
-    uintptr_t                         address) {
+ImGuiWindow *allocation_window(dsa::Memory_Representation const &memory, uintptr_t address) {
 	uintptr_t source = 0;
 	for (auto const &allocation : memory.allocations())
 	{
@@ -116,10 +112,7 @@ void Viewport::draw_allocation(dsa::Allocation_Block const &block) const {
 	ImGui::Begin(window_name.c_str(), nullptr, window_flags);
 	ImGui::SetWindowFontScale(2.0F);
 
-	ImGui::BeginTable(
-	    "Elements",
-	    1 + static_cast<int>(block.count()),
-	    table_flags);
+	ImGui::BeginTable("Elements", 1 + static_cast<int>(block.count()), table_flags);
 
 	ImGui::TableNextColumn();
 	std::string size = std::to_string(block.count());
@@ -152,9 +145,7 @@ void Viewport::draw_value(dsa::Allocation_Element const &element) {
 
 	ImGui::TableNextColumn();
 
-	ImGui::TableSetBgColor(
-	    ImGuiTableBgTarget_CellBg,
-	    cell_background(element.initialised()));
+	ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, cell_background(element.initialised()));
 
 	ImGui::Text("%s", element.value().c_str());
 }
@@ -203,15 +194,10 @@ void Viewport::draw_pointer(dsa::Allocation_Element const &element) const {
 	ImGuiWindow *destination = allocation_window(current(), pointee);
 	assert(destination != nullptr && "");
 
-	ImGui::GetBackgroundDrawList()->AddLine(
-	    source->Pos,
-	    destination->Pos,
-	    line_colour,
-	    line_thickness);
+	ImGui::GetBackgroundDrawList()->AddLine(source->Pos, destination->Pos, line_colour, line_thickness);
 }
 
-auto Viewport::pointer_value_address(dsa::Allocation_Element const &element)
-    -> uintptr_t {
+auto Viewport::pointer_value_address(dsa::Allocation_Element const &element) -> uintptr_t {
 	uintptr_t              address = 0;
 	std::string            string  = element.value();
 	std::from_chars_result result  = std::from_chars(

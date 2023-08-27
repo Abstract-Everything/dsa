@@ -52,9 +52,7 @@ TEST_CASE_METHOD(
 		    EqualsEvent(Object_Event_Type::Construct, address));
 	}
 
-	REQUIRE_THAT(
-	    Event_Handler::events().back(),
-	    EqualsEvent(Object_Event_Type::Destroy, address));
+	REQUIRE_THAT(Event_Handler::events().back(), EqualsEvent(Object_Event_Type::Destroy, address));
 }
 
 TEST_CASE_METHOD(
@@ -68,10 +66,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Copy_Construct,
-			&copy.base(),
-			&value.base()));
+		    EqualsEvent(Object_Event_Type::Copy_Construct, &copy.base(), &value.base()));
 	}
 
 	SECTION("Detect copy assignment") {
@@ -80,10 +75,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Copy_Assign,
-			&copy.base(),
-			&value.base()));
+		    EqualsEvent(Object_Event_Type::Copy_Assign, &copy.base(), &value.base()));
 	}
 
 	SECTION("Detect underlying copy assignment") {
@@ -93,9 +85,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&copy.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &copy.base()));
 	}
 }
 
@@ -110,10 +100,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Move_Construct,
-			&value.base(),
-			&temporary.base()));
+		    EqualsEvent(Object_Event_Type::Move_Construct, &value.base(), &temporary.base()));
 	}
 
 	SECTION("Detect move assignment") {
@@ -122,10 +109,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Move_Assign,
-			&value.base(),
-			&temporary.base()));
+		    EqualsEvent(Object_Event_Type::Move_Assign, &value.base(), &temporary.base()));
 	}
 
 	SECTION("Detect underlying move assignment") {
@@ -134,9 +118,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Move_Assign,
-			&value.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Move_Assign, &value.base()));
 	}
 }
 

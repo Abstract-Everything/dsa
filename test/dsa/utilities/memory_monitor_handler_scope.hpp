@@ -48,9 +48,8 @@ class Memory_Monitor_Handler_Scope
 	auto operator=(Memory_Monitor_Handler_Scope const &)
 	    -> Memory_Monitor_Handler_Scope & = delete;
 
-	Memory_Monitor_Handler_Scope(Memory_Monitor_Handler_Scope &&) = delete;
-	auto operator=(Memory_Monitor_Handler_Scope &&)
-	    -> Memory_Monitor_Handler_Scope & = delete;
+	Memory_Monitor_Handler_Scope(Memory_Monitor_Handler_Scope &&)                     = delete;
+	auto operator=(Memory_Monitor_Handler_Scope &&) -> Memory_Monitor_Handler_Scope & = delete;
 };
 
 } // namespace test

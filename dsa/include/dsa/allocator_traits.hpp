@@ -20,8 +20,7 @@ class Allocator_Traits_Base
 	using Has_Reference = typename Allocator::Reference;
 
 	template<typename Default_Type, typename Allocator>
-	using Detect_Reference_T =
-	    Detect_Default_T<Default_Type, Has_Reference, Allocator>;
+	using Detect_Reference_T = Detect_Default_T<Default_Type, Has_Reference, Allocator>;
 
 	template<typename Allocator>
 	using Has_Const_Reference = typename Allocator::Const_Reference;
@@ -34,19 +33,16 @@ class Allocator_Traits_Base
 	using Has_Pointer = typename Allocator::Pointer;
 
 	template<typename Default_Type, typename Allocator>
-	using Detect_Pointer_T =
-	    Detect_Default_T<Default_Type, Has_Pointer, Allocator>;
+	using Detect_Pointer_T = Detect_Default_T<Default_Type, Has_Pointer, Allocator>;
 
 	template<typename Allocator>
 	using Has_Const_Pointer = typename Allocator::Const_Pointer;
 
 	template<typename Default_Type, typename Allocator>
-	using Detect_Const_Pointer_T =
-	    Detect_Default_T<Default_Type, Has_Const_Pointer, Allocator>;
+	using Detect_Const_Pointer_T = Detect_Default_T<Default_Type, Has_Const_Pointer, Allocator>;
 
 	template<typename Allocator>
-	using Has_Allocate_Operator =
-	    decltype(std::declval<Allocator>().allocate(std::size_t()));
+	using Has_Allocate_Operator = decltype(std::declval<Allocator>().allocate(std::size_t()));
 
 	template<typename Allocator>
 	static constexpr bool has_allocate() {
@@ -54,10 +50,9 @@ class Allocator_Traits_Base
 	}
 
 	template<typename Allocator, typename Pointer, typename... Arguments>
-	using Has_Construct_Operator =
-	    decltype(std::declval<Allocator &&>().construct(
-		std::declval<Pointer &&>(),
-		std::declval<Arguments &&>()...));
+	using Has_Construct_Operator = decltype(std::declval<Allocator &&>().construct(
+	    std::declval<Pointer &&>(),
+	    std::declval<Arguments &&>()...));
 
 	template<typename Allocator, typename Pointer, typename... Arguments>
 	static constexpr bool has_construct() {
@@ -66,9 +61,7 @@ class Allocator_Traits_Base
 
 	template<typename Allocator, typename Pointer>
 	using Has_Deallocate_Operator =
-	    decltype(std::declval<Allocator &&>().deallocate(
-		std::declval<Pointer &&>(),
-		std::size_t()));
+	    decltype(std::declval<Allocator &&>().deallocate(std::declval<Pointer &&>(), std::size_t()));
 
 	template<typename Allocator, typename Pointer>
 	static constexpr bool has_deallocate() {
@@ -76,8 +69,8 @@ class Allocator_Traits_Base
 	}
 
 	template<typename Allocator, typename Pointer>
-	using Has_Destroy_Operator = decltype(std::declval<Allocator>().destroy(
-	    std::declval<Pointer &&>()));
+	using Has_Destroy_Operator =
+	    decltype(std::declval<Allocator>().destroy(std::declval<Pointer &&>()));
 
 	template<typename Allocator, typename Pointer>
 	static constexpr bool has_destroy() {
@@ -91,22 +84,19 @@ template<typename Allocator_t>
 class Allocator_Traits : detail::Allocator_Traits_Base
 {
  public:
-	// clang-format off
 	using Allocator       = Allocator_t;
 	using Value           = typename Allocator::Value;
 	using Reference       = Detect_Reference_T<Value &, Allocator>;
 	using Const_Reference = Detect_Const_Reference_T<Value const &, Allocator>;
 	using Pointer         = Detect_Pointer_T<Value *, Allocator>;
 	using Const_Pointer   = Detect_Const_Pointer_T<Value const *, Allocator>;
-	// clang-format on
 
  private:
 	using Std_Allocator        = std::allocator<Value>;
 	using Std_Allocator_Traits = std::allocator_traits<Std_Allocator>;
 
  public:
-	static constexpr Allocator propogate_or_create_instance(
-	    Allocator const &allocator) {
+	static constexpr Allocator propogate_or_create_instance(Allocator const &allocator) {
 		if constexpr (std::is_copy_constructible_v<Allocator>)
 		{
 			return Allocator(allocator);
@@ -154,10 +144,7 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 	}
 
 	template<typename Pointer_t>
-	static constexpr void deallocate(
-	    Allocator  &allocator,
-	    Pointer_t &&pointer,
-	    std::size_t count) {
+	static constexpr void deallocate(Allocator &allocator, Pointer_t &&pointer, std::size_t count) {
 		static_assert(
 		    std::is_same_v<Pointer, std::remove_cvref_t<Pointer_t>>,
 		    "These traits should not be passed a different pointer "
@@ -165,9 +152,7 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 
 		if constexpr (has_deallocate<Allocator, Pointer>())
 		{
-			allocator.deallocate(
-			    std::forward<Pointer_t>(pointer),
-			    count);
+			allocator.deallocate(std::forward<Pointer_t>(pointer), count);
 		}
 		else
 		{
@@ -191,9 +176,7 @@ class Allocator_Traits : detail::Allocator_Traits_Base
 		else
 		{
 			Std_Allocator std_allocator;
-			Std_Allocator_Traits::destroy(
-			    std_allocator,
-			    std::forward<Pointer_t>(pointer));
+			Std_Allocator_Traits::destroy(std_allocator, std::forward<Pointer_t>(pointer));
 		}
 	}
 };

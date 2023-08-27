@@ -17,20 +17,19 @@ template<typename Satellite_t, typename Allocator_t>
 class Binary_Tree_Node
 {
  private:
-	// clang-format off
-	using Alloc_Traits = Allocator_Traits<typename Allocator_t::template rebind<Binary_Tree_Node>>;
-	using Allocator    = typename Alloc_Traits::Allocator;
-	using Pointer      = typename Alloc_Traits::Pointer;
+	using Alloc_Traits =
+	    Allocator_Traits<typename Allocator_t::template rebind<Binary_Tree_Node>>;
+	using Allocator     = typename Alloc_Traits::Allocator;
+	using Pointer       = typename Alloc_Traits::Pointer;
 	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
-	using Satellite_Alloc_Traits    = Allocator_Traits<typename Allocator_t::template rebind<Satellite_t>>;
+	using Satellite_Alloc_Traits =
+	    Allocator_Traits<typename Allocator_t::template rebind<Satellite_t>>;
 	using Satellite                 = typename Satellite_Alloc_Traits::Value;
 	using Satellite_Pointer         = typename Satellite_Alloc_Traits::Reference;
 	using Satellite_Const_Pointer   = typename Satellite_Alloc_Traits::Const_Reference;
 	using Satellite_Reference       = typename Satellite_Alloc_Traits::Reference;
 	using Satellite_Const_Reference = typename Satellite_Alloc_Traits::Const_Reference;
-
-	// clang-format on
 
 	template<bool Is_Const>
 	class Iterator_Detail
@@ -112,8 +111,7 @@ class Binary_Tree_Node
 				return node->m_parent;
 			}
 
-			while (node->m_parent != nullptr
-			       && node->m_parent->m_right == node)
+			while (node->m_parent != nullptr && node->m_parent->m_right == node)
 			{
 				node = node->m_parent;
 			}
@@ -138,16 +136,9 @@ class Binary_Tree_Node
 	    , m_satellite(std::forward<Arguments>(arguments)...) {
 	}
 
-	friend auto operator<<(std::ostream &stream, Binary_Tree_Node const &node)
-	    -> std::ostream & {
-		// clang-format off
-		return stream << '{'
-				<< node.m_left
-				<< ',' << node.m_parent
-				<< ',' << node.m_right
-				<< ',' << node.m_satellite
-			<< '}';
-		// clang-format on
+	friend auto operator<<(std::ostream &stream, Binary_Tree_Node const &node) -> std::ostream & {
+		return stream << '{' << node.m_left << ',' << node.m_parent << ',' << node.m_right
+			      << ',' << node.m_satellite << '}';
 	}
 };
 
@@ -169,8 +160,8 @@ template<typename Value_t, typename Allocator_t = Default_Allocator<Value_t>>
 class Binary_Tree
 {
  private:
-	using Node        = detail::Binary_Tree_Node<Value_t, Allocator_t>;
-	using Node_Traits = Allocator_Traits<typename Allocator_t::template rebind<Node>>;
+	using Node               = detail::Binary_Tree_Node<Value_t, Allocator_t>;
+	using Node_Traits        = Allocator_Traits<typename Allocator_t::template rebind<Node>>;
 	using Node_Allocator     = typename Node_Traits::Allocator;
 	using Node_Pointer       = typename Node_Traits::Pointer;
 	using Node_Const_Pointer = typename Node_Traits::Const_Pointer;
@@ -189,16 +180,13 @@ class Binary_Tree
 	/**
 	 * @brief Constructs an empty binary tree
 	 */
-	explicit Binary_Tree(Allocator const &allocator = Allocator{})
-	    : m_allocator(allocator) {
+	explicit Binary_Tree(Allocator const &allocator = Allocator{}) : m_allocator(allocator) {
 	}
 
 	/**
 	 * @brief Constructs a binary tree filled with the given values
 	 */
-	Binary_Tree(
-	    std::initializer_list<Value_t> values,
-	    Allocator const               &allocator = Allocator())
+	Binary_Tree(std::initializer_list<Value_t> values, Allocator const &allocator = Allocator())
 	    : m_allocator(allocator) {
 		for (auto value : values)
 		{
@@ -292,8 +280,7 @@ class Binary_Tree
 			{
 				return true;
 			}
-			node = value < node->m_satellite ? node->m_left
-							 : node->m_right;
+			node = value < node->m_satellite ? node->m_left : node->m_right;
 		}
 		return false;
 	}
@@ -310,9 +297,8 @@ class Binary_Tree
 		{
 			parent             = *node_ptr;
 			Node_Pointer &node = *node_ptr;
-			node_ptr = insert->m_satellite < node->m_satellite
-				       ? &node->m_left
-				       : &node->m_right;
+			node_ptr           = insert->m_satellite < node->m_satellite ? &node->m_left
+										     : &node->m_right;
 		}
 
 		*node_ptr        = insert;
@@ -328,8 +314,7 @@ class Binary_Tree
 		while ((*pointer)->m_satellite != value)
 		{
 			Node_Pointer node = *pointer;
-			pointer = value < node->m_satellite ? &node->m_left
-							    : &node->m_right;
+			pointer = value < node->m_satellite ? &node->m_left : &node->m_right;
 		}
 
 		Node_Pointer node = *pointer;
@@ -367,9 +352,7 @@ class Binary_Tree
 	 * @brief Returns true if the node structure and every nodes value is
 	 * the same for both trees
 	 */
-	[[nodiscard]] static bool same_structure(
-	    Binary_Tree const &lhs,
-	    Binary_Tree const &rhs) noexcept {
+	[[nodiscard]] static bool same_structure(Binary_Tree const &lhs, Binary_Tree const &rhs) noexcept {
 		return compare_structure(lhs.m_head, rhs.m_head);
 	}
 
@@ -386,9 +369,7 @@ class Binary_Tree
 		return 1 + count_nodes(node->m_left) + count_nodes(node->m_right);
 	}
 
-	[[nodiscard]] static bool is_subset(
-	    Node_Pointer       node,
-	    Binary_Tree const &binary_tree) {
+	[[nodiscard]] static bool is_subset(Node_Pointer node, Binary_Tree const &binary_tree) {
 		return (node == nullptr)
 		       || (binary_tree.contains(node->m_satellite)
 			   && is_subset(node->m_left, binary_tree)
@@ -397,15 +378,12 @@ class Binary_Tree
 
 	[[nodiscard]] static bool compare_structure(Node_Pointer lhs, Node_Pointer rhs) {
 		return (lhs == rhs)
-		       || (lhs != nullptr && rhs != nullptr
-			   && lhs->m_satellite == rhs->m_satellite
+		       || (lhs != nullptr && rhs != nullptr && lhs->m_satellite == rhs->m_satellite
 			   && compare_structure(lhs->m_left, rhs->m_left)
 			   && compare_structure(lhs->m_right, rhs->m_right));
 	}
 
-	[[nodiscard]] Node_Pointer copy_subtree(
-	    Node_Pointer parent,
-	    Node_Pointer subtree) {
+	[[nodiscard]] Node_Pointer copy_subtree(Node_Pointer parent, Node_Pointer subtree) {
 		if (subtree == nullptr)
 		{
 			return nullptr;
@@ -421,10 +399,7 @@ class Binary_Tree
 	template<typename... Arguments>
 	Node_Pointer create_node(Arguments &&...arguments) {
 		Node_Pointer pointer = Node_Traits::allocate(m_allocator, 1);
-		Node_Traits::construct(
-		    m_allocator,
-		    pointer,
-		    std::forward<Arguments>(arguments)...);
+		Node_Traits::construct(m_allocator, pointer, std::forward<Arguments>(arguments)...);
 		return pointer;
 	}
 

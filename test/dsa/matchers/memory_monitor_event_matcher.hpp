@@ -10,8 +10,7 @@ namespace test
 
 struct EqualsMemoryMonitorEventMatcher : Catch::Matchers::MatcherGenericBase
 {
-	explicit EqualsMemoryMonitorEventMatcher(Event_Type event)
-	    : m_event(event) {
+	explicit EqualsMemoryMonitorEventMatcher(Event_Type event) : m_event(event) {
 	}
 
 	bool match(Event_Type const &other) const {
@@ -20,8 +19,7 @@ struct EqualsMemoryMonitorEventMatcher : Catch::Matchers::MatcherGenericBase
 
 	std::string describe() const override {
 		std::stringstream stream;
-		stream << "\nEquals:\n"
-		       << m_event << "\n\nAll the events received:";
+		stream << "\nEquals:\n" << m_event << "\n\nAll the events received:";
 		for (auto const &event : Event_Handler::events())
 		{
 			stream << "\n" << event;
@@ -41,10 +39,8 @@ auto EqualsEvent(dsa::Allocation_Event_Type type, T *pointer, size_t count)
 }
 
 template<typename T>
-auto EqualsEvent(dsa::Object_Event_Type type, T *destination)
-    -> EqualsMemoryMonitorEventMatcher {
-	return EqualsMemoryMonitorEventMatcher(
-	    Event_Type(dsa::Object_Event(type, destination)));
+auto EqualsEvent(dsa::Object_Event_Type type, T *destination) -> EqualsMemoryMonitorEventMatcher {
+	return EqualsMemoryMonitorEventMatcher(Event_Type(dsa::Object_Event(type, destination)));
 }
 
 template<typename T>

@@ -89,7 +89,6 @@ class Actions_UI
 
 	std::string element_value(typename Container::Const_Reference value);
 
-	// clang-format off
 	static constexpr bool has_empty           = has_member_empty_v<Container>;
 	static constexpr bool has_size            = has_member_size_v<Container>;
 	static constexpr bool has_capacity        = has_member_capacity_v<Container>;
@@ -101,24 +100,24 @@ class Actions_UI
 	static constexpr bool has_shrink_to_fit   = has_member_shrink_to_fit_v<Container>;
 	static constexpr bool has_resize          = has_member_resize_v<Container, std::size_t>;
 	static constexpr bool has_append          = has_member_append_v<Container, Value>;
-	static constexpr bool has_indexed_insert  = has_member_insert_v<Container, std::size_t, Value>;
-	static constexpr bool has_insert          = has_member_insert_v<Container, Value>;
-	static constexpr bool has_push            = has_member_push_v<Container, Value>;
-	static constexpr bool has_value_erase     = has_member_erase_v<Container, Value> && has_member_contains_v<Container, Value>;
+	static constexpr bool has_indexed_insert = has_member_insert_v<Container, std::size_t, Value>;
+	static constexpr bool has_insert = has_member_insert_v<Container, Value>;
+	static constexpr bool has_push   = has_member_push_v<Container, Value>;
+	static constexpr bool has_value_erase =
+	    has_member_erase_v<Container, Value> && has_member_contains_v<Container, Value>;
 	// We do not support a structure that has both value and index erase. We
 	// did not find a way to detect if index erase is present when value
 	// erase is. If we try to detect an index erase, an implicit cast could
 	// construct a Value from a size_t, this will result in a false positive
-	static constexpr bool has_indexed_erase   = has_member_erase_v<Container, std::size_t> && !has_value_erase;
-	static constexpr bool has_pop             = has_member_pop_v<Container>;
-	// clang-format on
+	static constexpr bool has_indexed_erase =
+	    has_member_erase_v<Container, std::size_t> && !has_value_erase;
+	static constexpr bool has_pop = has_member_pop_v<Container>;
 
 	template<typename Allocator>
 	using Has_Iterator = typename Allocator::Iterator;
 
 	template<typename Default_Type, typename Allocator>
-	using Detect_Iterator_T =
-	    dsa::Detect_Default_T<Default_Type, Has_Iterator, Allocator>;
+	using Detect_Iterator_T = dsa::Detect_Default_T<Default_Type, Has_Iterator, Allocator>;
 
 	static constexpr bool has_random_access_iterators =
 	    Is_Random_Access_Iterator<Detect_Iterator_T<std::void_t<>, Container>>;
@@ -157,9 +156,8 @@ void Actions_UI<Container>::accessors() {
 		ImGui::LabelText(
 		    "Front element",
 		    "%s",
-		    m_container.empty()
-			? "Container is empty"
-			: element_value(m_container.front()).c_str());
+		    m_container.empty() ? "Container is empty"
+					: element_value(m_container.front()).c_str());
 	}
 
 	if constexpr (has_back)
@@ -167,9 +165,8 @@ void Actions_UI<Container>::accessors() {
 		ImGui::LabelText(
 		    "Back element",
 		    "%s",
-		    m_container.empty()
-			? "Container is empty"
-			: element_value(m_container.back()).c_str());
+		    m_container.empty() ? "Container is empty"
+					: element_value(m_container.back()).c_str());
 	}
 
 	if constexpr (has_top)
@@ -177,9 +174,8 @@ void Actions_UI<Container>::accessors() {
 		ImGui::LabelText(
 		    "Top element",
 		    "%s",
-		    m_container.empty()
-			? "Container is empty"
-			: element_value(m_container.top()).c_str());
+		    m_container.empty() ? "Container is empty"
+					: element_value(m_container.top()).c_str());
 	}
 
 	if constexpr (has_operator_access)
@@ -190,8 +186,7 @@ void Actions_UI<Container>::accessors() {
 		ImGui::LabelText(
 		    "Value read",
 		    "%s",
-		    is_in_range(read) ? element_value(m_container[read]).c_str()
-				      : "<Out of bounds>");
+		    is_in_range(read) ? element_value(m_container[read]).c_str() : "<Out of bounds>");
 	}
 }
 
@@ -227,7 +222,7 @@ void Actions_UI<Container>::modifiers() {
 		if (ImGui::Button("Resize"))
 		{
 			Enable_Event_Registration_Scope scope;
-			auto const size = static_cast<std::size_t>(m_resize);
+			auto const                      size = static_cast<std::size_t>(m_resize);
 			m_container.resize(size);
 		}
 	}
@@ -264,9 +259,7 @@ void Actions_UI<Container>::modifiers() {
 		ImGui::InputInt("Insert Value", &m_insert_value);
 
 		auto const insert = static_cast<std::size_t>(m_insert);
-		if (conditional_button(
-			"Indexed Insert",
-			is_in_range(insert) || is_last_index(insert)))
+		if (conditional_button("Indexed Insert", is_in_range(insert) || is_last_index(insert)))
 		{
 			Enable_Event_Registration_Scope scope;
 			m_container.insert(insert, Value{m_insert_value});
@@ -339,19 +332,15 @@ void Actions_UI<Container>::modifiers() {
 	{
 		ImGui::Separator();
 
-		ImGui::InputInt(
-		    "Fill the container with random elements",
-		    &m_random_size);
+		ImGui::InputInt("Fill the container with random elements", &m_random_size);
 		if (ImGui::Button("Fill"))
 		{
 			m_random_size = std::max(0, m_random_size);
-			std::uniform_int_distribution<int> distribution(
-			    -m_random_size,
-			    m_random_size);
+			std::uniform_int_distribution<int> distribution(-m_random_size, m_random_size);
 			for (int i = 0; i < m_random_size; ++i)
 			{
 				Enable_Event_Registration_Scope scope;
-				Value value{distribution(m_rng)};
+				Value                           value{distribution(m_rng)};
 				if constexpr (has_append)
 				{
 					m_container.append(value);
@@ -391,9 +380,7 @@ void Actions_UI<Container>::modifiers() {
 		if (ImGui::Button("Merge sort"))
 		{
 			Enable_Event_Registration_Scope scope;
-			dsa::merge_sort<
-			    decltype(m_container.begin()),
-			    typename Container::Allocator>(
+			dsa::merge_sort<decltype(m_container.begin()), typename Container::Allocator>(
 			    m_container.begin(),
 			    m_container.end());
 		}
@@ -411,9 +398,7 @@ bool Actions_UI<Container>::is_last_index(std::size_t index) {
 }
 
 template<typename Container>
-void Actions_UI<Container>::section(
-    char const *label,
-    void (Actions_UI::*interface)()) {
+void Actions_UI<Container>::section(char const *label, void (Actions_UI::*interface)()) {
 	if (!ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		return;
@@ -425,10 +410,7 @@ void Actions_UI<Container>::section(
 }
 
 template<typename Container>
-void Actions_UI<Container>::index_input(
-    char const *label,
-    int        &value,
-    bool        allow_end_index) {
+void Actions_UI<Container>::index_input(char const *label, int &value, bool allow_end_index) {
 	auto const size      = static_cast<int>(m_container.size());
 	auto const max_index = std::max(0, allow_end_index ? size : size - 1);
 	value                = std::clamp(value, 0, max_index);
@@ -453,8 +435,7 @@ bool Actions_UI<Container>::conditional_button(char const *label, bool enabled) 
 }
 
 template<typename Container>
-std::string Actions_UI<Container>::element_value(
-    typename Container::Const_Reference value) {
+std::string Actions_UI<Container>::element_value(typename Container::Const_Reference value) {
 	std::stringstream stream;
 	stream << value;
 	return stream.str();
