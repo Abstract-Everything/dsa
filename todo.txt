@@ -1,82 +1,78 @@
-Development:
-	Features:
-		DSA:
-			Add Data Structures:
-				Queue
-				Stack
-				Double ended queue
-				Red-Black Tree
-				B-Tree
-				AVL Trees
-				Hash tables
-				Fibonacci Tree
-			Algorithms:
-				Traverse
-				Sort
-					Heap
-					Quick
-					Merge
-					Insertion
-					Linear
-				Minimum element
-				Maximum element
-				Maximum subarray
-				Search
-					Binary
-					Linear
-			Multithreading
+Features:
+	DSA:
+		Add Data Structures:
+			Queue
+			Stack
+			Double ended queue
+			Red-Black Tree
+			B-Tree
+			AVL Trees
+			Hash tables
+			Fibonacci Tree
+		Algorithms:
+			Traverse
+			Sort
+				Quick
+				Linear
+			Minimum element
+			Maximum element
+			Maximum subarray
+		Multithreading
 
-		Visual:
-			Visualise linear search
-			Visualise binary search
-			Drag viewport
-			Zoom In/ Out in viewport
-			Animate actions such as move and copy assignments
-			Show commands being processed
-			Memory view (Vertical bars of sets of bytes + memory addresses)
-			Add logic to better layout the nodes in the viewport.
-				Allocations should not overlap on screen
-				Allocations should be placed in nicer layout
-					List: a -> b -> c
-					                |
-							v
-					           e <- d
-					Tree:    a
-					       /   \
-					      b     c
+	Visual:
+		Visualise linear search
+		Visualise binary search
+		Drag viewport
+		Zoom In/ Out in viewport
+		Animate actions such as move and copy assignments
+		Show commands being processed
+		Memory view (Vertical bars of sets of bytes + memory addresses)
+		Add logic to better layout the nodes in the viewport.
+			Allocations should not overlap on screen
+			Allocations should be placed in nicer layout
+				List: a -> b -> c
+						|
+						v
+					   e <- d
 
-	Improvements:
-		DSA:
-			Make the structures constexpr
-			Exception safety
-			Create a buffer class to encapsulate Alloc_Traits calls and dealing with uninitialised values.
-			Create a class for a pointer base (Creates a pointer looking class given .get and .set functions for Value*)
-			Memory_Representation could be managed by Memory_Monitor. It could store the state of the objects it monitors inside and allow the current Event_Handlers to use the visits to extract the information that they require. We would probably need to separate the Memory_Monitor into an Allocator and a State class. So that the State is not in a different instance based on the template parameter.
-			Object_Event_Type::Underlying_(Copy/Move)_Assign can be merged together into Underlying_Value_Assign
-			Create a range based container to hold the memory_representation elements. i.e. a container that holds ranges, if a value inside of a held range is indexed the beginning of the range is returned
+				Tree:    a
+				       /   \
+				      b     c
 
-	Issues:
-		DSA:
-			Binary_Tree does not account for duplicates
+Improvements:
+	DSA:
+		Make the structures constexpr
+		Exception safety
+		Create a buffer class to encapsulate Alloc_Traits calls and dealing with uninitialised values.
+		Create a class for a pointer base (Creates a pointer looking class given .get and .set functions for Value*)
+		Memory_Representation could be managed by Memory_Monitor. It could store the state of the objects it monitors inside and allow the current Event_Handlers to use the visits to extract the information that they require. We would probably need to separate the Memory_Monitor into an Allocator and a State class. So that the State is not in a different instance based on the template parameter.
+		Object_Event_Type::Underlying_(Copy/Move)_Assign can be merged together into Underlying_Value_Assign
+		Create a range based container to hold the memory_representation elements. i.e. a container that holds ranges, if a value inside of a held range is indexed the beginning of the range is returned
 
-		Visual:
-			User interface shows the current read value instead of what the visualisation shows (It pulls from the actual vector rather than the visual representation of it)
-			Viewport should not have rendering code + rename the class
-			Use standard typenames and concepts: e.x. use pointer instead of Pointer and allocator_traits instead of Allocator_Traits (It was nice to learn making my own but it is too time consuming now)
+Issues:
+	General:
+		make swap implementations non-member functions in the same namespace as the struct, this avoids having to use using std::swap each time
+	DSA:
+		Binary_Tree does not account for duplicates
 
-	Research:
-		Research about allocator best practices
-		Web assembly to run in browser
-		C++20 features:
-			C++ Modules
-			Start using C++ concepts
-			Use three way comparison operator
+	Visual:
+		User interface shows the current read value instead of what the visualisation shows (It pulls from the actual vector rather than the visual representation of it)
+		Viewport should not have rendering code + rename the class
+		Use standard typenames and concepts: e.x. use pointer instead of Pointer and allocator_traits instead of Allocator_Traits (It was nice to learn making my own but it is too time consuming now)
 
 Documentation:
 	Write reason the file exits at the top
 	Write descriptions for classes
 	Write descriptions for functions
 	Create a document in folders to explain the design of the components
+
+Research:
+	Research about allocator best practices
+	Web assembly to run in browser
+	C++20 features:
+		C++ Modules
+		Start using C++ concepts
+		Use three way comparison operator
 
 Testing:
 	Use Memory_Monitor_Event_Handler_Fixture in all the tests that need a handler
