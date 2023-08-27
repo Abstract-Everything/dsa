@@ -12,13 +12,10 @@ using namespace dsa;
 namespace test
 {
 
-// clang-format off
 using Handler_Scope = Memory_Monitor_Handler_Scope<Event_Handler>;
 using Value         = Element_Monitor<Empty_Value, Event_Handler>;
 using Pointer       = Element_Monitor_Pointer<false, Empty_Value, Event_Handler>;
 using Const_Pointer = Element_Monitor_Pointer<true, Empty_Value, Event_Handler>;
-
-// clang-format on
 
 TEST_CASE_METHOD(
     Memory_Monitor_Event_Handler_Fixture,
@@ -46,9 +43,7 @@ TEST_CASE_METHOD(
 		    EqualsEvent(Object_Event_Type::Construct, address));
 	}
 
-	REQUIRE_THAT(
-	    Event_Handler::events().back(),
-	    EqualsEvent(Object_Event_Type::Destroy, address));
+	REQUIRE_THAT(Event_Handler::events().back(), EqualsEvent(Object_Event_Type::Destroy, address));
 }
 
 TEST_CASE_METHOD(
@@ -76,10 +71,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Copy_Construct,
-			&copy.base(),
-			&pointer.base()));
+		    EqualsEvent(Object_Event_Type::Copy_Construct, &copy.base(), &pointer.base()));
 	}
 
 	SECTION("Detect copy assignment") {
@@ -88,10 +80,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Copy_Assign,
-			&copy.base(),
-			&pointer.base()));
+		    EqualsEvent(Object_Event_Type::Copy_Assign, &copy.base(), &pointer.base()));
 	}
 
 	SECTION("Detect assignment to underlying value") {
@@ -100,9 +89,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&copy.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &copy.base()));
 	}
 
 	SECTION("Detect assignment to nullptr") {
@@ -111,9 +98,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&copy.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &copy.base()));
 	}
 
 	SECTION("Const pointer can be copied from non-const pointer") {
@@ -138,10 +123,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Move_Construct,
-			&pointer.base(),
-			&temporary.base()));
+		    EqualsEvent(Object_Event_Type::Move_Construct, &pointer.base(), &temporary.base()));
 	}
 
 	SECTION("Detect move assignment") {
@@ -150,10 +132,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Move_Assign,
-			&pointer.base(),
-			&temporary.base()));
+		    EqualsEvent(Object_Event_Type::Move_Assign, &pointer.base(), &temporary.base()));
 	}
 
 	SECTION("Const pointer can be moved from non-const pointer") {
@@ -162,8 +141,7 @@ TEST_CASE_METHOD(
 	}
 
 	SECTION("Non-const pointer cannot be moved from const pointer") {
-		STATIC_REQUIRE(
-		    !std::is_constructible_v<Pointer, Const_Pointer &&>);
+		STATIC_REQUIRE(!std::is_constructible_v<Pointer, Const_Pointer &&>);
 		STATIC_REQUIRE(!std::is_assignable_v<Pointer, Const_Pointer &&>);
 	}
 }
@@ -184,9 +162,7 @@ TEST_CASE_METHOD(
 		REQUIRE_THAT(
 		    Event_Handler::instance()->last_event<Object_Event<Empty_Value *>>(
 			{Object_Event_Type::Underlying_Copy_Assign}),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&pointer.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &pointer.base()));
 	}
 
 	SECTION("Detect changes from post-increment operator++") {
@@ -197,9 +173,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&pointer.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &pointer.base()));
 	}
 
 	SECTION("Detect changes from pre-increment operator--") {
@@ -211,9 +185,7 @@ TEST_CASE_METHOD(
 		REQUIRE_THAT(
 		    Event_Handler::instance()->last_event<Object_Event<Empty_Value *>>(
 			{Object_Event_Type::Underlying_Copy_Assign}),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&pointer.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &pointer.base()));
 	}
 
 	SECTION("Detect changes from post-increment operator--") {
@@ -224,9 +196,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&pointer.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &pointer.base()));
 	}
 
 	SECTION("Support operator+") {
@@ -261,9 +231,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&pointer.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &pointer.base()));
 	}
 
 	SECTION("Detect changes from operator-=") {
@@ -274,9 +242,7 @@ TEST_CASE_METHOD(
 
 		REQUIRE_THAT(
 		    Event_Handler::events().back(),
-		    EqualsEvent(
-			Object_Event_Type::Underlying_Copy_Assign,
-			&pointer.base()));
+		    EqualsEvent(Object_Event_Type::Underlying_Copy_Assign, &pointer.base()));
 	}
 
 	SECTION("Supports getting the difference with operator-") {

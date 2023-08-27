@@ -19,13 +19,9 @@ namespace test
 struct IsHeap : Catch::Matchers::MatcherGenericBase
 {
 	bool match(auto const &heap) const {
-		using Comparator =
-		    typename std::decay_t<decltype(heap)>::Comparator;
+		using Comparator = typename std::decay_t<decltype(heap)>::Comparator;
 
-		return dsa::is_heap(
-		    std::begin(heap.storage()),
-		    std::end(heap.storage()),
-		    Comparator{});
+		return dsa::is_heap(std::begin(heap.storage()), std::end(heap.storage()), Comparator{});
 	}
 
 	std::string describe() const override {

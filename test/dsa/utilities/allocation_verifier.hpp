@@ -22,8 +22,7 @@
 namespace test
 {
 
-static constexpr char const *memory_leaked =
-    "Allocated memory was not deallocated\n";
+static constexpr char const *memory_leaked = "Allocated memory was not deallocated\n";
 
 static constexpr char const *deallocating_unallocated_memory =
     "Deallocate was called on an address which does not point to "
@@ -40,8 +39,7 @@ static constexpr char const *destroying_nonconstructed_memory =
     "Destroy was called on an address which does not point to "
     "constructed memory\n";
 
-static constexpr char const *object_leaked =
-    "Constructed memory was not destroyed\n";
+static constexpr char const *object_leaked = "Constructed memory was not destroyed\n";
 
 static constexpr char const *assign_uninitialized_memory =
     "Assignment was made to uninitialised memory\n";
@@ -82,8 +80,7 @@ class Allocation_Verifier
 	void cleanup() {
 		for (auto const &allocation : memory_representation.allocations())
 		{
-			if (allocation->owns_allocation()
-			    && !allocation->all_elements_destroyed())
+			if (allocation->owns_allocation() && !allocation->all_elements_destroyed())
 			{
 				add_error(object_leaked);
 			}
@@ -101,10 +98,8 @@ class Allocation_Verifier
 			return;
 		}
 
-		std::string errors = std::accumulate(
-		    m_errors.begin(),
-		    m_errors.end(),
-		    std::string(""));
+		std::string errors =
+		    std::accumulate(m_errors.begin(), m_errors.end(), std::string(""));
 
 		m_errors.clear();
 
@@ -119,9 +114,7 @@ class Allocation_Verifier
 	template<typename T>
 	static auto before_deallocate(dsa::Allocation_Event<T> event) -> bool {
 		assert(event.type() == dsa::Allocation_Event_Type::Deallocate);
-		return instance()->before_deallocate_impl(
-		    event.address(),
-		    event.count());
+		return instance()->before_deallocate_impl(event.address(), event.count());
 	}
 
 	template<typename T>
@@ -142,19 +135,16 @@ class Allocation_Verifier
 	void process_object_event_impl(dsa::Object_Event<T> event) {
 		if (event.copying() || event.moving())
 		{
-			auto const source_field =
-			    memory_representation.field_at(event.source());
+			auto const source_field = memory_representation.field_at(event.source());
 
-			if (!source_field.has_value()
-			    || !source_field.value().get().initialised())
+			if (!source_field.has_value() || !source_field.value().get().initialised())
 			{
 				add_error(assign_from_uninitialized_memory);
 				return;
 			}
 		}
 
-		auto const destination_field =
-		    memory_representation.field_at(event.destination());
+		auto const destination_field = memory_representation.field_at(event.destination());
 
 		switch (event.type())
 		{
@@ -218,8 +208,7 @@ class Allocation_Verifier
 			return false;
 		}
 
-		if (allocation.owns_allocation()
-		    && !allocation.all_elements_destroyed())
+		if (allocation.owns_allocation() && !allocation.all_elements_destroyed())
 		{
 			allocation.cleanup();
 			add_error(object_leaked);

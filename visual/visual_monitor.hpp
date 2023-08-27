@@ -14,8 +14,7 @@ class Visual_Monitor
 {
  public:
 	template<typename T>
-	static auto before_deallocate(dsa::Allocation_Event<T> /* event */)
-	    -> bool {
+	static auto before_deallocate(dsa::Allocation_Event<T> /* event */) -> bool {
 		return true;
 	}
 

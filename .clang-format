@@ -2,7 +2,7 @@ Language: Cpp
 Standard: c++20
 
 # Whitespace options
-ColumnLimit: 80
+ColumnLimit: 100
 LineEnding: LF
 InsertNewlineAtEOF: true
 UseTab: ForContinuationAndIndentation
@@ -47,7 +47,7 @@ SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
 SpacesInConditionalStatement: false
 SpacesInContainerLiterals: false
-SpacesInLineCommentPrefix: # clang-format 14
+SpacesInLineCommentPrefix:
   Minimum: 1
   Maximum: 2
 SpacesInParentheses: false
@@ -123,10 +123,6 @@ TypenameMacros: []
 WhitespaceSensitiveMacros: []
 AttributeMacros: []
 ForEachMacros: []
-# CommentPragmas: ''
-# MacroBlockBegin
-# MacroBlockEnd
-# NamespaceMacros
 StatementAttributeLikeMacros: []
 
 # Includes
@@ -154,7 +150,6 @@ IncludeCategories:
     Priority: 1
     SortPriority: 1
 IncludeIsMainRegex: "$"
-# IncludeIsMainSourceRegex
 SortIncludes: true
 
 # Penalty tweaking

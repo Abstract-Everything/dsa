@@ -34,17 +34,14 @@ class Memory_Monitor_Event_Handler_Fixture
 		Event_Handler::instance() = nullptr;
 	}
 
-	Memory_Monitor_Event_Handler_Fixture(
-	    Memory_Monitor_Event_Handler_Fixture const &) = delete;
+	Memory_Monitor_Event_Handler_Fixture(Memory_Monitor_Event_Handler_Fixture const &) = delete;
 
 	Memory_Monitor_Event_Handler_Fixture &operator=(
 	    Memory_Monitor_Event_Handler_Fixture const &) = delete;
 
-	Memory_Monitor_Event_Handler_Fixture(
-	    Memory_Monitor_Event_Handler_Fixture &&) = delete;
+	Memory_Monitor_Event_Handler_Fixture(Memory_Monitor_Event_Handler_Fixture &&) = delete;
 
-	Memory_Monitor_Event_Handler_Fixture &operator=(
-	    Memory_Monitor_Event_Handler_Fixture &&) = delete;
+	Memory_Monitor_Event_Handler_Fixture &operator=(Memory_Monitor_Event_Handler_Fixture &&) = delete;
 };
 
 } // namespace test

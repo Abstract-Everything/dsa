@@ -3,8 +3,8 @@
 #include "memory_monitor_handler_scope.hpp"
 
 #include <dsa/algorithms.hpp>
-#include <dsa/memory.hpp>
 #include <dsa/dynamic_array.hpp>
+#include <dsa/memory.hpp>
 #include <dsa/memory_monitor.hpp>
 
 #include <compare>
@@ -51,14 +51,12 @@ TEST_CASE("Validate min heap stored in an array", "[algorithms]") {
 	}
 
 	SECTION("Validate a heap with a depth of three") {
-		dsa::Dynamic_Array<int>
-		    array{0, 10, 1'000, 20, 30, 2'000, 3'000, 25, 30, 33, 32};
+		dsa::Dynamic_Array<int> array{0, 10, 1'000, 20, 30, 2'000, 3'000, 25, 30, 33, 32};
 		REQUIRE(is_min_heap(array));
 	}
 
 	SECTION("Reject an invalid heap ending with a small element") {
-		dsa::Dynamic_Array<int>
-		    array{0, 10, 1'000, 20, 30, 2'000, 3'000, 25, 30, 33, 32, 1'999};
+		dsa::Dynamic_Array<int> array{0, 10, 1'000, 20, 30, 2'000, 3'000, 25, 30, 33, 32, 1'999};
 		REQUIRE_FALSE(is_min_heap(array));
 	}
 
@@ -67,30 +65,20 @@ TEST_CASE("Validate min heap stored in an array", "[algorithms]") {
 		    "A decreasing sequence is not a min heap but it is a max "
 		    "heap") {
 			dsa::Dynamic_Array<int> array{0, -1, -2, -3};
-			REQUIRE_FALSE(
-			    dsa::is_heap(array.begin(), array.end(), std::less{}));
-			REQUIRE(dsa::is_heap(
-			    array.begin(),
-			    array.end(),
-			    std::greater{}));
+			REQUIRE_FALSE(dsa::is_heap(array.begin(), array.end(), std::less{}));
+			REQUIRE(dsa::is_heap(array.begin(), array.end(), std::greater{}));
 		}
 
-		SECTION(
-		    "Check that following elements are up to two units less") {
+		SECTION("Check that following elements are up to two units less") {
 			SECTION("Valid sequence") {
 				dsa::Dynamic_Array<int> array{10, 9, 8, 8, 7};
-				REQUIRE(dsa::is_heap(
-				    array.begin(),
-				    array.end(),
-				    Smaller_By_Two{}));
+				REQUIRE(dsa::is_heap(array.begin(), array.end(), Smaller_By_Two{}));
 			}
 
 			SECTION("Invalid last element") {
 				dsa::Dynamic_Array<int> array{10, 9, 8, 6};
-				REQUIRE_FALSE(dsa::is_heap(
-				    array.begin(),
-				    array.end(),
-				    Smaller_By_Two{}));
+				REQUIRE_FALSE(
+				    dsa::is_heap(array.begin(), array.end(), Smaller_By_Two{}));
 			}
 		}
 	}
@@ -137,26 +125,17 @@ TEST_CASE("is_sorted validates that a range is sorted", "[algorithms]") {
 		SECTION("Can check if array is sorted in descending order") {
 			dsa::Dynamic_Array array{30, 25, 14, 4, 1};
 
-			REQUIRE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    std::greater{}));
+			REQUIRE(dsa::is_sorted(array.begin(), array.end(), std::greater{}));
 		}
 
 		SECTION("Valid sequence") {
 			dsa::Dynamic_Array<int> array{10, 9, 7, 5};
-			REQUIRE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    Smaller_By_Two{}));
+			REQUIRE(dsa::is_sorted(array.begin(), array.end(), Smaller_By_Two{}));
 		}
 
 		SECTION("Invalid last element") {
 			dsa::Dynamic_Array<int> array{10, 9, 7, 4};
-			REQUIRE_FALSE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    Smaller_By_Two{}));
+			REQUIRE_FALSE(dsa::is_sorted(array.begin(), array.end(), Smaller_By_Two{}));
 		}
 	}
 }
@@ -216,37 +195,22 @@ TEST_CASE("Insertion sort correctly sorts an array", "[algorithms]") {
 		SECTION("Can sort an array in descending order") {
 			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
 
-			dsa::insertion_sort(
-			    array.begin(),
-			    array.end(),
-			    std::greater{});
+			dsa::insertion_sort(array.begin(), array.end(), std::greater{});
 
-			REQUIRE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    std::greater{}));
+			REQUIRE(dsa::is_sorted(array.begin(), array.end(), std::greater{}));
 		}
 
 		SECTION("Subsequent elements are two units less") {
 			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
 
-			dsa::insertion_sort(
-			    array.begin(),
-			    array.end(),
-			    std::greater{});
+			dsa::insertion_sort(array.begin(), array.end(), std::greater{});
 
-			REQUIRE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    Smaller_By_Two{}));
+			REQUIRE(dsa::is_sorted(array.begin(), array.end(), Smaller_By_Two{}));
 		}
 
 		SECTION("Invalid last element") {
 			dsa::Dynamic_Array<int> array{10, 9, 7, 4};
-			REQUIRE_FALSE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    Smaller_By_Two{}));
+			REQUIRE_FALSE(dsa::is_sorted(array.begin(), array.end(), Smaller_By_Two{}));
 		}
 	}
 }
@@ -296,37 +260,22 @@ TEST_CASE("Selection sort correctly sorts an array", "[algorithms]") {
 		SECTION("Can sort an array in descending order") {
 			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
 
-			dsa::selection_sort(
-			    array.begin(),
-			    array.end(),
-			    std::greater{});
+			dsa::selection_sort(array.begin(), array.end(), std::greater{});
 
-			REQUIRE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    std::greater{}));
+			REQUIRE(dsa::is_sorted(array.begin(), array.end(), std::greater{}));
 		}
 
 		SECTION("Subsequent elements are two units less") {
 			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
 
-			dsa::selection_sort(
-			    array.begin(),
-			    array.end(),
-			    std::greater{});
+			dsa::selection_sort(array.begin(), array.end(), std::greater{});
 
-			REQUIRE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    Smaller_By_Two{}));
+			REQUIRE(dsa::is_sorted(array.begin(), array.end(), Smaller_By_Two{}));
 		}
 
 		SECTION("Invalid last element") {
 			dsa::Dynamic_Array<int> array{10, 9, 7, 4};
-			REQUIRE_FALSE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    Smaller_By_Two{}));
+			REQUIRE_FALSE(dsa::is_sorted(array.begin(), array.end(), Smaller_By_Two{}));
 		}
 	}
 }
@@ -376,37 +325,22 @@ TEST_CASE("Merge sort correctly sorts an array", "[algorithms]") {
 		SECTION("Can sort an array in descending order") {
 			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
 
-			dsa::merge_sort(
-			    array.begin(),
-			    array.end(),
-			    std::greater{});
+			dsa::merge_sort(array.begin(), array.end(), std::greater{});
 
-			REQUIRE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    std::greater{}));
+			REQUIRE(dsa::is_sorted(array.begin(), array.end(), std::greater{}));
 		}
 
 		SECTION("Subsequent elements are two units less") {
 			dsa::Dynamic_Array array{9, 3, 8, 2, 1, 7, 5, 6, 4, 10};
 
-			dsa::merge_sort(
-			    array.begin(),
-			    array.end(),
-			    std::greater{});
+			dsa::merge_sort(array.begin(), array.end(), std::greater{});
 
-			REQUIRE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    Smaller_By_Two{}));
+			REQUIRE(dsa::is_sorted(array.begin(), array.end(), Smaller_By_Two{}));
 		}
 
 		SECTION("Invalid last element") {
 			dsa::Dynamic_Array<int> array{10, 9, 7, 4};
-			REQUIRE_FALSE(dsa::is_sorted(
-			    array.begin(),
-			    array.end(),
-			    Smaller_By_Two{}));
+			REQUIRE_FALSE(dsa::is_sorted(array.begin(), array.end(), Smaller_By_Two{}));
 		}
 	}
 }
@@ -473,10 +407,8 @@ TEST_CASE("Linear search finds first occurence of element", "[algorithms]") {
 		    Incomparable_Value(6),
 		};
 
-		auto element = dsa::linear_search(
-		    array.begin(),
-		    array.end(),
-		    [](Incomparable_Value const &value) {
+		auto element =
+		    dsa::linear_search(array.begin(), array.end(), [](Incomparable_Value const &value) {
 			    return value.compare(Incomparable_Value(9));
 		    });
 
@@ -556,10 +488,8 @@ TEST_CASE("Binary search searches an array for an element", "[algorithms]") {
 		    Incomparable_Value(10),
 		};
 
-		auto element = dsa::binary_search(
-		    array.begin(),
-		    array.end(),
-		    [](Incomparable_Value const &value) {
+		auto element =
+		    dsa::binary_search(array.begin(), array.end(), [](Incomparable_Value const &value) {
 			    return value.compare(Incomparable_Value(2));
 		    });
 
@@ -568,17 +498,12 @@ TEST_CASE("Binary search searches an array for an element", "[algorithms]") {
 	}
 }
 
-TEST_CASE(
-    "Sum components search find two elements adding up to a sum",
-    "[algorithms]") {
+TEST_CASE("Sum components search find two elements adding up to a sum", "[algorithms]") {
 	SECTION("Sufficient elements must be present within the array") {
 		SECTION("Empty array") {
 			dsa::Dynamic_Array<int> array;
 
-			auto pair = dsa::sum_components_search(
-			    array.begin(),
-			    array.end(),
-			    0);
+			auto pair = dsa::sum_components_search(array.begin(), array.end(), 0);
 
 			REQUIRE_FALSE(pair.has_value());
 		}
@@ -586,24 +511,17 @@ TEST_CASE(
 		SECTION("Single element array") {
 			dsa::Dynamic_Array array{1};
 
-			auto pair = dsa::sum_components_search(
-			    array.begin(),
-			    array.end(),
-			    0);
+			auto pair = dsa::sum_components_search(array.begin(), array.end(), 0);
 
 			REQUIRE_FALSE(pair.has_value());
 		}
 	}
 
 	SECTION("Two distinct elements must add up to the value") {
-		SECTION("Two distinct element satisfy the condition")
-		{
+		SECTION("Two distinct element satisfy the condition") {
 			dsa::Dynamic_Array array{1, 1};
 
-			auto pair = dsa::sum_components_search(
-			    array.begin(),
-			    array.end(),
-			    2);
+			auto pair = dsa::sum_components_search(array.begin(), array.end(), 2);
 
 			REQUIRE(pair.has_value());
 			REQUIRE(
@@ -613,49 +531,37 @@ TEST_CASE(
 				 && pair.value().second == array.begin())));
 		}
 
-		SECTION("Sum requires two distinct elements")
-		{
+		SECTION("Sum requires two distinct elements") {
 			dsa::Dynamic_Array array{2};
 
-			auto pair = dsa::sum_components_search(
-			    array.begin(),
-			    array.end(),
-			    2);
+			auto pair = dsa::sum_components_search(array.begin(), array.end(), 2);
 
 			REQUIRE_FALSE(pair.has_value());
 		}
 
-		SECTION("Elements must add up to the required sum")
-		{
+		SECTION("Elements must add up to the required sum") {
 			dsa::Dynamic_Array array{1, 1};
 
-			auto pair = dsa::sum_components_search(
-			    array.begin(),
-			    array.end(),
-			    3);
+			auto pair = dsa::sum_components_search(array.begin(), array.end(), 3);
 
 			REQUIRE_FALSE(pair.has_value());
 		}
 	}
 
-	SECTION("A sum is found in a multi-element array")
-	{
+	SECTION("A sum is found in a multi-element array") {
 		dsa::Dynamic_Array array{7, 4, 3, 9};
 
-		auto pair =
-		    dsa::sum_components_search(array.begin(), array.end(), 7);
+		auto pair = dsa::sum_components_search(array.begin(), array.end(), 7);
 
 		REQUIRE(pair.has_value());
 		REQUIRE(pair.value().first == array.begin() + 2);
 		REQUIRE(pair.value().second == array.begin() + 1);
 	}
 
-	SECTION("No sum is found in a multi-element array")
-	{
+	SECTION("No sum is found in a multi-element array") {
 		dsa::Dynamic_Array array{7, 4, 3, 9};
 
-		auto pair =
-		    dsa::sum_components_search(array.begin(), array.end(), 14);
+		auto pair = dsa::sum_components_search(array.begin(), array.end(), 14);
 
 		REQUIRE_FALSE(pair.has_value());
 	}
@@ -683,8 +589,8 @@ TEST_CASE("Checks if two iterator ranges overlap", "[algorithms]") {
 TEST_CASE("Shift memory block onto overlapping partly uninitialized memory", "[algorithms]") {
 	std::allocator<int> allocator;
 
-	size_t count = 7;
-	auto memory = allocator.allocate(count);
+	size_t count  = 7;
+	auto   memory = allocator.allocate(count);
 
 	memory[3] = 1;
 	memory[4] = 2;

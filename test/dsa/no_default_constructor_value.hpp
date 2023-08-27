@@ -23,18 +23,14 @@ class No_Default_Constructor_Value
 
 	constexpr ~No_Default_Constructor_Value() = default;
 
-	constexpr No_Default_Constructor_Value(
-	    No_Default_Constructor_Value const &) = delete;
-	constexpr No_Default_Constructor_Value &operator=(
-	    No_Default_Constructor_Value const &) = delete;
+	constexpr No_Default_Constructor_Value(No_Default_Constructor_Value const &) = delete;
+	constexpr No_Default_Constructor_Value &operator=(No_Default_Constructor_Value const &) = delete;
 
-	constexpr No_Default_Constructor_Value(No_Default_Constructor_Value &&) = delete;
-	constexpr No_Default_Constructor_Value &operator=(
-	    No_Default_Constructor_Value &&) = delete;
+	constexpr No_Default_Constructor_Value(No_Default_Constructor_Value &&)            = delete;
+	constexpr No_Default_Constructor_Value &operator=(No_Default_Constructor_Value &&) = delete;
 
-	friend auto operator<<(
-	    std::ostream &stream,
-	    No_Default_Constructor_Value const & /*value*/) -> std::ostream & {
+	friend auto operator<<(std::ostream &stream, No_Default_Constructor_Value const & /*value*/)
+	    -> std::ostream & {
 		return stream << "{}";
 	}
 };

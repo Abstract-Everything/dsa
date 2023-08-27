@@ -5,8 +5,7 @@
 namespace
 {
 
-constexpr std::array
-    structures{"Empty", "Array", "Vector", "List", "Binary Tree", "Heap"};
+constexpr std::array structures{"Empty", "Array", "Vector", "List", "Binary Tree", "Heap"};
 
 } // namespace
 
@@ -14,21 +13,16 @@ namespace visual
 {
 
 void User_Interface::draw() {
-	static_assert(
-	    structures.size() == std::variant_size_v<Structures_Actions>);
+	static_assert(structures.size() == std::variant_size_v<Structures_Actions>);
 
-	if (!ImGui::CollapsingHeader(
-		"Data structure operations",
-		ImGuiTreeNodeFlags_DefaultOpen))
+	if (!ImGui::CollapsingHeader("Data structure operations", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		return;
 	}
 
 	ImGui::Indent();
 
-	if (ImGui::CollapsingHeader(
-		"Data structure selection",
-		ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Data structure selection", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::Indent();
 
@@ -49,9 +43,7 @@ void User_Interface::draw() {
 
 	std::visit(
 	    [](auto &&actions_ui) {
-		    if constexpr (!std::is_same_v<
-				      std::decay_t<decltype(actions_ui)>,
-				      std::monostate>)
+		    if constexpr (!std::is_same_v<std::decay_t<decltype(actions_ui)>, std::monostate>)
 		    {
 			    actions_ui.draw();
 		    }

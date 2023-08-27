@@ -19,15 +19,11 @@ class Dummy_Pointer
 	Dummy_Pointer &operator=(Dummy_Pointer const &) = delete;
 	Dummy_Pointer &operator=(Dummy_Pointer &&)      = default;
 
-	[[nodiscard]] constexpr friend bool operator==(
-	    Dummy_Pointer const &lhs,
-	    Dummy_Pointer const &rhs) {
+	[[nodiscard]] constexpr friend bool operator==(Dummy_Pointer const &lhs, Dummy_Pointer const &rhs) {
 		return lhs.m_id == rhs.m_id;
 	}
 
-	[[nodiscard]] constexpr friend bool operator!=(
-	    Dummy_Pointer const &lhs,
-	    Dummy_Pointer const &rhs) {
+	[[nodiscard]] constexpr friend bool operator!=(Dummy_Pointer const &lhs, Dummy_Pointer const &rhs) {
 		return !(lhs == rhs);
 	}
 

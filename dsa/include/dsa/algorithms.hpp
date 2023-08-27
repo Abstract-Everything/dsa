@@ -160,10 +160,7 @@ void selection_sort(Iterator begin, Iterator end) {
  *  @brief Uses merge sort on the given range such that each pair satisfies
  *  comparator(first, second)
  */
-template<
-    typename Iterator,
-    typename Allocator =
-	Default_Allocator<typename std::iterator_traits<Iterator>::value_type>>
+template<typename Iterator, typename Allocator = Default_Allocator<typename std::iterator_traits<Iterator>::value_type>>
 void merge_sort(Iterator begin, Iterator end, auto const &comparator) {
 	using Traits = std::iterator_traits<Iterator>;
 	using std::swap;
@@ -194,18 +191,14 @@ void merge_sort(Iterator begin, Iterator end, auto const &comparator) {
 		first_half.append(std::move(*i));
 	}
 
-	merge_sort<Iterator, Allocator>(
-	    first_half.begin(),
-	    first_half.end(),
-	    comparator);
+	merge_sort<Iterator, Allocator>(first_half.begin(), first_half.end(), comparator);
 	merge_sort<Iterator, Allocator>(middle, end, comparator);
 
 	auto     first  = first_half.begin();
 	Iterator second = middle;
 	for (Iterator i = begin; i != end; ++i)
 	{
-		if (second == end
-		    || (first != first_half.end() && comparator(*first, *second)))
+		if (second == end || (first != first_half.end() && comparator(*first, *second)))
 		{
 			swap(*i, *first++);
 		}
@@ -219,10 +212,7 @@ void merge_sort(Iterator begin, Iterator end, auto const &comparator) {
 /**
  *  @brief Uses merge sort to sort the given range in ascending order
  */
-template<
-    typename Iterator,
-    typename Allocator =
-	Default_Allocator<typename std::iterator_traits<Iterator>::value_type>>
+template<typename Iterator, typename Allocator = Default_Allocator<typename std::iterator_traits<Iterator>::value_type>>
 void merge_sort(Iterator begin, Iterator end) {
 	return merge_sort<Iterator, Allocator>(begin, end, std::less{});
 }
@@ -233,8 +223,7 @@ void merge_sort(Iterator begin, Iterator end) {
  *  the iterator of the value in the range
  */
 template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
-auto linear_search(Iterator begin, Iterator end, auto const &predicate)
-    -> std::optional<Iterator> {
+auto linear_search(Iterator begin, Iterator end, auto const &predicate) -> std::optional<Iterator> {
 	for (auto i = begin; i != end; ++i)
 	{
 		if (std::is_eq(predicate(*i)))
@@ -264,8 +253,7 @@ auto linear_search(Iterator begin, Iterator end, typename Traits::value_type con
  *  the iterator of the value in the range
  */
 template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
-auto binary_search(Iterator begin, Iterator end, auto const &predicate)
-    -> std::optional<Iterator> {
+auto binary_search(Iterator begin, Iterator end, auto const &predicate) -> std::optional<Iterator> {
 	while (begin != end)
 	{
 		// We want to round down so that we stay in the begin, end - 1
@@ -313,10 +301,7 @@ auto binary_search(Iterator begin, Iterator end, typename Traits::value_type con
  *  yet we use the sort + binary search version
  */
 template<typename Iterator, typename Traits = std::iterator_traits<Iterator>>
-auto sum_components_search(
-    Iterator                           begin,
-    Iterator                           end,
-    typename Traits::value_type const &value)
+auto sum_components_search(Iterator begin, Iterator end, typename Traits::value_type const &value)
     -> std::optional<std::pair<Iterator, Iterator>> {
 	dsa::Vector<Iterator> sorted_iterators;
 	sorted_iterators.reserve(static_cast<size_t>(end - begin));
@@ -331,10 +316,10 @@ auto sum_components_search(
 
 	for (auto i = sorted_iterators.begin(); i != sorted_iterators.end(); ++i)
 	{
-		auto complement = binary_search(
-		    i + 1,
-		    sorted_iterators.end(),
-		    [&](Iterator const &it) { return **i + *it <=> value; });
+		auto complement =
+		    binary_search(i + 1, sorted_iterators.end(), [&](Iterator const &it) {
+			    return **i + *it <=> value;
+		    });
 		if (complement.has_value())
 		{
 			return std::pair{*i, *complement.value()};

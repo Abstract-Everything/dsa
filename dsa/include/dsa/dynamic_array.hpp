@@ -75,16 +75,11 @@ class Dynamic_Array
 	/**
 	 * @brief Constructs an array filled with the given values
 	 */
-	constexpr Dynamic_Array(
-	    std::initializer_list<Value_t> values,
-	    Allocator                      allocator = Allocator{})
+	constexpr Dynamic_Array(std::initializer_list<Value_t> values, Allocator allocator = Allocator{})
 	    : m_allocator(std::move(allocator))
 	    , m_size(values.size())
 	    , m_storage(Alloc_Traits::allocate(m_allocator, m_size)) {
-		std::uninitialized_copy(
-		    std::begin(values),
-		    std::end(values),
-		    m_storage);
+		std::uninitialized_copy(std::begin(values), std::end(values), m_storage);
 	}
 
 	constexpr ~Dynamic_Array() {
@@ -98,8 +93,7 @@ class Dynamic_Array
 	}
 
 	constexpr Dynamic_Array(Dynamic_Array const &darray)
-	    : m_allocator(
-		Alloc_Traits::propogate_or_create_instance(darray.allocator()))
+	    : m_allocator(Alloc_Traits::propogate_or_create_instance(darray.allocator()))
 	    , m_size(darray.size())
 	    , m_storage(Alloc_Traits::allocate(m_allocator, m_size)) {
 		std::uninitialized_copy(darray.begin(), darray.end(), begin());
@@ -127,16 +121,11 @@ class Dynamic_Array
 		return *this;
 	}
 
-	friend constexpr bool operator==(
-	    Dynamic_Array const &lhs,
-	    Dynamic_Array const &rhs) noexcept {
-		return lhs.size() == rhs.size()
-		       && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+	friend constexpr bool operator==(Dynamic_Array const &lhs, Dynamic_Array const &rhs) noexcept {
+		return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
 	}
 
-	friend constexpr bool operator!=(
-	    Dynamic_Array const &lhs,
-	    Dynamic_Array const &rhs) noexcept {
+	friend constexpr bool operator!=(Dynamic_Array const &lhs, Dynamic_Array const &rhs) noexcept {
 		return !(lhs == rhs);
 	}
 

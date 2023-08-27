@@ -23,10 +23,7 @@ namespace dsa
  * @tparam Allocator_Base: The type of allocator used for memory management
  *
  */
-template<
-    typename Value_t,
-    typename Comparator_t = decltype(std::less{}),
-    typename Allocator_t  = Default_Allocator<Value_t>>
+template<typename Value_t, typename Comparator_t = decltype(std::less{}), typename Allocator_t = Default_Allocator<Value_t>>
 class Heap
 {
  private:
@@ -121,8 +118,7 @@ class Heap
 		m_storage.append(std::move(value));
 
 		for (std::size_t parent = parent_index(index);
-		     index != 0
-		     && !m_comparator(m_storage[parent], m_storage[index]);
+		     index != 0 && !m_comparator(m_storage[parent], m_storage[index]);
 		     parent = parent_index(index))
 		{
 			swap(m_storage[parent], m_storage[index]);
@@ -149,8 +145,7 @@ class Heap
 		m_storage.erase(last);
 
 		std::size_t parent = 0;
-		for (std::size_t left = 1; left < m_storage.size();
-		     left             = child_index(parent))
+		for (std::size_t left = 1; left < m_storage.size(); left = child_index(parent))
 		{
 			const std::size_t right = left + 1;
 

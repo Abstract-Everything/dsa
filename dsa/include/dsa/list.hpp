@@ -18,29 +18,24 @@ template<typename Satellite_t, typename Allocator_t>
 class List_Node
 {
  private:
-	// clang-format off
 	using Alloc_Traits  = Allocator_Traits<typename Allocator_t::template rebind<List_Node>>;
 	using Allocator     = typename Alloc_Traits::Allocator;
 	using Pointer       = typename Alloc_Traits::Pointer;
 	using Const_Pointer = typename Alloc_Traits::Const_Pointer;
 
-	using Satellite_Traits          = Allocator_Traits<typename Allocator_t::template rebind<Satellite_t>>;
+	using Satellite_Traits = Allocator_Traits<typename Allocator_t::template rebind<Satellite_t>>;
 	using Satellite_Value           = typename Satellite_Traits::Value;
 	using Satellite_Reference       = typename Satellite_Traits::Reference;
 	using Satellite_Const_Reference = typename Satellite_Traits::Const_Reference;
 	using Satellite_Pointer         = typename Satellite_Traits::Pointer;
 	using Satellite_Const_Pointer   = typename Satellite_Traits::Const_Pointer;
 
-	// clang-format on
-
 	template<bool Is_Const>
 	class Iterator_Detail
 	{
 	 private:
-		using Node_Pointer = std::conditional_t<
-		    Is_Const,
-		    typename List_Node::Const_Pointer,
-		    typename List_Node::Pointer>;
+		using Node_Pointer =
+		    std::conditional_t<Is_Const, typename List_Node::Const_Pointer, typename List_Node::Pointer>;
 
 		using Pointer =
 		    std::conditional_t<Is_Const, Satellite_Const_Pointer, Satellite_Pointer>;
@@ -64,8 +59,7 @@ class List_Node
 			return iterator;
 		}
 
-		auto operator<=>(Iterator_Detail const &iterator) const
-		    -> bool = default;
+		auto operator<=>(Iterator_Detail const &iterator) const -> bool = default;
 
 		Reference operator*() const {
 			return m_node->m_satellite;
@@ -92,14 +86,8 @@ class List_Node
 	Satellite_Value m_satellite;
 	Pointer         m_next = nullptr;
 
-	friend auto operator<<(std::ostream &stream, List_Node const &node)
-	    -> std::ostream & {
-		// clang-format off
-		return stream << '{'
-				<< node.m_next
-				<< ',' << node.m_satellite
-			<< '}';
-		// clang-format on
+	friend auto operator<<(std::ostream &stream, List_Node const &node) -> std::ostream & {
+		return stream << '{' << node.m_next << ',' << node.m_satellite << '}';
 	}
 };
 
@@ -142,16 +130,13 @@ class List
 	/**
 	 * @brief Constructs an empty list
 	 */
-	explicit List(Allocator const &allocator = Allocator{})
-	    : m_allocator(allocator) {
+	explicit List(Allocator const &allocator = Allocator{}) : m_allocator(allocator) {
 	}
 
 	/**
 	 * @brief Constructs a list filled with the given values
 	 */
-	List(
-	    std::initializer_list<Value_t> values,
-	    Allocator const               &allocator = Allocator())
+	List(std::initializer_list<Value_t> values, Allocator const &allocator = Allocator())
 	    : m_allocator(allocator) {
 		Node_Pointer *owner = &m_head;
 		for (auto const &value : values)
@@ -311,10 +296,7 @@ class List
 	template<typename... Arguments>
 	auto create_node(Arguments &&...arguments) -> Node_Pointer {
 		Node_Pointer node = Node_Traits::allocate(m_allocator, 1);
-		Node_Traits::construct(
-		    m_allocator,
-		    node,
-		    std::forward<Arguments>(arguments)...);
+		Node_Traits::construct(m_allocator, node, std::forward<Arguments>(arguments)...);
 		return node;
 	}
 

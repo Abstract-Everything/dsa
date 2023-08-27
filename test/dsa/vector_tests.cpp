@@ -16,9 +16,7 @@ using Vector    = dsa::Vector<Value, Allocator>;
 
 using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
 
-TEST_CASE(
-    "Vector provides multiple constructors for easy initialisation",
-    "[vector]") {
+TEST_CASE("Vector provides multiple constructors for easy initialisation", "[vector]") {
 	Handler_Scope scope;
 
 	constexpr size_t count         = 2;
@@ -33,8 +31,7 @@ TEST_CASE(
 		REQUIRE(vector.capacity() == 0);
 	}
 
-	SECTION(
-	    "Custom size initialised vector with default constructed values") {
+	SECTION("Custom size initialised vector with default constructed values") {
 		Vector vector(count);
 
 		REQUIRE_FALSE(vector.empty());
@@ -224,8 +221,7 @@ TEST_CASE("Elements can be inserted into the vector", "[vector]") {
 	SECTION("Insertion with reallocation preserves previous elements") {
 		Vector vector(4ULL, 2);
 
-		SECTION(
-		    "Insertion at the front shifts buffer elements backwards") {
+		SECTION("Insertion at the front shifts buffer elements backwards") {
 			std::initializer_list<int> expected{3, 2, 2, 2, 2};
 
 			vector.insert(0ULL, Vector::Value(3));
@@ -233,8 +229,7 @@ TEST_CASE("Elements can be inserted into the vector", "[vector]") {
 			REQUIRE_THAT(vector, EqualsRange(expected));
 		}
 
-		SECTION(
-		    "Insertion at the middle shifts later elements backwards") {
+		SECTION("Insertion at the middle shifts later elements backwards") {
 			std::initializer_list<int> expected{2, 2, 3, 2, 2};
 
 			vector.insert(2ULL, Vector::Value(3));
@@ -258,8 +253,7 @@ TEST_CASE("Elements can be inserted into the vector", "[vector]") {
 		vector.append(1);
 		vector.append(2);
 
-		SECTION(
-		    "Insertion at the front shifts buffer elements backwards") {
+		SECTION("Insertion at the front shifts buffer elements backwards") {
 			std::initializer_list<int> expected{3, 0, 1, 2};
 
 			vector.insert(0ULL, Vector::Value(3));
@@ -267,8 +261,7 @@ TEST_CASE("Elements can be inserted into the vector", "[vector]") {
 			REQUIRE_THAT(vector, EqualsRange(expected));
 		}
 
-		SECTION(
-		    "Insertion at the middle shifts later elements backwards") {
+		SECTION("Insertion at the middle shifts later elements backwards") {
 			std::initializer_list<int> expected{0, 1, 3, 2};
 
 			vector.insert(2ULL, Vector::Value(3));

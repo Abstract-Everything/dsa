@@ -19,8 +19,7 @@ class Viewport
 	void add_event(dsa::Memory_Monitor_Event auto &&event) {
 		spdlog::trace("Added eventof type: {}", event);
 		m_memory_representaion.push_back(m_memory_representaion.back());
-		m_memory_representaion.back().process_event(
-		    std::forward<decltype(event)>(event));
+		m_memory_representaion.back().process_event(std::forward<decltype(event)>(event));
 	}
 
 	void update(std::chrono::microseconds delta_time);
@@ -28,8 +27,7 @@ class Viewport
 	void draw() const;
 
  private:
-	std::list<dsa::Memory_Representation> m_memory_representaion = {
-	    dsa::Memory_Representation()};
+	std::list<dsa::Memory_Representation> m_memory_representaion = {dsa::Memory_Representation()};
 
 	std::chrono::microseconds m_event_timeout{-1};
 
@@ -42,8 +40,7 @@ class Viewport
 	void        draw_pointers() const;
 	void        draw_pointer(dsa::Allocation_Element const &element) const;
 
-	static auto pointer_value_address(dsa::Allocation_Element const &element)
-	    -> uintptr_t;
+	static auto pointer_value_address(dsa::Allocation_Element const &element) -> uintptr_t;
 };
 
 } // namespace visual

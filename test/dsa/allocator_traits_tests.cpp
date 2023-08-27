@@ -11,17 +11,14 @@
 namespace test
 {
 
-TEST_CASE(
-    "Allocator_Traits exposes value, pointer and reference types",
-    "[allocator_traits]") {
+TEST_CASE("Allocator_Traits exposes value, pointer and reference types", "[allocator_traits]") {
 	using Allocator = dsa::Default_Allocator<Empty_Value>;
 	using Traits    = dsa::Allocator_Traits<Allocator>;
 
 	STATIC_REQUIRE(std::is_same_v<Traits::Allocator, Allocator>);
 	STATIC_REQUIRE(std::is_same_v<Traits::Value, Empty_Value>);
 	STATIC_REQUIRE(std::is_same_v<Traits::Reference, Empty_Value &>);
-	STATIC_REQUIRE(
-	    std::is_same_v<Traits::Const_Reference, Empty_Value const &>);
+	STATIC_REQUIRE(std::is_same_v<Traits::Const_Reference, Empty_Value const &>);
 	STATIC_REQUIRE(std::is_same_v<Traits::Pointer, Empty_Value *>);
 	STATIC_REQUIRE(std::is_same_v<Traits::Const_Pointer, Empty_Value const *>);
 }
@@ -70,9 +67,7 @@ struct Dummy_Allocator
 		return Dummy_Pointer(Id(count));
 	}
 
-	constexpr void construct(
-	    Pointer pointer,
-	    Dummy_Value_Construct_Tag /* tag */) {
+	constexpr void construct(Pointer pointer, Dummy_Value_Construct_Tag /* tag */) {
 		constructed = pointer.id();
 	}
 

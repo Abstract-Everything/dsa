@@ -13,7 +13,7 @@ namespace test
 using Value         = int;
 using Allocator     = dsa::Memory_Monitor<Value, Allocation_Verifier>;
 using Handler_Scope = Memory_Monitor_Handler_Scope<Allocation_Verifier>;
-using Binary_Tree = dsa::Binary_Tree<Value, Allocator>;
+using Binary_Tree   = dsa::Binary_Tree<Value, Allocator>;
 
 TEST_CASE("Various mechanisims to initialise binary tree", "[binary_tree]") {
 	Handler_Scope scope;
@@ -151,9 +151,7 @@ TEST_CASE("Binary trees can be swapped", "[binary_tree]") {
 	REQUIRE_THAT(binary_tree_b, EqualsRange(values_a));
 }
 
-TEST_CASE(
-    "Binary trees can be queried for element containment",
-    "[binary_tree]") {
+TEST_CASE("Binary trees can be queried for element containment", "[binary_tree]") {
 	Handler_Scope scope;
 
 	Binary_Tree binary_tree{0, -1, 1};

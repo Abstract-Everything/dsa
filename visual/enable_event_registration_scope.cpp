@@ -11,8 +11,7 @@ void Enable_Event_Registration_Scope::block_events() {
 
 Enable_Event_Registration_Scope::Enable_Event_Registration_Scope() {
 	assert(
-	    !Main_Window::instance().is_registering()
-	    && "Multiple active scopes are not supported");
+	    !Main_Window::instance().is_registering() && "Multiple active scopes are not supported");
 	Main_Window::instance().registering(true);
 }
 

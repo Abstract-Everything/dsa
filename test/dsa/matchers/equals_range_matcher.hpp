@@ -16,11 +16,7 @@ struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase
 
 	template<typename OtherRange>
 	bool match(OtherRange const &other) const {
-		return std::equal(
-		    std::begin(range),
-		    std::end(range),
-		    std::begin(other),
-		    std::end(other));
+		return std::equal(std::begin(range), std::end(range), std::begin(other), std::end(other));
 	}
 
 	std::string describe() const override {

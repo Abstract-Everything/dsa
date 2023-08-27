@@ -12,16 +12,13 @@ class Enable_Event_Registration_Scope
 	Enable_Event_Registration_Scope();
 	~Enable_Event_Registration_Scope();
 
-	Enable_Event_Registration_Scope(
-	    Enable_Event_Registration_Scope const &) = delete;
+	Enable_Event_Registration_Scope(Enable_Event_Registration_Scope const &) = delete;
 
-	Enable_Event_Registration_Scope &operator=(
-	    Enable_Event_Registration_Scope const &) = delete;
+	Enable_Event_Registration_Scope &operator=(Enable_Event_Registration_Scope const &) = delete;
 
 	Enable_Event_Registration_Scope(Enable_Event_Registration_Scope &&) = delete;
 
-	Enable_Event_Registration_Scope &operator=(
-	    Enable_Event_Registration_Scope &&) = delete;
+	Enable_Event_Registration_Scope &operator=(Enable_Event_Registration_Scope &&) = delete;
 };
 
 } // namespace visual

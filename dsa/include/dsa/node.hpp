@@ -13,8 +13,8 @@ class Node_Traits
 	using Alloc_Traits = typename Node_t::Alloc_Traits;
 
 	using Satellite_Alloc_Traits = typename Node_t::Satellite_Alloc_Traits;
-	using Satellite_Allocator = typename Satellite_Alloc_Traits::Allocator;
-	using Satellite_Pointer   = typename Satellite_Alloc_Traits::Pointer;
+	using Satellite_Allocator    = typename Satellite_Alloc_Traits::Allocator;
+	using Satellite_Pointer      = typename Satellite_Alloc_Traits::Pointer;
 
  public:
 	using Allocator     = typename Alloc_Traits::Allocator;
@@ -25,9 +25,7 @@ class Node_Traits
 	 * @brief Allocates a node and constructs the held satellite.
 	 */
 	template<typename... Arguments>
-	[[nodiscard]] static Pointer create_node(
-	    Allocator allocator,
-	    Arguments &&...arguments) {
+	[[nodiscard]] static Pointer create_node(Allocator allocator, Arguments &&...arguments) {
 		Pointer pointer = Alloc_Traits::allocate(allocator, 1);
 		pointer->initialise();
 
@@ -46,9 +44,7 @@ class Node_Traits
 	 */
 	static void destroy_node(Allocator allocator, Pointer node) {
 		Satellite_Allocator satellite_allocator(allocator);
-		Satellite_Alloc_Traits::destroy(
-		    satellite_allocator,
-		    &node->m_satellite);
+		Satellite_Alloc_Traits::destroy(satellite_allocator, &node->m_satellite);
 		Alloc_Traits::deallocate(allocator, node, 1);
 	}
 

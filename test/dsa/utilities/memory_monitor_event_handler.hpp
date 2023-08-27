@@ -24,8 +24,7 @@ using Event_Type = std::variant<
     dsa::Object_Event<No_Default_Constructor_Value>,
     dsa::Object_Event<No_Default_Constructor_Value *>>;
 
-inline auto operator<<(std::ostream &stream, Event_Type const &event)
-    -> std::ostream & {
+inline auto operator<<(std::ostream &stream, Event_Type const &event) -> std::ostream & {
 	std::visit(
 	    dsa::Overloaded_Lambda{
 		[&](std::monostate const &) { stream << "<not-found>"; },
@@ -46,8 +45,7 @@ class Event_Handler
 	}
 
 	template<typename T>
-	static auto before_deallocate(dsa::Allocation_Event<T> /* event */)
-	    -> bool {
+	static auto before_deallocate(dsa::Allocation_Event<T> /* event */) -> bool {
 		return instance()->m_allow_deallocate;
 	}
 
@@ -77,8 +75,7 @@ class Event_Handler
 	}
 
 	template<dsa::Memory_Monitor_Event T>
-	[[nodiscard]] auto last_event(
-	    std::optional<typename T::Event_Type> const &type = std::nullopt) const
+	[[nodiscard]] auto last_event(std::optional<typename T::Event_Type> const &type = std::nullopt) const
 	    -> Event_Type {
 		for (auto it = m_events.rbegin(); it != m_events.rend(); ++it)
 		{
@@ -86,8 +83,7 @@ class Event_Handler
 			    dsa::Overloaded_Lambda{
 				[](auto &&) -> bool { return false; },
 				[&](T const &instance) -> bool {
-					return !type.has_value()
-					       || instance.type() == type.value();
+					return !type.has_value() || instance.type() == type.value();
 				}},
 			    *it);
 
