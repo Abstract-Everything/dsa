@@ -20,6 +20,7 @@ Features:
 		Multithreading
 
 	Visual:
+		add shuffle elements algorithm
 		Visualise linear search
 		Visualise binary search
 		Drag viewport
@@ -38,6 +39,24 @@ Features:
 				Tree:    a
 				       /   \
 				      b     c
+
+		New user interface:
+			Elements should be confined to the viewport
+			Represent a memory block with contents:
+				size of the allocation
+				a spot for each element
+				represent uninitialised memory
+				represent initialised memory
+				represent different values - string, line, colour
+				animate element movement
+				animate element value change
+				represent pointers as arrows to other elements/ memory blocks
+			Automatically arrange memory blocks
+				they should not overlap
+				rearrange themselves such that they point to close nodes
+			Represent stack values
+				Should be on a stack to the side pointing towards heap objects
+			Represent the nullptr
 
 Improvements:
 	DSA:
@@ -59,6 +78,16 @@ Issues:
 		User interface shows the current read value instead of what the visualisation shows (It pulls from the actual vector rather than the visual representation of it)
 		Viewport should not have rendering code + rename the class
 		Use standard typenames and concepts: e.x. use pointer instead of Pointer and allocator_traits instead of Allocator_Traits (It was nice to learn making my own but it is too time consuming now)
+	
+	Crash:
+		Select Array
+		Resize to five elements
+		write 0, 1, 2, 3, 4 to the elements
+		call merge sort
+		switch to Vector
+		-> resulted in crash
+
+		Most probably the destructor events are being thrown away so the state of the memory representation remains invalid
 
 Documentation:
 	Write reason the file exits at the top
