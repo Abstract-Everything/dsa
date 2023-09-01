@@ -5,6 +5,7 @@ find_package(spdlog REQUIRED)
 add_executable(
 	visual
 	gui/user_interface.cpp
+	gui/components/memory.cpp
 	main.cpp
 	main_window.cpp
 	viewport.cpp
@@ -14,6 +15,7 @@ target_include_directories(
 	visual
 	PRIVATE ${CMAKE_CURRENT_LIST_DIR}
 		${CMAKE_CURRENT_LIST_DIR}/gui
+		${CMAKE_CURRENT_LIST_DIR}/gui/components
 		${CMAKE_CURRENT_LIST_DIR}/utilities)
 
 target_link_libraries(
