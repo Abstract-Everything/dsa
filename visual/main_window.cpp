@@ -111,11 +111,10 @@ void Main_Window::start() {
 
 		const sf::Time delta_time = delta_clock.restart();
 		ImGui::SFML::Update(m_window, delta_time);
+
 		m_viewport.update(std::chrono::microseconds{delta_time.asMicroseconds()});
 
 		m_window.clear(dark_grey);
-
-		m_viewport.draw();
 
 		bool             open  = true;
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove
@@ -125,9 +124,14 @@ void Main_Window::start() {
 		ImGuiViewport const *viewport = ImGui::GetMainViewport();
 		const ImVec2         position = viewport->WorkPos;
 		const ImVec2         size     = viewport->WorkSize;
-		ImGui::SetNextWindowPos(ImVec2{position.x, position.y + size.y / 2});
+
+		ImGui::SetNextWindowPos(ImVec2{position.x, position.y});
 		ImGui::SetNextWindowSize(ImVec2{size.x, size.y / 2});
 
+		m_viewport.draw();
+
+		ImGui::SetNextWindowPos(ImVec2{position.x, position.y + size.y / 2});
+		ImGui::SetNextWindowSize(ImVec2{size.x, size.y / 2});
 		if (ImGui::Begin("Data structure visualisation", &open, flags))
 		{
 			m_user_interface->draw();

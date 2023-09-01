@@ -40,24 +40,6 @@ Features:
 				       /   \
 				      b     c
 
-		New user interface:
-			Elements should be confined to the viewport
-			Represent a memory block with contents:
-				size of the allocation
-				a spot for each element
-				represent uninitialised memory
-				represent initialised memory
-				represent different values - string, line, colour
-				animate element movement
-				animate element value change
-				represent pointers as arrows to other elements/ memory blocks
-			Automatically arrange memory blocks
-				they should not overlap
-				rearrange themselves such that they point to close nodes
-			Represent stack values
-				Should be on a stack to the side pointing towards heap objects
-			Represent the nullptr
-
 Improvements:
 	DSA:
 		Make the structures constexpr
