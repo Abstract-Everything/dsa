@@ -154,8 +154,8 @@ TEST_CASE("Dynamic array provides an interface to access its elements", "[dynami
 	}
 
 	SECTION("Iterators can be access through the begin and end functions") {
-		REQUIRE(&array.data()[0] == array.begin());
-		REQUIRE(&array.data()[0] + array.size() == array.end());
+		REQUIRE(array.begin() == &array.data()[0]);
+		REQUIRE(array.end() == &array.data()[0] + array.size());
 	}
 }
 
