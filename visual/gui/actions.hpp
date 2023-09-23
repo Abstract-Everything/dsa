@@ -359,6 +359,25 @@ void Actions_UI<Container>::modifiers() {
 
 	if constexpr (has_random_access_iterators)
 	{
+		using std::swap;
+
+		ImGui::Separator();
+
+		// TODO: Write an actual algorithm for this
+		ImGui::Text("Shuffle the elements of the container");
+		ImGui::SameLine();
+		if (ImGui::Button("Shuffle"))
+		{
+			std::uniform_int_distribution<size_t> distribution(0, m_container.size() - 1);
+			for (size_t i = 0; i < m_container.size(); ++i)
+			{
+				Enable_Event_Registration_Scope scope;
+				swap(m_container[i], m_container[distribution(m_rng)]);
+			}
+		}
+
+		ImGui::Separator();
+
 		ImGui::Text("Insertion sort");
 		ImGui::SameLine();
 		if (ImGui::Button("Insertion sort"))
